@@ -421,6 +421,7 @@ code
 title
 customer_name
 customer_contact
+nonconformity_scope
 source_type
 source_reference
 product_code
@@ -456,7 +457,10 @@ root_cause_category = "processo"
 failure_mode = "rompimento de cabo"
 effectiveness_status = "effective"
 recurrence_key = "produto:010101|falha:rompimento-cabo"
+nonconformity_scope = "external" | "internal"
 ```
+
+`nonconformity_scope` classifica o plano como NC **interna** (processo/área DELPI) ou **externa** (cliente/fornecedor). Não substitui integração futura com NC TOTVS (`QI2010`).
 
 ---
 

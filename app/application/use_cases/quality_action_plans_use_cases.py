@@ -8,6 +8,9 @@ from app.domain.services.pac_quality_branch_service import (
     build_recurrence_key,
     validate_branch_code,
 )
+from app.domain.services.pac_quality_nonconformity_scope_service import (
+    validate_nonconformity_scope,
+)
 
 
 @dataclass(frozen=True)
@@ -29,6 +32,7 @@ class CreateQualityActionPlanRequest:
     owner_user_id: str | None = None
     branch_code: str | None = None
     department: str | None = None
+    nonconformity_scope: str | None = None
     problem_category: str | None = None
     symptom_tags: list[str] | None = None
     root_cause_category: str | None = None
@@ -50,6 +54,7 @@ class CreateQualityActionPlanUseCase:
             raise ValueError("title é obrigatório.")
 
         branch_code = validate_branch_code(request.branch_code, required=True)
+        nonconformity_scope = validate_nonconformity_scope(request.nonconformity_scope)
         recurrence_key = build_recurrence_key(
             branch_code=branch_code,
             product_code=request.product_code,
@@ -63,6 +68,7 @@ class CreateQualityActionPlanUseCase:
                 "created_by_user_id": request.created_by_user_id,
                 "customer_name": request.customer_name,
                 "customer_contact": request.customer_contact,
+                "nonconformity_scope": nonconformity_scope,
                 "source_type": request.source_type,
                 "source_reference": request.source_reference,
                 "product_code": request.product_code,
@@ -109,6 +115,7 @@ class ListQualityActionPlansUseCase:
         customer_name: str | None = None,
         owner_user_id: str | None = None,
         branch_code: str | None = None,
+        nonconformity_scope: str | None = None,
         page: int = 1,
         page_size: int = 50,
     ) -> dict[str, Any]:
@@ -119,6 +126,7 @@ class ListQualityActionPlansUseCase:
             customer_name=customer_name,
             owner_user_id=owner_user_id,
             branch_code=branch_code,
+            nonconformity_scope=nonconformity_scope,
             page=page,
             page_size=page_size,
         )

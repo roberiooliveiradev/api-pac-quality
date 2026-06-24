@@ -10,6 +10,7 @@ PLAN_SELECT = """
            p.title,
            p.customer_name,
            p.customer_contact,
+           p.nonconformity_scope,
            p.source_type,
            p.source_reference,
            p.product_code,
@@ -55,6 +56,7 @@ class QualityActionPlanRepositoryPort:
         customer_name: str | None = None,
         owner_user_id: str | None = None,
         branch_code: str | None = None,
+        nonconformity_scope: str | None = None,
         page: int = 1,
         page_size: int = 50,
     ) -> dict[str, Any]: ...
@@ -109,7 +111,12 @@ class QualityActionPlanRepositoryPort:
 
     def list_history(self, plan_id: str, *, limit: int = 100) -> list[dict[str, Any]]: ...
 
-    def get_dashboard_summary(self, *, branch_code: str | None = None) -> dict[str, Any]: ...
+    def get_dashboard_summary(
+        self,
+        *,
+        branch_code: str | None = None,
+        nonconformity_scope: str | None = None,
+    ) -> dict[str, Any]: ...
 
 
 def serialize_row(row: dict[str, Any] | None, *, id_keys: tuple[str, ...] = ("id",)) -> dict[str, Any] | None:

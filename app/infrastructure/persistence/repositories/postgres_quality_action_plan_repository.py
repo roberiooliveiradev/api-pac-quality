@@ -46,6 +46,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 title,
                 customer_name,
                 customer_contact,
+                nonconformity_scope,
                 source_type,
                 source_reference,
                 product_code,
@@ -67,7 +68,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 recurrence_key
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
             RETURNING id, code, status
             """,
@@ -76,6 +77,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 fields["title"],
                 fields.get("customer_name"),
                 fields.get("customer_contact"),
+                fields.get("nonconformity_scope", "external"),
                 fields.get("source_type"),
                 fields.get("source_reference"),
                 fields.get("product_code"),
@@ -134,6 +136,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
         customer_name: str | None = None,
         owner_user_id: str | None = None,
         branch_code: str | None = None,
+        nonconformity_scope: str | None = None,
         page: int = 1,
         page_size: int = 50,
     ) -> dict[str, Any]:
@@ -158,6 +161,9 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
         if branch_code:
             filters.append("p.branch_code = %s")
             params.append(branch_code)
+        if nonconformity_scope:
+            filters.append("p.nonconformity_scope = %s")
+            params.append(nonconformity_scope)
 
         where_clause = " AND ".join(filters)
         count_row = self.fetch_one(
@@ -196,6 +202,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
             "title",
             "customer_name",
             "customer_contact",
+            "nonconformity_scope",
             "source_type",
             "source_reference",
             "product_code",
