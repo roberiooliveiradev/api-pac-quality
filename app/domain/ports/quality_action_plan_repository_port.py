@@ -22,6 +22,7 @@ PLAN_SELECT = """
            p.status,
            p.created_by_user_id,
            p.owner_user_id,
+           p.branch_code,
            p.department,
            p.problem_category,
            p.symptom_tags,
@@ -53,6 +54,7 @@ class QualityActionPlanRepositoryPort:
         product_code: str | None = None,
         customer_name: str | None = None,
         owner_user_id: str | None = None,
+        branch_code: str | None = None,
         page: int = 1,
         page_size: int = 50,
     ) -> dict[str, Any]: ...
@@ -107,7 +109,7 @@ class QualityActionPlanRepositoryPort:
 
     def list_history(self, plan_id: str, *, limit: int = 100) -> list[dict[str, Any]]: ...
 
-    def get_dashboard_summary(self) -> dict[str, Any]: ...
+    def get_dashboard_summary(self, *, branch_code: str | None = None) -> dict[str, Any]: ...
 
 
 def serialize_row(row: dict[str, Any] | None, *, id_keys: tuple[str, ...] = ("id",)) -> dict[str, Any] | None:

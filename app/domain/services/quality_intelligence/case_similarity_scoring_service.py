@@ -24,6 +24,7 @@ class SimilarCaseQuery:
     failure_mode: str | None = None
     root_cause_category: str | None = None
     problem_category: str | None = None
+    branch_code: str | None = None
 
 
 @dataclass(frozen=True)
@@ -40,6 +41,7 @@ class IndexedCaseCandidate:
     effectiveness_status: str | None
     closed_at: str | None
     effective_actions: list[str]
+    branch_code: str | None = None
 
 
 class CaseSimilarityScoringService:
@@ -65,6 +67,10 @@ class CaseSimilarityScoringService:
         if query.product_code and candidate.product_code:
             if query.product_code.strip() == candidate.product_code.strip():
                 score += 0.15
+
+        if query.branch_code and candidate.branch_code:
+            if query.branch_code.strip() == candidate.branch_code.strip():
+                score += 0.12
 
         if query.failure_mode and candidate.failure_mode:
             if query.failure_mode.strip().lower() in candidate.failure_mode.strip().lower():

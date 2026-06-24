@@ -59,6 +59,7 @@ class CreateActionPlanBody(BaseModel):
     severity: str = Field(default="medium", pattern="^(low|medium|high|critical)$")
     status: str = Field(default="triage", pattern="^(draft|triage)$")
     owner_user_id: str | None = Field(default=None, max_length=100)
+    branch_code: str = Field(..., pattern="^(01|02)$")
     department: str | None = Field(default=None, max_length=200)
     problem_category: str | None = Field(default=None, max_length=200)
     symptom_tags: list[str] | None = None
@@ -166,6 +167,7 @@ def create_action_plan(body: CreateActionPlanBody = Body(...)):
                 severity=body.severity,
                 status=body.status,
                 owner_user_id=body.owner_user_id,
+                branch_code=body.branch_code,
                 department=body.department,
                 problem_category=body.problem_category,
                 symptom_tags=body.symptom_tags,
@@ -196,6 +198,7 @@ def list_action_plans(
     product_code: str | None = Query(default=None),
     customer_name: str | None = Query(default=None),
     owner_user_id: str | None = Query(default=None),
+    branch_code: str | None = Query(default=None, pattern="^(01|02)$"),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
 ):
@@ -207,6 +210,7 @@ def list_action_plans(
             product_code=product_code,
             customer_name=customer_name,
             owner_user_id=owner_user_id,
+            branch_code=branch_code,
             page=page,
             page_size=page_size,
         )

@@ -44,6 +44,7 @@ class SimilarCasesBody(BaseModel):
     failure_mode: str | None = None
     root_cause_category: str | None = None
     problem_category: str | None = None
+    branch_code: str | None = Field(default=None, pattern="^(01|02)$")
 
 
 class SolutionPatternSearchBody(BaseModel):
@@ -76,6 +77,7 @@ def search_similar_cases(body: SimilarCasesBody = Body(...)):
                 failure_mode=body.failure_mode,
                 root_cause_category=body.root_cause_category,
                 problem_category=body.problem_category,
+                branch_code=body.branch_code,
             )
         )
         return success_response(result)

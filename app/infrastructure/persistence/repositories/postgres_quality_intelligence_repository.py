@@ -22,6 +22,7 @@ class PostgresQualityIntelligenceRepository(PluginBaseRepository):
                    p.failure_mode,
                    p.root_cause_category,
                    p.symptom_tags,
+                   p.branch_code,
                    p.product_description,
                    fw.root_cause
               FROM quality.quality_action_plans p
@@ -54,8 +55,9 @@ class PostgresQualityIntelligenceRepository(PluginBaseRepository):
                 problem_category,
                 failure_mode,
                 root_cause_category,
-                symptom_tags
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                symptom_tags,
+                branch_code
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (plan_id) DO UPDATE SET
                 search_text = EXCLUDED.search_text,
                 product_code = EXCLUDED.product_code,
@@ -64,6 +66,7 @@ class PostgresQualityIntelligenceRepository(PluginBaseRepository):
                 failure_mode = EXCLUDED.failure_mode,
                 root_cause_category = EXCLUDED.root_cause_category,
                 symptom_tags = EXCLUDED.symptom_tags,
+                branch_code = EXCLUDED.branch_code,
                 updated_at = NOW()
             """,
             (
@@ -75,6 +78,7 @@ class PostgresQualityIntelligenceRepository(PluginBaseRepository):
                 row.get("failure_mode"),
                 row.get("root_cause_category") or row.get("root_cause"),
                 row.get("symptom_tags") or [],
+                row.get("branch_code"),
             ),
         )
 
@@ -84,6 +88,7 @@ class PostgresQualityIntelligenceRepository(PluginBaseRepository):
         problem_description: str,
         product_code: str | None,
         symptoms: list[str],
+        branch_code: str | None = None,
         limit: int = 100,
     ) -> list[dict[str, Any]]:
         tokens = [t.strip() for t in problem_description.split() if len(t.strip()) >= 3][:8]
@@ -94,6 +99,10 @@ class PostgresQualityIntelligenceRepository(PluginBaseRepository):
         if product_code:
             or_parts.append("idx.product_code = %s")
             params.append(product_code)
+
+        if branch_code:
+            filters.append("p.branch_code = %s")
+            params.append(branch_code)
 
         if symptoms:
             or_parts.append("idx.symptom_tags && %s::text[]")
@@ -116,6 +125,7 @@ class PostgresQualityIntelligenceRepository(PluginBaseRepository):
                    idx.failure_mode,
                    idx.root_cause_category,
                    idx.symptom_tags,
+                   p.branch_code,
                    COALESCE(p.reported_problem, p.title) AS problem_summary,
                    fw.root_cause,
                    p.effectiveness_status,
@@ -161,6 +171,7 @@ class PostgresQualityIntelligenceRepository(PluginBaseRepository):
                     "effectiveness_status": row.get("effectiveness_status"),
                     "closed_at": closed_at.isoformat() if hasattr(closed_at, "isoformat") else closed_at,
                     "effective_actions": effective_actions,
+                    "branch_code": row.get("branch_code"),
                 }
             )
         return results

@@ -4,6 +4,10 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.domain.ports.quality_action_plan_repository_port import QualityActionPlanRepositoryPort
+from app.domain.services.pac_quality_branch_service import (
+    build_recurrence_key,
+    validate_branch_code,
+)
 
 
 @dataclass(frozen=True)
@@ -23,6 +27,7 @@ class CreateQualityActionPlanRequest:
     severity: str = "medium"
     status: str = "triage"
     owner_user_id: str | None = None
+    branch_code: str | None = None
     department: str | None = None
     problem_category: str | None = None
     symptom_tags: list[str] | None = None
@@ -44,6 +49,14 @@ class CreateQualityActionPlanUseCase:
         if not request.title.strip():
             raise ValueError("title é obrigatório.")
 
+        branch_code = validate_branch_code(request.branch_code, required=True)
+        recurrence_key = build_recurrence_key(
+            branch_code=branch_code,
+            product_code=request.product_code,
+            failure_mode=request.failure_mode,
+            explicit=request.recurrence_key,
+        )
+
         plan = self._repository.create_plan(
             {
                 "title": request.title.strip(),
@@ -61,12 +74,13 @@ class CreateQualityActionPlanUseCase:
                 "severity": request.severity,
                 "status": request.status,
                 "owner_user_id": request.owner_user_id,
+                "branch_code": branch_code,
                 "department": request.department,
                 "problem_category": request.problem_category,
                 "symptom_tags": request.symptom_tags,
                 "root_cause_category": request.root_cause_category,
                 "failure_mode": request.failure_mode,
-                "recurrence_key": request.recurrence_key,
+                "recurrence_key": recurrence_key,
             }
         )
         if self._intelligence_sync and plan.get("id"):
@@ -94,6 +108,7 @@ class ListQualityActionPlansUseCase:
         product_code: str | None = None,
         customer_name: str | None = None,
         owner_user_id: str | None = None,
+        branch_code: str | None = None,
         page: int = 1,
         page_size: int = 50,
     ) -> dict[str, Any]:
@@ -103,6 +118,7 @@ class ListQualityActionPlansUseCase:
             product_code=product_code,
             customer_name=customer_name,
             owner_user_id=owner_user_id,
+            branch_code=branch_code,
             page=page,
             page_size=page_size,
         )

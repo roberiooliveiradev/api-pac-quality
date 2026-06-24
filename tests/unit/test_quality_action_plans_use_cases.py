@@ -9,6 +9,21 @@ from app.application.use_cases.quality_action_plans_use_cases import (
 )
 
 
+def test_create_plan_requires_branch_code():
+    repository = MagicMock()
+    use_case = CreateQualityActionPlanUseCase(repository)
+
+    with pytest.raises(ValueError, match="branch_code"):
+        use_case.execute(
+            CreateQualityActionPlanRequest(
+                title="Falha no cabo",
+                created_by_user_id="user-1",
+            )
+        )
+
+    repository.create_plan.assert_not_called()
+
+
 def test_create_plan_requires_non_empty_title():
     repository = MagicMock()
     use_case = CreateQualityActionPlanUseCase(repository)
@@ -34,6 +49,7 @@ def test_create_plan_delegates_to_repository():
             title="Falha no cabo",
             created_by_user_id="user-1",
             product_code="010101",
+            branch_code="01",
         )
     )
 
@@ -42,6 +58,8 @@ def test_create_plan_delegates_to_repository():
     payload = repository.create_plan.call_args.args[0]
     assert payload["title"] == "Falha no cabo"
     assert payload["product_code"] == "010101"
+    assert payload["branch_code"] == "01"
+    assert payload["recurrence_key"] == "filial:01|produto:010101"
 
 
 def test_update_status_rejects_invalid_status():

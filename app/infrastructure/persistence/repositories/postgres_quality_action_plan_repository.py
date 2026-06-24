@@ -58,6 +58,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 status,
                 created_by_user_id,
                 owner_user_id,
+                branch_code,
                 department,
                 problem_category,
                 symptom_tags,
@@ -66,7 +67,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 recurrence_key
             ) VALUES (
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
             RETURNING id, code, status
             """,
@@ -87,6 +88,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 fields.get("status", "triage"),
                 fields["created_by_user_id"],
                 fields.get("owner_user_id"),
+                fields.get("branch_code"),
                 fields.get("department"),
                 fields.get("problem_category"),
                 fields.get("symptom_tags") or [],
@@ -131,6 +133,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
         product_code: str | None = None,
         customer_name: str | None = None,
         owner_user_id: str | None = None,
+        branch_code: str | None = None,
         page: int = 1,
         page_size: int = 50,
     ) -> dict[str, Any]:
@@ -152,6 +155,9 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
         if owner_user_id:
             filters.append("p.owner_user_id = %s")
             params.append(owner_user_id)
+        if branch_code:
+            filters.append("p.branch_code = %s")
+            params.append(branch_code)
 
         where_clause = " AND ".join(filters)
         count_row = self.fetch_one(
@@ -200,6 +206,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
             "reported_at",
             "severity",
             "owner_user_id",
+            "branch_code",
             "department",
             "problem_category",
             "symptom_tags",
@@ -591,45 +598,105 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
         )
         return [serialize_row(row, id_keys=("id", "plan_id")) for row in rows if row]
 
-    def get_dashboard_summary(self) -> dict[str, Any]:
+    def get_dashboard_summary(self, *, branch_code: str | None = None) -> dict[str, Any]:
+        branch_filter = ""
+        params: list[Any] = []
+        if branch_code:
+            branch_filter = " AND branch_code = %s"
+            params = [branch_code]
+
         row = self.fetch_one(
-            """
+            f"""
             SELECT
                 COUNT(*) FILTER (
                     WHERE deleted_at IS NULL
                       AND status NOT IN ('completed', 'cancelled')
+                      {branch_filter}
                 ) AS open_plans,
                 COUNT(*) FILTER (
                     WHERE deleted_at IS NULL
                       AND status NOT IN ('completed', 'cancelled')
                       AND severity = 'critical'
+                      {branch_filter}
                 ) AS critical_open,
                 COUNT(*) FILTER (
                     WHERE deleted_at IS NULL
                       AND status = 'waiting_validation'
+                      {branch_filter}
                 ) AS waiting_validation,
                 COUNT(*) FILTER (
                     WHERE deleted_at IS NULL
                       AND status = 'completed'
                       AND closed_at >= date_trunc('month', NOW())
+                      {branch_filter}
                 ) AS completed_this_month
               FROM quality.quality_action_plans
-            """
+              WHERE deleted_at IS NULL
+              {branch_filter}
+            """,
+            tuple(params),
         )
         overdue_row = self.fetch_one(
-            """
+            f"""
             SELECT COUNT(*) AS overdue_actions
               FROM quality.quality_actions a
               JOIN quality.quality_action_plans p ON p.id = a.plan_id
              WHERE p.deleted_at IS NULL
                AND a.status NOT IN ('completed', 'cancelled')
                AND a.due_date < CURRENT_DATE
-            """
+               {branch_filter.replace("branch_code", "p.branch_code") if branch_filter else ""}
+            """,
+            tuple(params),
         )
-        return {
+        overdue_plans_row = self.fetch_one(
+            f"""
+            SELECT COUNT(DISTINCT p.id) AS overdue_plans
+              FROM quality.quality_action_plans p
+              JOIN quality.quality_actions a ON a.plan_id = p.id
+             WHERE p.deleted_at IS NULL
+               AND p.status NOT IN ('completed', 'cancelled')
+               AND a.status NOT IN ('completed', 'cancelled')
+               AND a.due_date < CURRENT_DATE
+               {branch_filter.replace("branch_code", "p.branch_code") if branch_filter else ""}
+            """,
+            tuple(params),
+        )
+        result = {
             "open_plans": int((row or {}).get("open_plans") or 0),
             "critical_open": int((row or {}).get("critical_open") or 0),
             "waiting_validation": int((row or {}).get("waiting_validation") or 0),
             "completed_this_month": int((row or {}).get("completed_this_month") or 0),
             "overdue_actions": int((overdue_row or {}).get("overdue_actions") or 0),
+            "overdue_plans": int((overdue_plans_row or {}).get("overdue_plans") or 0),
         }
+        if branch_code:
+            result["branch_code"] = branch_code
+            return result
+
+        by_branch_rows = self.fetch_all(
+            """
+            SELECT branch_code,
+                   COUNT(*) FILTER (
+                       WHERE status NOT IN ('completed', 'cancelled')
+                   ) AS open_plans,
+                   COUNT(*) FILTER (
+                       WHERE status NOT IN ('completed', 'cancelled')
+                         AND severity = 'critical'
+                   ) AS critical_open
+              FROM quality.quality_action_plans
+             WHERE deleted_at IS NULL
+               AND branch_code IS NOT NULL
+             GROUP BY branch_code
+             ORDER BY branch_code
+            """
+        )
+        result["by_branch"] = [
+            {
+                "branch_code": row["branch_code"],
+                "open_plans": int(row.get("open_plans") or 0),
+                "critical_open": int(row.get("critical_open") or 0),
+            }
+            for row in by_branch_rows
+            if row.get("branch_code")
+        ]
+        return result

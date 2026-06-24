@@ -26,6 +26,7 @@ class SimilarCasesRequest:
     failure_mode: str | None = None
     root_cause_category: str | None = None
     problem_category: str | None = None
+    branch_code: str | None = None
 
 
 @dataclass(frozen=True)
@@ -67,12 +68,14 @@ class SearchSimilarCasesUseCase:
             failure_mode=request.failure_mode,
             root_cause_category=request.root_cause_category,
             problem_category=request.problem_category,
+            branch_code=request.branch_code,
         )
 
         raw_candidates = self._repository.fetch_similar_case_candidates(
             problem_description=query.problem_description,
             product_code=query.product_code,
             symptoms=list(query.symptoms),
+            branch_code=query.branch_code,
         )
         candidates = [
             IndexedCaseCandidate(
@@ -88,6 +91,7 @@ class SearchSimilarCasesUseCase:
                 effectiveness_status=item.get("effectiveness_status"),
                 closed_at=item.get("closed_at"),
                 effective_actions=item.get("effective_actions") or [],
+                branch_code=item.get("branch_code"),
             )
             for item in raw_candidates
         ]
