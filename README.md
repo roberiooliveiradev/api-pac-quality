@@ -15,7 +15,7 @@ Consultas consolidadas para liderança (plugin) serão expostas pela **api-delpi
 
 O banco é o **mesmo PostgreSQL de plugins** da Minha DELPI (`PLUGINS_DB_*`), no schema `quality`.
 
-**Deploy:** stack autônoma com nginx próprio — ver [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Não faz parte do gateway `delpi-central`.
+**Deploy:** stack autônoma com nginx próprio — ver [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Subdomínio Cloudflare: [docs/cloudflare-subdominio-pac-api.md](docs/cloudflare-subdominio-pac-api.md). Não faz parte do gateway `delpi-central`.
 
 ## Pré-requisitos
 
@@ -63,20 +63,23 @@ python -m uvicorn app.asgi:application --reload --port 8010
 
 Swagger: `http://localhost:8010/docs`
 
-## Docker (stack própria)
-
-API + nginx neste repositório:
+## Docker (stack própria — srv-api)
 
 ```bash
 cd api-pac-quality
-cp .env.example .env
+cp .env.srv-api.example .env
+# PLUGINS_DB_PASSWORD ← copiar de delpi-central/infra/.env
+cp docker-compose.override.srv-api.example.yml docker-compose.override.yml
 docker compose up -d --build
-curl -s http://localhost/health
+curl -s http://localhost:8082/health
 ```
 
-- Nginx: `nginx/nginx.conf` → `pac-api.minhadelpi.com.br`
-- OpenAPI agente: `docs/openapi-snapshot-chat.json`
-- Guia completo: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**
+| Recurso | Caminho |
+|---------|---------|
+| Deploy geral | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
+| **Subdomínio Cloudflare** | [docs/cloudflare-subdominio-pac-api.md](docs/cloudflare-subdominio-pac-api.md) |
+| OpenAPI agente GPT | [docs/openapi-snapshot-chat.json](docs/openapi-snapshot-chat.json) |
+| `.env` produção | [.env.srv-api.example](.env.srv-api.example) |
 
 Build context: raiz `projetos/` (irmãos `api-pac-quality` + `delpi-central/shared`).
 
@@ -136,6 +139,7 @@ Migration: `V003__create_pac_knowledge_layer.sql` (tabelas + `pg_trgm`).
 ## Próximos passos (playbook)
 
 1. ~~Knowledge layer simples~~ (Fase 2 — MVP textual)
-2. Agente GPT + gateway (`minha-delpi-ai-api`)
+2. Subdomínio `pac-api.minhadelpi.com.br` — [docs/cloudflare-subdominio-pac-api.md](docs/cloudflare-subdominio-pac-api.md)
+3. Agente GPT + provider OpenAPI (`minha-delpi-ai-api`)
 
 Documentação completa: `playbook_pac_qualidade_delpi.md`.

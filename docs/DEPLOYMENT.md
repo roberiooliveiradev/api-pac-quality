@@ -4,6 +4,15 @@ Stack **autônoma**: API FastAPI + **nginx próprio** neste repositório. Não p
 
 Consumida pelo **agente GPT** da Minha DELPI via provider OpenAPI (`api-pac-quality`).
 
+## Documentação
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [cloudflare-subdominio-pac-api.md](cloudflare-subdominio-pac-api.md) | **Subdomínio Cloudflare + tunnel** (passo a passo) |
+| [openapi-snapshot-chat.json](openapi-snapshot-chat.json) | Contrato OpenAPI para o agente GPT |
+| `../.env.srv-api.example` | `.env` de produção para o srv-api |
+| `../docker-compose.override.srv-api.example.yml` | Rede Docker com `delpi-central` |
+
 ## Estrutura
 
 ```
@@ -14,13 +23,14 @@ api-pac-quality/
     Dockerfile
     nginx.conf            # pac-api.minhadelpi.com.br → api:8010
   docs/
+    cloudflare-subdominio-pac-api.md
     openapi-snapshot-chat.json
 ```
 
-| Serviço | Container | Porta exposta |
+| Serviço | Container | Porta no host |
 |---------|-----------|---------------|
-| API | `api-pac-quality` | interna `8010` |
-| Nginx | `api-pac-quality-nginx` | `80` (host) |
+| API | `api-pac-quality` | interna `8010` (sem publish) |
+| Nginx | `api-pac-quality-nginx` | `NGINX_HTTP_PORT` (ex.: `8082` no srv-api) |
 
 ## Build
 
@@ -29,62 +39,57 @@ Contexto de build = pasta pai `projetos/` (irmãos `api-pac-quality` + `delpi-ce
 ```bash
 cd /caminho/projetos
 docker build -f api-pac-quality/Dockerfile -t api-pac-quality:latest .
-docker build -f api-pac-quality/nginx/Dockerfile -t api-pac-quality-nginx:latest api-pac-quality/nginx
 ```
 
-## Subir no servidor
+## Subir no srv-api (produção)
 
 ```bash
-cd api-pac-quality
-cp .env.example .env
-# Preencher PLUGINS_DB_*, Keycloak, CORE_API_URL (URL pública da Minha DELPI)
+cd ~/projetos/api-pac-quality
+cp .env.srv-api.example .env
+grep '^PLUGINS_DB_PASSWORD=' ~/projetos/delpi-central/infra/.env   # colar no .env
+cp docker-compose.override.srv-api.example.yml docker-compose.override.yml
 
 docker compose up -d --build
-curl -s http://localhost/health
+curl -s http://localhost:8082/health
 ```
+
+### Portas no srv-api
+
+| Porta host | Uso |
+|------------|-----|
+| `80` | `delpi-gateway` — **não** usar para api-pac |
+| `8010` | Outro processo no host — api-pac usa 8010 **só na rede Docker** |
+| `8082` | Nginx da api-pac (`NGINX_HTTP_PORT`) — roteado pelo cloudflared |
+
+Verificar portas: `ss -tlnp | grep -E ':80 |:8082 '`
 
 ## Subdomínio Cloudflare
 
 **URL pública:** `https://pac-api.minhadelpi.com.br`
 
-### DNS
+Guia completo: **[cloudflare-subdominio-pac-api.md](cloudflare-subdominio-pac-api.md)**
 
-| Tipo | Nome | Conteúdo | Proxy |
-|------|------|----------|-------|
-| `A` | `pac-api` | IP do servidor desta stack | Proxied |
+Resumo:
 
-Aponte o registro para o **servidor onde roda este docker compose** (não o gateway principal da Minha DELPI).
-
-### SSL
-
-- Cloudflare termina TLS no edge.
-- Origin recebe HTTP na porta `80` com `X-Forwarded-Proto: https`.
-- Modo recomendado: **Full** ou **Full (strict)**.
-
-### Nginx
-
-Configuração em `nginx/nginx.conf` — `server_name pac-api.minhadelpi.com.br`.
-
-Para outro hostname, edite `nginx/nginx.conf` e rebuild:
-
-```bash
-docker compose build nginx && docker compose up -d nginx
-```
+1. Subir stack local (`localhost:8082/health` OK)
+2. No Zero Trust → Tunnel → **Add public hostname**: `pac-api.minhadelpi.com.br` → `http://localhost:8082`
+3. Validar: `curl https://pac-api.minhadelpi.com.br/health`
+4. Cadastrar provider OpenAPI no agente GPT
 
 ## Variáveis (`.env`)
 
-| Variável | Exemplo | Descrição |
+Use `.env.srv-api.example` no servidor. Principais:
+
+| Variável | srv-api | Descrição |
 |----------|---------|-----------|
-| `NGINX_HTTP_PORT` | `80` | Porta HTTP publicada no host |
-| `PUBLIC_BASE_URL` | `https://pac-api.minhadelpi.com.br` | CORS + documentação |
-| `API_PAC_ROOT_PATH` | *(vazio)* | Sem prefixo — nginx na raiz |
-| `PLUGINS_DB_*` | — | PostgreSQL schema `quality` (mesmo banco plugins DELPI) |
-| `KEYCLOAK_*` | URLs públicas Minha DELPI | JWT `delpi-auth` |
-| `CORE_API_URL` | `https://www.minhadelpi.com.br/core-api` | Validação RBAC remota |
+| `NGINX_HTTP_PORT` | `8082` | Porta HTTP do nginx no host |
+| `PUBLIC_BASE_URL` | `https://pac-api.minhadelpi.com.br` | CORS + OpenAPI do agente |
+| `API_PAC_ROOT_PATH` | *(vazio)* | Sem prefixo de path |
+| `PLUGINS_DB_*` | igual `delpi-central/infra/.env` | Postgres `plugins_hub` |
+| `KEYCLOAK_*` | URLs `https://minhadelpi.com.br/auth/...` | JWT |
+| `CORE_API_URL` | `https://minhadelpi.com.br/core-api` | RBAC |
 
 ## Migrations (banco)
-
-Executadas na stack DELPI (`delpi-central/api-delpi`):
 
 ```bash
 docker exec delpi-api-delpi python scripts/run_plugins_migrations.py up --plugin quality-action-plans
@@ -105,26 +110,24 @@ docker exec delpi-api-delpi python scripts/run_plugins_migrations.py up --plugin
 }
 ```
 
-Schema: `docs/openapi-snapshot-chat.json`
-
 ```bash
 docker exec delpi-minha-delpi-ai-api python scripts/sync_api_pac_quality_openapi.py \
-  --from-file /caminho/api-pac-quality/docs/openapi-snapshot-chat.json
+  --from-file ~/projetos/api-pac-quality/docs/openapi-snapshot-chat.json
 ```
-
-Permissões: `quality-action-plans.read`, `quality-action-plans.write` (manifesto em `delpi-central/plugins/quality-action-plans/`).
 
 ## Testes
 
 ```bash
 pytest tests/ -q
+./scripts/ci-smoke.sh
 ```
 
 ## Checklist produção
 
-1. Migrations `quality-action-plans` aplicadas (`V001`–`V003`)
-2. `curl https://pac-api.minhadelpi.com.br/health` → `plugins_database: ok`
-3. DNS Cloudflare `pac-api` → IP deste servidor
-4. `.env` com `CORE_API_URL` e Keycloak apontando para produção DELPI
-5. Provider `api-pac-quality` no agente com `baseUrl` do subdomínio
-6. `sync_api_pac_quality_openapi.py` após mudanças de rotas
+1. Migrations `quality-action-plans` (`V001`–`V003`)
+2. Stack PAC + override de rede Docker
+3. `curl http://localhost:8082/health` → `plugins_database: ok`
+4. Subdomínio Cloudflare configurado (ver guia dedicado)
+5. `curl https://pac-api.minhadelpi.com.br/health` → OK
+6. Provider + `sync_api_pac_quality_openapi.py`
+7. Manifesto RBAC `quality-action-plans`

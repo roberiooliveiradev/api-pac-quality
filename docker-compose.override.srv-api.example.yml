@@ -1,0 +1,21 @@
+# Conecta api-pac-quality à rede Docker do delpi-central (postgres-plugins, core-api).
+#
+# Uso:
+#   cd ~/projetos/api-pac-quality
+#   docker network ls | grep delpi          # anote o nome (ex.: infra_delpi-network)
+#   # Se o nome for diferente, edite a linha "name:" abaixo
+#   cp docker-compose.override.srv-api.example.yml docker-compose.override.yml
+#   docker compose up -d --build
+#
+# Sem este override, use PLUGINS_DB_HOST com IP/porta acessível do host.
+
+services:
+  api-pac-quality:
+    networks:
+      - pac-network
+      - delpi-network
+
+networks:
+  delpi-network:
+    external: true
+    name: infra_delpi-network
