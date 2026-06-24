@@ -1393,7 +1393,7 @@ Critério de aceite:
 
 Entregáveis:
 
-- Agente `quality-root-cause-agent`.
+- Agente `quality-root-cause-agent` (ChatGPT Custom GPT: ver `docs/chatgpt-especialista-qualidade.md`).
 - Prompt/policy do agente com:
   - papel;
   - limites;

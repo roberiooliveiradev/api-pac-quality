@@ -83,7 +83,9 @@ Salve a ação.
 
 ## 4. Instruções recomendadas no GPT (system)
 
-Inclua no prompt do agente:
+Prompt completo (descrição, instruções, quebra-gelos e checklist): **[chatgpt-especialista-qualidade.md](chatgpt-especialista-qualidade.md)**.
+
+Resumo das regras obrigatórias:
 
 - Não inventar causa raiz; confirmar com o analista antes de gravar.
 - Usar `search_similar_cases` antes de concluir causa.
@@ -138,4 +140,4 @@ A API ainda aceita **JWT Keycloak** (Minha DELPI) se no futuro usar o chat inter
 
 ---
 
-Ver também: [cloudflare-subdominio-pac-api.md](cloudflare-subdominio-pac-api.md) · [DEPLOYMENT.md](DEPLOYMENT.md)
+Ver também: [chatgpt-especialista-qualidade.md](chatgpt-especialista-qualidade.md) · [cloudflare-subdominio-pac-api.md](cloudflare-subdominio-pac-api.md) · [DEPLOYMENT.md](DEPLOYMENT.md)

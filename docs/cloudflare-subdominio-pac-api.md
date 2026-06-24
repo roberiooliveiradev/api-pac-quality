@@ -190,7 +190,13 @@ Schema: `https://pac-api.minhadelpi.com.br/openapi.json`
 docker exec delpi-minha-delpi-ai-api python scripts/sync_api_pac_quality_openapi.py
 ```
 
-### 5.3 Permissões RBAC
+### 5.3 Configurar GPT Customizado (ChatGPT workspace)
+
+Prompt, descrição, quebra-gelos e checklist: **[chatgpt-especialista-qualidade.md](chatgpt-especialista-qualidade.md)**.
+
+Autenticação das Actions: **[chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md)**.
+
+### 5.4 Permissões RBAC
 
 Se ainda não registrou o manifesto do plugin:
 

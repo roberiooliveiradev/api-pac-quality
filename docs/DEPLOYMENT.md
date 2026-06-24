@@ -9,6 +9,7 @@ Consumida pelo **agente GPT** da Minha DELPI via provider OpenAPI (`api-pac-qual
 | Documento | Conteúdo |
 |-----------|----------|
 | [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md) | **ChatGPT Custom GPT** — chave API Bearer |
+| [chatgpt-especialista-qualidade.md](chatgpt-especialista-qualidade.md) | **Prompt, descrição e quebra-gelos** do agente |
 | `GET /openapi.json` | Contrato OpenAPI para o agente GPT (gerado pelo FastAPI) |
 | `../.env.srv-api.example` | `.env` de produção para o srv-api |
 | `../docker-compose.override.srv-api.example.yml` | Rede Docker com `delpi-central` |
