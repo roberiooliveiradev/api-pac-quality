@@ -1,0 +1,635 @@
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import Any
+
+from app.domain.ports.quality_action_plan_repository_port import (
+    PLAN_SELECT,
+    QualityActionPlanRepositoryPort,
+    serialize_plan_row,
+    serialize_row,
+)
+from app.infrastructure.persistence.plugins.plugin_base_repository import (
+    PluginBaseRepository,
+    PluginsRepositoryError,
+)
+
+
+class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPlanRepositoryPort):
+    def next_plan_code(self) -> str:
+        row = self.execute_returning_one(
+            """
+            UPDATE quality.document_sequences
+               SET current_value = current_value + 1,
+                   updated_at = NOW()
+             WHERE sequence_key = 'quality_action_plan'
+               AND active = TRUE
+            RETURNING prefix, current_value, padding_length
+            """,
+            auto_commit=False,
+        )
+        if not row:
+            raise PluginsRepositoryError(
+                "Sequência quality_action_plan não encontrada. Execute as migrations do plugin quality-action-plans."
+            )
+
+        year = datetime.now(timezone.utc).year
+        padded = str(int(row["current_value"])).zfill(int(row["padding_length"]))
+        return f"{row['prefix']}-{year}-{padded}"
+
+    def create_plan(self, fields: dict[str, Any]) -> dict[str, Any]:
+        code = self.next_plan_code()
+        row = self.execute_returning_one(
+            f"""
+            INSERT INTO quality.quality_action_plans (
+                code,
+                title,
+                customer_name,
+                customer_contact,
+                source_type,
+                source_reference,
+                product_code,
+                product_description,
+                batch_number,
+                reported_problem,
+                detected_at,
+                reported_at,
+                severity,
+                status,
+                created_by_user_id,
+                owner_user_id,
+                department,
+                problem_category,
+                symptom_tags,
+                root_cause_category,
+                failure_mode,
+                recurrence_key
+            ) VALUES (
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+            )
+            RETURNING id, code, status
+            """,
+            (
+                code,
+                fields["title"],
+                fields.get("customer_name"),
+                fields.get("customer_contact"),
+                fields.get("source_type"),
+                fields.get("source_reference"),
+                fields.get("product_code"),
+                fields.get("product_description"),
+                fields.get("batch_number"),
+                fields.get("reported_problem"),
+                fields.get("detected_at"),
+                fields.get("reported_at"),
+                fields.get("severity", "medium"),
+                fields.get("status", "triage"),
+                fields["created_by_user_id"],
+                fields.get("owner_user_id"),
+                fields.get("department"),
+                fields.get("problem_category"),
+                fields.get("symptom_tags") or [],
+                fields.get("root_cause_category"),
+                fields.get("failure_mode"),
+                fields.get("recurrence_key"),
+            ),
+            auto_commit=False,
+        )
+        if not row:
+            self.rollback()
+            raise PluginsRepositoryError("Falha ao criar plano de ação.")
+
+        plan_id = str(row["id"])
+        self.append_history(
+            plan_id=plan_id,
+            event_type="plan_created",
+            created_by=fields["created_by_user_id"],
+            new_value=code,
+            comment="Plano de ação criado via API PAC.",
+            auto_commit=False,
+        )
+        self.commit()
+        return serialize_plan_row(self.get_plan_by_id(plan_id) or row)
+
+    def get_plan_by_id(self, plan_id: str) -> dict[str, Any] | None:
+        row = self.fetch_one(
+            f"""
+            {PLAN_SELECT}
+             WHERE p.id = %s
+               AND p.deleted_at IS NULL
+            """,
+            (plan_id,),
+        )
+        return serialize_plan_row(row) if row else None
+
+    def list_plans(
+        self,
+        *,
+        status: str | None = None,
+        severity: str | None = None,
+        product_code: str | None = None,
+        customer_name: str | None = None,
+        owner_user_id: str | None = None,
+        page: int = 1,
+        page_size: int = 50,
+    ) -> dict[str, Any]:
+        filters = ["p.deleted_at IS NULL"]
+        params: list[Any] = []
+
+        if status:
+            filters.append("p.status = %s")
+            params.append(status)
+        if severity:
+            filters.append("p.severity = %s")
+            params.append(severity)
+        if product_code:
+            filters.append("p.product_code = %s")
+            params.append(product_code)
+        if customer_name:
+            filters.append("p.customer_name ILIKE %s")
+            params.append(f"%{customer_name.strip()}%")
+        if owner_user_id:
+            filters.append("p.owner_user_id = %s")
+            params.append(owner_user_id)
+
+        where_clause = " AND ".join(filters)
+        count_row = self.fetch_one(
+            f"SELECT COUNT(*) AS total FROM quality.quality_action_plans p WHERE {where_clause}",
+            tuple(params),
+        )
+        total = int(count_row["total"]) if count_row else 0
+        offset = max(page - 1, 0) * page_size
+
+        rows = self.fetch_all(
+            f"""
+            {PLAN_SELECT}
+             WHERE {where_clause}
+             ORDER BY p.created_at DESC
+             LIMIT %s OFFSET %s
+            """,
+            tuple([*params, page_size, offset]),
+        )
+
+        return {
+            "items": [serialize_plan_row(row) for row in rows],
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total": total,
+                "total_pages": max((total + page_size - 1) // page_size, 1),
+            },
+        }
+
+    def update_plan(self, plan_id: str, fields: dict[str, Any]) -> dict[str, Any] | None:
+        current = self.get_plan_by_id(plan_id)
+        if not current:
+            return None
+
+        allowed = {
+            "title",
+            "customer_name",
+            "customer_contact",
+            "source_type",
+            "source_reference",
+            "product_code",
+            "product_description",
+            "batch_number",
+            "reported_problem",
+            "detected_at",
+            "reported_at",
+            "severity",
+            "owner_user_id",
+            "department",
+            "problem_category",
+            "symptom_tags",
+            "root_cause_category",
+            "failure_mode",
+            "recurrence_key",
+            "effectiveness_status",
+            "effectiveness_verified_at",
+            "effectiveness_notes",
+        }
+        updates = {key: value for key, value in fields.items() if key in allowed and value is not None}
+        if not updates:
+            return current
+
+        set_parts = [f"{column} = %s" for column in updates]
+        set_parts.append("updated_at = NOW()")
+        params = list(updates.values()) + [plan_id]
+
+        self.execute(
+            f"""
+            UPDATE quality.quality_action_plans
+               SET {", ".join(set_parts)}
+             WHERE id = %s
+               AND deleted_at IS NULL
+            """,
+            tuple(params),
+            auto_commit=False,
+        )
+        self.append_history(
+            plan_id=plan_id,
+            event_type="plan_updated",
+            created_by=fields.get("updated_by_user_id", "system"),
+            comment="Plano atualizado via API PAC.",
+            auto_commit=False,
+        )
+        self.commit()
+        return self.get_plan_by_id(plan_id)
+
+    def update_plan_status(
+        self,
+        plan_id: str,
+        *,
+        status: str,
+        updated_by: str,
+        comment: str | None = None,
+    ) -> dict[str, Any] | None:
+        current = self.get_plan_by_id(plan_id)
+        if not current:
+            return None
+
+        closed_at_sql = ", closed_at = NOW()" if status == "completed" else ""
+        self.execute(
+            f"""
+            UPDATE quality.quality_action_plans
+               SET status = %s,
+                   updated_at = NOW()
+                   {closed_at_sql}
+             WHERE id = %s
+               AND deleted_at IS NULL
+            """,
+            (status, plan_id),
+            auto_commit=False,
+        )
+        self.append_history(
+            plan_id=plan_id,
+            event_type="status_changed",
+            created_by=updated_by,
+            old_value=current.get("status"),
+            new_value=status,
+            comment=comment,
+            auto_commit=False,
+        )
+        self.commit()
+        return self.get_plan_by_id(plan_id)
+
+    def append_history(
+        self,
+        *,
+        plan_id: str,
+        event_type: str,
+        created_by: str,
+        old_value: str | None = None,
+        new_value: str | None = None,
+        comment: str | None = None,
+        auto_commit: bool = True,
+    ) -> None:
+        self.execute(
+            """
+            INSERT INTO quality.quality_action_history (
+                plan_id,
+                event_type,
+                old_value,
+                new_value,
+                comment,
+                created_by
+            ) VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (plan_id, event_type, old_value, new_value, comment, created_by),
+            auto_commit=auto_commit,
+        )
+
+    def _plan_exists(self, plan_id: str) -> bool:
+        row = self.fetch_one(
+            """
+            SELECT id FROM quality.quality_action_plans
+             WHERE id = %s AND deleted_at IS NULL
+            """,
+            (plan_id,),
+        )
+        return row is not None
+
+    def upsert_ishikawa(
+        self, plan_id: str, fields: dict[str, Any], *, updated_by: str
+    ) -> dict[str, Any] | None:
+        if not self._plan_exists(plan_id):
+            return None
+
+        row = self.execute_returning_one(
+            """
+            INSERT INTO quality.quality_ishikawa_analysis (
+                plan_id, machine, method_process, material, manpower, measurement, environment, notes
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (plan_id) DO UPDATE SET
+                machine = EXCLUDED.machine,
+                method_process = EXCLUDED.method_process,
+                material = EXCLUDED.material,
+                manpower = EXCLUDED.manpower,
+                measurement = EXCLUDED.measurement,
+                environment = EXCLUDED.environment,
+                notes = EXCLUDED.notes,
+                updated_at = NOW()
+            RETURNING id, plan_id, machine, method_process, material, manpower,
+                      measurement, environment, notes, created_at, updated_at
+            """,
+            (
+                plan_id,
+                fields.get("machine"),
+                fields.get("method_process"),
+                fields.get("material"),
+                fields.get("manpower"),
+                fields.get("measurement"),
+                fields.get("environment"),
+                fields.get("notes"),
+            ),
+            auto_commit=False,
+        )
+        self.append_history(
+            plan_id=plan_id,
+            event_type="ishikawa_updated",
+            created_by=updated_by,
+            auto_commit=False,
+        )
+        self.commit()
+        return serialize_row(row, id_keys=("id", "plan_id"))
+
+    def get_ishikawa(self, plan_id: str) -> dict[str, Any] | None:
+        row = self.fetch_one(
+            """
+            SELECT id, plan_id, machine, method_process, material, manpower,
+                   measurement, environment, notes, created_at, updated_at
+              FROM quality.quality_ishikawa_analysis
+             WHERE plan_id = %s
+            """,
+            (plan_id,),
+        )
+        return serialize_row(row, id_keys=("id", "plan_id"))
+
+    def upsert_five_whys(
+        self, plan_id: str, fields: dict[str, Any], *, updated_by: str
+    ) -> dict[str, Any] | None:
+        if not self._plan_exists(plan_id):
+            return None
+
+        row = self.execute_returning_one(
+            """
+            INSERT INTO quality.quality_five_whys (
+                plan_id, why_1, why_2, why_3, why_4, why_5, root_cause, confidence_level
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (plan_id) DO UPDATE SET
+                why_1 = EXCLUDED.why_1,
+                why_2 = EXCLUDED.why_2,
+                why_3 = EXCLUDED.why_3,
+                why_4 = EXCLUDED.why_4,
+                why_5 = EXCLUDED.why_5,
+                root_cause = EXCLUDED.root_cause,
+                confidence_level = EXCLUDED.confidence_level,
+                updated_at = NOW()
+            RETURNING id, plan_id, why_1, why_2, why_3, why_4, why_5,
+                      root_cause, confidence_level, created_at, updated_at
+            """,
+            (
+                plan_id,
+                fields.get("why_1"),
+                fields.get("why_2"),
+                fields.get("why_3"),
+                fields.get("why_4"),
+                fields.get("why_5"),
+                fields.get("root_cause"),
+                fields.get("confidence_level"),
+            ),
+            auto_commit=False,
+        )
+        if fields.get("root_cause"):
+            self.execute(
+                """
+                UPDATE quality.quality_action_plans
+                   SET root_cause_category = COALESCE(root_cause_category, 'processo'),
+                       updated_at = NOW()
+                 WHERE id = %s
+                """,
+                (plan_id,),
+                auto_commit=False,
+            )
+        self.append_history(
+            plan_id=plan_id,
+            event_type="five_whys_updated",
+            created_by=updated_by,
+            new_value=fields.get("root_cause"),
+            auto_commit=False,
+        )
+        self.commit()
+        return serialize_row(row, id_keys=("id", "plan_id"))
+
+    def get_five_whys(self, plan_id: str) -> dict[str, Any] | None:
+        row = self.fetch_one(
+            """
+            SELECT id, plan_id, why_1, why_2, why_3, why_4, why_5,
+                   root_cause, confidence_level, created_at, updated_at
+              FROM quality.quality_five_whys
+             WHERE plan_id = %s
+            """,
+            (plan_id,),
+        )
+        return serialize_row(row, id_keys=("id", "plan_id"))
+
+    def create_actions(
+        self, plan_id: str, actions: list[dict[str, Any]], *, created_by: str
+    ) -> list[dict[str, Any]] | None:
+        if not self._plan_exists(plan_id):
+            return None
+        if not actions:
+            return []
+
+        created: list[dict[str, Any]] = []
+        for action in actions:
+            row = self.execute_returning_one(
+                """
+                INSERT INTO quality.quality_actions (
+                    plan_id, action_type, description, responsible_user_id,
+                    responsible_name, department, due_date, status, evidence_required
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id, plan_id, action_type, description, responsible_user_id,
+                          responsible_name, department, due_date, status,
+                          evidence_required, completed_at, created_at, updated_at
+                """,
+                (
+                    plan_id,
+                    action["action_type"],
+                    action["description"],
+                    action.get("responsible_user_id"),
+                    action.get("responsible_name"),
+                    action.get("department"),
+                    action.get("due_date"),
+                    action.get("status", "pending"),
+                    action.get("evidence_required", False),
+                ),
+                auto_commit=False,
+            )
+            if row:
+                created.append(serialize_row(row, id_keys=("id", "plan_id")) or {})
+                self.append_history(
+                    plan_id=plan_id,
+                    event_type="action_created",
+                    created_by=created_by,
+                    new_value=action["description"][:200],
+                    auto_commit=False,
+                )
+        self.commit()
+        return created
+
+    def list_actions(self, plan_id: str) -> list[dict[str, Any]]:
+        rows = self.fetch_all(
+            """
+            SELECT id, plan_id, action_type, description, responsible_user_id,
+                   responsible_name, department, due_date, status,
+                   evidence_required, completed_at, created_at, updated_at
+              FROM quality.quality_actions
+             WHERE plan_id = %s
+             ORDER BY due_date NULLS LAST, created_at ASC
+            """,
+            (plan_id,),
+        )
+        return [serialize_row(row, id_keys=("id", "plan_id")) for row in rows if row]
+
+    def update_action(
+        self, plan_id: str, action_id: str, fields: dict[str, Any], *, updated_by: str
+    ) -> dict[str, Any] | None:
+        allowed = {
+            "description",
+            "responsible_user_id",
+            "responsible_name",
+            "department",
+            "due_date",
+            "status",
+            "evidence_required",
+        }
+        updates = {k: v for k, v in fields.items() if k in allowed and v is not None}
+        if not updates:
+            rows = self.list_actions(plan_id)
+            return next((r for r in rows if r and r.get("id") == action_id), None)
+
+        set_parts = [f"{column} = %s" for column in updates]
+        params: list[Any] = list(updates.values())
+        if updates.get("status") == "completed":
+            set_parts.append("completed_at = NOW()")
+        set_parts.append("updated_at = NOW()")
+        params.extend([action_id, plan_id])
+
+        row = self.execute_returning_one(
+            f"""
+            UPDATE quality.quality_actions
+               SET {", ".join(set_parts)}
+             WHERE id = %s AND plan_id = %s
+            RETURNING id, plan_id, action_type, description, responsible_user_id,
+                      responsible_name, department, due_date, status,
+                      evidence_required, completed_at, created_at, updated_at
+            """,
+            tuple(params),
+            auto_commit=False,
+        )
+        if not row:
+            self.rollback()
+            return None
+
+        event = "action_completed" if fields.get("status") == "completed" else "action_updated"
+        self.append_history(
+            plan_id=plan_id,
+            event_type=event,
+            created_by=updated_by,
+            auto_commit=False,
+        )
+        self.commit()
+        return serialize_row(row, id_keys=("id", "plan_id"))
+
+    def record_effectiveness_review(
+        self, plan_id: str, fields: dict[str, Any], *, updated_by: str
+    ) -> dict[str, Any] | None:
+        if not self._plan_exists(plan_id):
+            return None
+
+        self.execute(
+            """
+            UPDATE quality.quality_action_plans
+               SET effectiveness_status = %s,
+                   effectiveness_verified_at = NOW(),
+                   effectiveness_notes = %s,
+                   updated_at = NOW()
+             WHERE id = %s AND deleted_at IS NULL
+            """,
+            (
+                fields["effectiveness_status"],
+                fields.get("notes"),
+                plan_id,
+            ),
+            auto_commit=False,
+        )
+        self.append_history(
+            plan_id=plan_id,
+            event_type="effectiveness_reviewed",
+            created_by=updated_by,
+            new_value=fields["effectiveness_status"],
+            comment=fields.get("notes"),
+            auto_commit=False,
+        )
+        self.commit()
+        return self.get_plan_by_id(plan_id)
+
+    def list_history(self, plan_id: str, *, limit: int = 100) -> list[dict[str, Any]]:
+        rows = self.fetch_all(
+            """
+            SELECT id, plan_id, event_type, old_value, new_value, comment,
+                   created_by, created_at
+              FROM quality.quality_action_history
+             WHERE plan_id = %s
+             ORDER BY created_at DESC
+             LIMIT %s
+            """,
+            (plan_id, limit),
+        )
+        return [serialize_row(row, id_keys=("id", "plan_id")) for row in rows if row]
+
+    def get_dashboard_summary(self) -> dict[str, Any]:
+        row = self.fetch_one(
+            """
+            SELECT
+                COUNT(*) FILTER (
+                    WHERE deleted_at IS NULL
+                      AND status NOT IN ('completed', 'cancelled')
+                ) AS open_plans,
+                COUNT(*) FILTER (
+                    WHERE deleted_at IS NULL
+                      AND status NOT IN ('completed', 'cancelled')
+                      AND severity = 'critical'
+                ) AS critical_open,
+                COUNT(*) FILTER (
+                    WHERE deleted_at IS NULL
+                      AND status = 'waiting_validation'
+                ) AS waiting_validation,
+                COUNT(*) FILTER (
+                    WHERE deleted_at IS NULL
+                      AND status = 'completed'
+                      AND closed_at >= date_trunc('month', NOW())
+                ) AS completed_this_month
+              FROM quality.quality_action_plans
+            """
+        )
+        overdue_row = self.fetch_one(
+            """
+            SELECT COUNT(*) AS overdue_actions
+              FROM quality.quality_actions a
+              JOIN quality.quality_action_plans p ON p.id = a.plan_id
+             WHERE p.deleted_at IS NULL
+               AND a.status NOT IN ('completed', 'cancelled')
+               AND a.due_date < CURRENT_DATE
+            """
+        )
+        return {
+            "open_plans": int((row or {}).get("open_plans") or 0),
+            "critical_open": int((row or {}).get("critical_open") or 0),
+            "waiting_validation": int((row or {}).get("waiting_validation") or 0),
+            "completed_this_month": int((row or {}).get("completed_this_month") or 0),
+            "overdue_actions": int((overdue_row or {}).get("overdue_actions") or 0),
+        }

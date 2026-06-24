@@ -1,0 +1,138 @@
+from __future__ import annotations
+
+from datetime import datetime
+from typing import Any
+
+
+PLAN_SELECT = """
+    SELECT p.id,
+           p.code,
+           p.title,
+           p.customer_name,
+           p.customer_contact,
+           p.source_type,
+           p.source_reference,
+           p.product_code,
+           p.product_description,
+           p.batch_number,
+           p.reported_problem,
+           p.detected_at,
+           p.reported_at,
+           p.severity,
+           p.status,
+           p.created_by_user_id,
+           p.owner_user_id,
+           p.department,
+           p.problem_category,
+           p.symptom_tags,
+           p.root_cause_category,
+           p.failure_mode,
+           p.effectiveness_status,
+           p.effectiveness_verified_at,
+           p.effectiveness_notes,
+           p.recurrence_key,
+           p.created_at,
+           p.updated_at,
+           p.closed_at
+      FROM quality.quality_action_plans p
+"""
+
+
+class QualityActionPlanRepositoryPort:
+    def next_plan_code(self) -> str: ...
+
+    def create_plan(self, fields: dict[str, Any]) -> dict[str, Any]: ...
+
+    def get_plan_by_id(self, plan_id: str) -> dict[str, Any] | None: ...
+
+    def list_plans(
+        self,
+        *,
+        status: str | None = None,
+        severity: str | None = None,
+        product_code: str | None = None,
+        customer_name: str | None = None,
+        owner_user_id: str | None = None,
+        page: int = 1,
+        page_size: int = 50,
+    ) -> dict[str, Any]: ...
+
+    def update_plan(self, plan_id: str, fields: dict[str, Any]) -> dict[str, Any] | None: ...
+
+    def update_plan_status(
+        self,
+        plan_id: str,
+        *,
+        status: str,
+        updated_by: str,
+        comment: str | None = None,
+    ) -> dict[str, Any] | None: ...
+
+    def append_history(
+        self,
+        *,
+        plan_id: str,
+        event_type: str,
+        created_by: str,
+        old_value: str | None = None,
+        new_value: str | None = None,
+        comment: str | None = None,
+    ) -> None: ...
+
+    def upsert_ishikawa(
+        self, plan_id: str, fields: dict[str, Any], *, updated_by: str
+    ) -> dict[str, Any] | None: ...
+
+    def get_ishikawa(self, plan_id: str) -> dict[str, Any] | None: ...
+
+    def upsert_five_whys(
+        self, plan_id: str, fields: dict[str, Any], *, updated_by: str
+    ) -> dict[str, Any] | None: ...
+
+    def get_five_whys(self, plan_id: str) -> dict[str, Any] | None: ...
+
+    def create_actions(
+        self, plan_id: str, actions: list[dict[str, Any]], *, created_by: str
+    ) -> list[dict[str, Any]] | None: ...
+
+    def list_actions(self, plan_id: str) -> list[dict[str, Any]]: ...
+
+    def update_action(
+        self, plan_id: str, action_id: str, fields: dict[str, Any], *, updated_by: str
+    ) -> dict[str, Any] | None: ...
+
+    def record_effectiveness_review(
+        self, plan_id: str, fields: dict[str, Any], *, updated_by: str
+    ) -> dict[str, Any] | None: ...
+
+    def list_history(self, plan_id: str, *, limit: int = 100) -> list[dict[str, Any]]: ...
+
+    def get_dashboard_summary(self) -> dict[str, Any]: ...
+
+
+def serialize_row(row: dict[str, Any] | None, *, id_keys: tuple[str, ...] = ("id",)) -> dict[str, Any] | None:
+    if row is None:
+        return None
+    result = dict(row)
+    for key in id_keys:
+        if result.get(key) is not None:
+            result[key] = str(result[key])
+    for key, value in list(result.items()):
+        if isinstance(value, datetime):
+            result[key] = value.isoformat()
+    return result
+
+
+def serialize_plan_row(row: dict[str, Any]) -> dict[str, Any]:
+    result = dict(row)
+    for key in ("id",):
+        if result.get(key) is not None:
+            result[key] = str(result[key])
+    for key in ("detected_at", "reported_at", "effectiveness_verified_at", "created_at", "updated_at", "closed_at"):
+        value = result.get(key)
+        if isinstance(value, datetime):
+            result[key] = value.isoformat()
+    tags = result.get("symptom_tags")
+    if tags is None:
+        result["symptom_tags"] = []
+    return result
