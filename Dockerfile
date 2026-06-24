@@ -12,6 +12,14 @@ RUN pip install --no-cache-dir -e /shared[fastapi]
 
 COPY api-pac-quality /app
 
+RUN chmod +x /app/docker-entrypoint.sh
+
+ENV API_PAC_QUALITY_PORT=8010
+ENV API_PAC_ROOT_PATH=
+
 EXPOSE 8010
 
-CMD ["python", "-m", "uvicorn", "app.asgi:application", "--host", "0.0.0.0", "--port", "8010", "--root-path", "/apps/api-pac-quality"]
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8010/health', timeout=3)" || exit 1
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

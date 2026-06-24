@@ -15,6 +15,8 @@ Consultas consolidadas para liderança (plugin) serão expostas pela **api-delpi
 
 O banco é o **mesmo PostgreSQL de plugins** da Minha DELPI (`PLUGINS_DB_*`), no schema `quality`.
 
+**Deploy:** stack autônoma com nginx próprio — ver [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Não faz parte do gateway `delpi-central`.
+
 ## Pré-requisitos
 
 1. Migrations do plugin `quality` já aplicadas (sequências e `quality.submodules`).
@@ -61,16 +63,22 @@ python -m uvicorn app.asgi:application --reload --port 8010
 
 Swagger: `http://localhost:8010/docs`
 
-## Docker (stack DELPI)
+## Docker (stack própria)
 
-O serviço está no `docker-compose` com gateway em `/apps/api-pac-quality`:
+API + nginx neste repositório:
 
 ```bash
-cd delpi-central/infra
-docker compose -f docker-compose.dev.yml up -d api-pac-quality
+cd api-pac-quality
+cp .env.example .env
+docker compose up -d --build
+curl -s http://localhost/health
 ```
 
-Build context: raiz `projetos/` (irmãos `delpi-central` e `api-pac-quality`).
+- Nginx: `nginx/nginx.conf` → `pac-api.minhadelpi.com.br`
+- OpenAPI agente: `docs/openapi-snapshot-chat.json`
+- Guia completo: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**
+
+Build context: raiz `projetos/` (irmãos `api-pac-quality` + `delpi-central/shared`).
 
 ## Permissões (Core API)
 
