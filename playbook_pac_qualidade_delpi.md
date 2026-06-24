@@ -195,24 +195,25 @@ O plugin deve seguir o sistema oficial de manifesto da DELPI Central.
 
 ### 4.4 Ferramenta ampliada — api-delpi
 
-A `api-delpi` será ampliada para entregar dados consolidados ao plugin.
+A `api-delpi` entrega **leitura consolidada e CRUD** ao plugin MFE `quality-action-plans`.
 
-Novo módulo sugerido:
+Módulo:
 
 ```text
 /apps/api-delpi/quality/action-plans/*
 ```
 
-Responsabilidades:
+Responsabilidades (implementado jun/2026):
 
-- Entregar consultas consolidadas ao plugin.
-- Expor dashboards resumidos.
-- Aplicar RBAC por rota.
-- Padronizar filtros e paginação.
-- Registrar origem pelo header `X-Delpi-Caller-App`.
-- Evitar que o plugin acesse diretamente o banco ou a API transacional.
+- Dashboard, listagem, atrasados e detalhe para liderança.
+- Criação e edição de planos (status, Ishikawa, 5 Porquês, ações, eficácia).
+- RBAC por rota (`quality-action-plans.read` / `.write`).
+- Filtros (`branch_code`, status, severidade, paginação).
+- Header `X-Delpi-Caller-App: quality-action-plans`.
 
-A `api-delpi` deve funcionar como camada de leitura e agregação para a experiência visual do plugin.
+A **api-pac-quality** permanece para o agente GPT (API key) e inteligência (`/intelligence/*`), compartilhando o mesmo Postgres `quality.*`.
+
+Doc técnica: `delpi-central/api-delpi/docs/api/quality-action-plans-pac.md`
 
 ---
 
@@ -1063,7 +1064,9 @@ Resposta:
 
 ---
 
-## 12.3 api-delpi — leitura para plugin
+## 12.3 api-delpi — plugin PAC (leitura + CRUD)
+
+> **Status:** implementado jun/2026. Doc canônica: `delpi-central/api-delpi/docs/api/quality-action-plans-pac.md`
 
 Base:
 
@@ -1071,9 +1074,32 @@ Base:
 /apps/api-delpi/quality/action-plans
 ```
 
+### Leitura
+
+| Método | Rota |
+|--------|------|
+| GET | `/dashboard?branch_code=01\|02` |
+| GET | `/?status=&severity=&branch_code=&page=&page_size=` |
+| GET | `/overdue?branch_code=` |
+| GET | `/{id}` |
+
+### Escrita (plugin — JWT)
+
+| Método | Rota |
+|--------|------|
+| POST | `/` |
+| PATCH | `/{id}/status` |
+| PUT | `/{id}/ishikawa` |
+| PUT | `/{id}/five-whys` |
+| POST | `/{id}/actions` |
+| PATCH | `/{id}/actions/{action_id}` |
+| POST | `/{id}/effectiveness-review` |
+
+Envelope: `{ success, message, data }`. Permissões: `quality-action-plans.read` (GET), `quality-action-plans.write` (POST/PATCH/PUT).
+
 ---
 
-### Listagem
+### Listagem (exemplo)
 
 ```http
 GET /quality/action-plans?status=in_progress&severity=high&page=1&pageSize=20

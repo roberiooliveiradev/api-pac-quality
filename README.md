@@ -2,16 +2,17 @@
 
 API transacional de **planos de ação central de qualidade** (PAC). Usada pelo agente GPT de causa raiz para escrita, histórico e inteligência operacional.
 
-Consultas consolidadas para liderança (plugin) serão expostas pela **api-delpi** (Fase 4 do playbook).
+Consultas consolidadas e **CRUD do plugin MFE** são expostos pela **api-delpi** (`/apps/api-delpi/quality/action-plans/*`). Esta API permanece dedicada ao **agente GPT** (Actions + API key) e à **camada de inteligência** (casos similares, padrões de solução).
 
 ## Arquitetura
 
 | Camada | Repositório | Responsabilidade |
 |--------|-------------|------------------|
-| API transacional | `api-pac-quality` (este repo) | CRUD, Ishikawa, 5 Porquês, ações, knowledge layer |
-| Migrations + PostgreSQL | `delpi-central/api-delpi/migrations/plugins/quality-action-plans/` | Schema `quality.*` no banco de plugins |
-| Leitura agregada | `delpi-central/api-delpi` | Dashboards do plugin `quality-action-plans` |
-| Agente | `delpi-central/minha-delpi-ai-api` | Conversa + chamadas à API PAC |
+| **Plugin MFE + api-delpi** | `delpi-central` | CRUD e leitura via JWT (`quality-action-plans` caller) |
+| **API transacional GPT** | `api-pac-quality` (este repo) | Mesmos endpoints de escrita + inteligência; auth JWT ou `PAC_QUALITY_API_KEY` |
+| **Migrations + PostgreSQL** | `delpi-central/api-delpi/migrations/plugins/quality-action-plans/` | Schema `quality.*` no banco de plugins |
+| **Agente ChatGPT** | Custom GPT + Actions | OpenAPI desta API em `pac-api.minhadelpi.com.br` |
+| **Agente Minha DELPI** (roadmap) | `minha-delpi-ai-api` | Provider OpenAPI sync |
 
 O banco é o **mesmo PostgreSQL de plugins** da Minha DELPI (`PLUGINS_DB_*`), no schema `quality`.
 
@@ -109,7 +110,9 @@ Códigos: `quality-action-plans.read`, `quality-action-plans.write`, `quality-ac
 | `PATCH` | `/quality/action-plans/{id}/actions/{action_id}` | Atualizar ação |
 | `POST` | `/quality/action-plans/{id}/effectiveness-review` | Verificação de eficácia |
 
-### Leitura consolidada (api-delpi — plugin)
+### Leitura e CRUD — plugin (api-delpi)
+
+Implementado em `delpi-central/api-delpi`. O MFE **não** chama esta API diretamente.
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
@@ -117,8 +120,21 @@ Códigos: `quality-action-plans.read`, `quality-action-plans.write`, `quality-ac
 | `GET` | `/quality/action-plans` | Listagem |
 | `GET` | `/quality/action-plans/overdue` | Planos com ações atrasadas |
 | `GET` | `/quality/action-plans/{id}` | Detalhe completo |
+| `POST` | `/quality/action-plans` | Criar plano |
+| `PATCH` | `/quality/action-plans/{id}/status` | Atualizar status |
+| `PUT` | `/quality/action-plans/{id}/ishikawa` | Ishikawa |
+| `PUT` | `/quality/action-plans/{id}/five-whys` | 5 Porquês |
+| `POST` | `/quality/action-plans/{id}/actions` | Criar ações |
+| `PATCH` | `/quality/action-plans/{id}/actions/{action_id}` | Atualizar ação |
+| `POST` | `/quality/action-plans/{id}/effectiveness-review` | Eficácia |
+
+Doc: `delpi-central/api-delpi/docs/api/quality-action-plans-pac.md`
 
 Envelope de resposta (padrão api-delpi): `{ success, message, data, error }`.
+
+## Endpoints desta API (agente GPT + inteligência)
+
+### Escrita (paridade com api-delpi)
 
 ## Testes
 
@@ -141,7 +157,8 @@ Migration: `V003__create_pac_knowledge_layer.sql` (tabelas + `pg_trgm`).
 ## Próximos passos (playbook)
 
 1. ~~Knowledge layer simples~~ (Fase 2 — MVP textual)
-2. Subdomínio `pac-api.minhadelpi.com.br` — [docs/cloudflare-subdominio-pac-api.md](docs/cloudflare-subdominio-pac-api.md)
-3. Agente GPT + provider OpenAPI (`minha-delpi-ai-api`)
+2. ~~CRUD plugin via api-delpi~~ — implementado jun/2026
+3. Subdomínio `pac-api.minhadelpi.com.br` — [docs/cloudflare-subdominio-pac-api.md](docs/cloudflare-subdominio-pac-api.md)
+4. Agente Minha DELPI + provider OpenAPI (`minha-delpi-ai-api`)
 
 Documentação completa: `playbook_pac_qualidade_delpi.md`.
