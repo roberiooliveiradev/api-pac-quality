@@ -18,6 +18,7 @@ class Settings:
     LOG_LEVEL: str = _get_env("LOG_LEVEL", default="INFO")
     ROOT_PATH: str = _get_env("API_PAC_ROOT_PATH", default="")
     PUBLIC_BASE_URL: str | None = _get_env("PUBLIC_BASE_URL")
+    PAC_QUALITY_API_KEY: str | None = _get_env("PAC_QUALITY_API_KEY")
 
     KEYCLOAK_JWKS_URL: str | None = _get_env("KEYCLOAK_JWKS_URL")
     KEYCLOAK_ISSUER: str | None = _get_env("KEYCLOAK_ISSUER")

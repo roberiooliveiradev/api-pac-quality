@@ -10,7 +10,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
 from app.core.responses import error_response, not_found_response
-from app.interface.http.middleware.auth_middleware import jwt_middleware
+from app.interface.http.middleware.pac_auth_middleware import pac_auth_middleware
 from app.interface.http.routes.quality_intelligence_router import router as intelligence_router
 from app.interface.http.routes.quality_action_plans_router import router as action_plans_router
 from app.infrastructure.providers.database.plugins_postgres_connection import check_plugins_connection
@@ -52,7 +52,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-app.middleware("http")(jwt_middleware)
+app.middleware("http")(pac_auth_middleware)
 app.include_router(intelligence_router)
 app.include_router(action_plans_router)
 

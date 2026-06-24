@@ -8,7 +8,7 @@ Consumida pelo **agente GPT** da Minha DELPI via provider OpenAPI (`api-pac-qual
 
 | Documento | Conteúdo |
 |-----------|----------|
-| [cloudflare-subdominio-pac-api.md](cloudflare-subdominio-pac-api.md) | **Subdomínio Cloudflare + tunnel** (passo a passo) |
+| [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md) | **ChatGPT Custom GPT** — chave API Bearer |
 | [openapi-snapshot-chat.json](openapi-snapshot-chat.json) | Contrato OpenAPI para o agente GPT |
 | `../.env.srv-api.example` | `.env` de produção para o srv-api |
 | `../docker-compose.override.srv-api.example.yml` | Rede Docker com `delpi-central` |

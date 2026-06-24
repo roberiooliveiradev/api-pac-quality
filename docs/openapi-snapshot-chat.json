@@ -11,6 +11,11 @@
       "description": "Subdomínio Cloudflare (nginx próprio da api-pac-quality)"
     }
   ],
+  "security": [
+    {
+      "PacApiKey": []
+    }
+  ],
   "tags": [
     {
       "name": "PAC Qualidade — planos de ação",
@@ -334,6 +339,13 @@
     }
   },
   "components": {
+    "securitySchemes": {
+      "PacApiKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Chave PAC_QUALITY_API_KEY — Authorization: Bearer <token>"
+      }
+    },
     "parameters": {
       "plan_id": {
         "name": "plan_id",
