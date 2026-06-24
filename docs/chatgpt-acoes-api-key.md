@@ -43,8 +43,10 @@ Sem token → `401`. Com token → `200` (ou lista vazia).
 
 No builder do GPT → **Configurar** → **Ações** → **Criar nova ação** (ou editar):
 
-1. **Importar schema** — cole o conteúdo de:
-   `docs/openapi-snapshot-chat.json`
+1. **Importar schema** — **Importar de URL:**
+   `https://pac-api.minhadelpi.com.br/openapi.json`
+
+   O schema é gerado pelo FastAPI (mesmo padrão da api-delpi). Inclui `security: PacApiKey` (Bearer) e `servers` quando `PUBLIC_BASE_URL` está configurado.
 2. Confirme o servidor:
    ```json
    "url": "https://pac-api.minhadelpi.com.br"

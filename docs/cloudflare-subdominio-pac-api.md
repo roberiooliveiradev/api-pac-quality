@@ -182,13 +182,12 @@ Na UI **Actions do agente** ou API admin do chat:
 }
 ```
 
-Schema: `docs/openapi-snapshot-chat.json`
+Schema: `https://pac-api.minhadelpi.com.br/openapi.json`
 
 ### 5.2 Sincronizar actions no chat
 
 ```bash
-docker exec delpi-minha-delpi-ai-api python scripts/sync_api_pac_quality_openapi.py \
-  --from-file /caminho/api-pac-quality/docs/openapi-snapshot-chat.json
+docker exec delpi-minha-delpi-ai-api python scripts/sync_api_pac_quality_openapi.py
 ```
 
 ### 5.3 Permissões RBAC

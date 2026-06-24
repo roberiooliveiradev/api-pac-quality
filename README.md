@@ -79,7 +79,7 @@ curl -s http://localhost:8082/health
 | Deploy geral | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
 | **Subdomínio Cloudflare** | [docs/cloudflare-subdominio-pac-api.md](docs/cloudflare-subdominio-pac-api.md) |
 | **ChatGPT Actions (API Key)** | [docs/chatgpt-acoes-api-key.md](docs/chatgpt-acoes-api-key.md) |
-| OpenAPI agente GPT | [docs/openapi-snapshot-chat.json](docs/openapi-snapshot-chat.json) |
+| OpenAPI agente GPT | `GET /openapi.json` (ex.: `https://pac-api.minhadelpi.com.br/openapi.json`) |
 | `.env` produção | [.env.srv-api.example](.env.srv-api.example) |
 
 Build context: raiz `projetos/` (irmãos `api-pac-quality` + `delpi-central/shared`).

@@ -10,6 +10,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.config import settings
 from app.core.responses import error_response, not_found_response
+from app.interface.http.openapi_schema import build_openapi_schema
 from app.interface.http.middleware.pac_auth_middleware import pac_auth_middleware
 from app.interface.http.routes.quality_intelligence_router import router as intelligence_router
 from app.interface.http.routes.quality_action_plans_router import router as action_plans_router
@@ -53,6 +54,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.middleware("http")(pac_auth_middleware)
+app.openapi = lambda: build_openapi_schema(app)
 app.include_router(intelligence_router)
 app.include_router(action_plans_router)
 

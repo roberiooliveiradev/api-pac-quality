@@ -9,7 +9,7 @@ Consumida pelo **agente GPT** da Minha DELPI via provider OpenAPI (`api-pac-qual
 | Documento | Conteúdo |
 |-----------|----------|
 | [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md) | **ChatGPT Custom GPT** — chave API Bearer |
-| [openapi-snapshot-chat.json](openapi-snapshot-chat.json) | Contrato OpenAPI para o agente GPT |
+| `GET /openapi.json` | Contrato OpenAPI para o agente GPT (gerado pelo FastAPI) |
 | `../.env.srv-api.example` | `.env` de produção para o srv-api |
 | `../docker-compose.override.srv-api.example.yml` | Rede Docker com `delpi-central` |
 
@@ -24,7 +24,7 @@ api-pac-quality/
     nginx.conf            # pac-api.minhadelpi.com.br → api:8010
   docs/
     cloudflare-subdominio-pac-api.md
-    openapi-snapshot-chat.json
+    chatgpt-acoes-api-key.md
 ```
 
 | Serviço | Container | Porta no host |
@@ -111,9 +111,10 @@ docker exec delpi-api-delpi python scripts/run_plugins_migrations.py up --plugin
 ```
 
 ```bash
-docker exec delpi-minha-delpi-ai-api python scripts/sync_api_pac_quality_openapi.py \
-  --from-file ~/projetos/api-pac-quality/docs/openapi-snapshot-chat.json
+docker exec delpi-minha-delpi-ai-api python scripts/sync_api_pac_quality_openapi.py
 ```
+
+O script importa de `https://pac-api.minhadelpi.com.br/openapi.json` por padrão.
 
 ## Testes
 
