@@ -10,7 +10,7 @@ Consultas consolidadas e **CRUD do plugin MFE** são expostos pela **api-delpi**
 |--------|-------------|------------------|
 | **Plugin MFE + api-delpi** | `delpi-central` | CRUD e leitura via JWT (`quality-action-plans` caller) |
 | **API transacional GPT** | `api-pac-quality` (este repo) | Mesmos endpoints de escrita + inteligência; auth JWT ou `PAC_QUALITY_API_KEY` |
-| **Migrations + PostgreSQL** | `delpi-central/api-delpi/migrations/plugins/quality-action-plans/` | Schema `quality.*` (V001–V006; relatório 8D e evidências em V006) |
+| **Migrations + PostgreSQL** | `delpi-central/api-delpi/migrations/plugins/quality-action-plans/` | Schema `quality.*` (V001–V007) |
 | **Agente ChatGPT** | Custom GPT + Actions | OpenAPI desta API em `pac-api.minhadelpi.com.br` |
 | **Agente Minha DELPI** (roadmap) | `minha-delpi-ai-api` | Provider OpenAPI sync |
 
@@ -47,7 +47,20 @@ Arquivos:
 - `V001__create_pac_action_plans_core.sql` — tabelas principais
 - `V002__seed_pac_sequences_and_submodule.sql` — sequência `PAC-YYYY-####` e submódulo `action_plans`
 
-## Desenvolvimento local
+## Desenvolvimento e homologação local
+
+**Não** é necessário subir container desta API no dev. O plugin e os testes de Onda 1 usam a **api-delpi** (`delpi-central`, container `delpi-api-delpi`):
+
+```bash
+cd delpi-central/infra
+docker compose -f docker-compose.dev.yml up -d --force-recreate api-delpi quality-action-plans
+bash ../api-delpi/scripts/deploy_rnc_8d_template.sh
+export TOKEN="<jwt>" && python3 ../scripts/homologacao/run_h1_api_smoke.py
+```
+
+Testes unitários deste repo (`pytest tests/ -q`) validam paridade de `operation_id` com a api-delpi.
+
+### Uvicorn local (opcional — debug pontual)
 
 ```bash
 cd api-pac-quality
@@ -57,14 +70,14 @@ pip install -r requirements.txt
 pip install -e ../delpi-central/shared[fastapi]
 
 cp .env.example .env
-# preencher PLUGINS_DB_* e Keycloak
+# PLUGINS_DB_* ← mesmos valores de delpi-central/infra/.env (host localhost:5433 se Postgres exposto)
 
 python -m uvicorn app.asgi:application --reload --port 8010
 ```
 
 Swagger: `http://localhost:8010/docs`
 
-## Docker (stack própria — srv-api)
+## Docker (somente srv-api / produção)
 
 ```bash
 cd api-pac-quality
@@ -168,4 +181,4 @@ Migration: `V003__create_pac_knowledge_layer.sql` (tabelas + `pg_trgm`).
 | `docs/12-roadmap-e-evolucao/quality-action-plans/HOMOLOGACAO.md` | delpi-central | Roteiro de homologação |
 | `playbook_pac_qualidade_delpi.md` | api-pac-quality | Especificação funcional v0.1 |
 
-**Próxima onda (Onda 1):** aplicar V006+V007, homologar H1–H3, reimportar OpenAPI no GPT.
+**Próxima onda (Onda 1):** homologar H1–H3 na **api-delpi** + plugin; deploy api-pac em produção para o GPT.
