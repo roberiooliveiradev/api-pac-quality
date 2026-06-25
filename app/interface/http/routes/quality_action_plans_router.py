@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Body, Query
+from fastapi import APIRouter, Body, File, Form, Query, UploadFile
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 
 from delpi_auth.authorization import require_any_permission
@@ -12,20 +13,27 @@ from app.application.security.pac_quality_permissions import (
     QUALITY_ACTION_PLANS_READ_PERMISSIONS,
     QUALITY_ACTION_PLANS_WRITE_PERMISSIONS,
 )
+from app.application.services.pac_evidence_storage import (
+    PacEvidenceStorage,
+    PacEvidenceStorageError,
+)
 from app.composition.quality_action_plans_composer import (
     build_create_plan_actions_use_case,
     build_create_quality_action_plan_use_case,
     build_get_plan_detail_use_case,
     build_get_quality_action_plan_use_case,
     build_list_quality_action_plans_use_case,
+    build_quality_action_plan_repository,
     build_record_effectiveness_review_use_case,
     build_update_plan_action_use_case,
     build_update_quality_action_plan_status_use_case,
+    build_update_quality_action_plan_use_case,
     build_upsert_five_whys_use_case,
     build_upsert_ishikawa_use_case,
 )
 from app.application.use_cases.quality_action_plans_use_cases import (
     CreateQualityActionPlanRequest,
+    UpdateQualityActionPlanRequest,
 )
 from app.application.use_cases.quality_action_plan_analysis_use_cases import (
     CreateActionItemRequest,
@@ -34,6 +42,7 @@ from app.application.use_cases.quality_action_plan_analysis_use_cases import (
     UpsertIshikawaRequest,
 )
 from app.core.responses import error_response, not_found_response, success_response
+from app.domain.services.rnc_8d_excel_export_service import build_rnc_8d_workbook
 from app.infrastructure.persistence.plugins.plugin_base_repository import PluginsRepositoryError
 
 logger = logging.getLogger(__name__)
@@ -70,6 +79,43 @@ class CreateActionPlanBody(BaseModel):
     root_cause_category: str | None = Field(default=None, max_length=200)
     failure_mode: str | None = Field(default=None, max_length=300)
     recurrence_key: str | None = Field(default=None, max_length=500)
+    customer_template: str | None = Field(
+        default=None,
+        pattern="^(generic|rnc_8d)$",
+    )
+    client_nc_registry: str | None = Field(default=None, max_length=100)
+
+
+class UpdateActionPlanBody(BaseModel):
+    title: str | None = Field(default=None, min_length=2, max_length=500)
+    customer_name: str | None = Field(default=None, max_length=300)
+    customer_contact: str | None = Field(default=None, max_length=300)
+    source_type: str | None = Field(
+        default=None,
+        pattern="^(email|message|spreadsheet|pdf|image|manual_text|system_reference|other)$",
+    )
+    source_reference: str | None = Field(default=None, max_length=500)
+    product_code: str | None = Field(default=None, max_length=50)
+    product_description: str | None = Field(default=None, max_length=500)
+    batch_number: str | None = Field(default=None, max_length=100)
+    reported_problem: str | None = None
+    detected_at: str | None = None
+    reported_at: str | None = None
+    severity: str | None = Field(default=None, pattern="^(low|medium|high|critical)$")
+    owner_user_id: str | None = Field(default=None, max_length=100)
+    branch_code: str | None = Field(default=None, pattern="^(01|02)$")
+    nonconformity_scope: str | None = Field(default=None, pattern="^(internal|external)$")
+    department: str | None = Field(default=None, max_length=200)
+    problem_category: str | None = Field(default=None, max_length=200)
+    symptom_tags: list[str] | None = None
+    root_cause_category: str | None = Field(default=None, max_length=200)
+    failure_mode: str | None = Field(default=None, max_length=300)
+    recurrence_key: str | None = Field(default=None, max_length=500)
+    customer_template: str | None = Field(
+        default=None,
+        pattern="^(generic|rnc_8d)$",
+    )
+    client_nc_registry: str | None = Field(default=None, max_length=100)
 
 
 class UpdateActionPlanStatusBody(BaseModel):
@@ -99,6 +145,11 @@ class FiveWhysBody(BaseModel):
     why_3: str | None = None
     why_4: str | None = None
     why_5: str | None = None
+    detection_why_1: str | None = None
+    detection_why_2: str | None = None
+    detection_why_3: str | None = None
+    detection_why_4: str | None = None
+    detection_why_5: str | None = None
     root_cause: str | None = None
     confidence_level: str | None = Field(default=None, pattern="^(low|medium|high)$")
 
@@ -115,6 +166,7 @@ class ActionItemBody(BaseModel):
     due_date: str | None = None
     status: str = Field(default="pending", pattern="^(pending|in_progress|blocked)$")
     evidence_required: bool = False
+    cause_track: str | None = Field(default=None, pattern="^(occurrence|detection)$")
 
 
 class CreateActionsBody(BaseModel):
@@ -132,6 +184,26 @@ class UpdateActionBody(BaseModel):
         pattern="^(pending|in_progress|blocked|completed|cancelled|overdue)$",
     )
     evidence_required: bool | None = None
+    cause_track: str | None = Field(default=None, pattern="^(occurrence|detection)$")
+
+
+class TeamMemberBody(BaseModel):
+    member_name: str = Field(..., min_length=1, max_length=200)
+    department: str | None = Field(default=None, max_length=200)
+    is_leader: bool = False
+    sort_order: int = 0
+
+
+class Rnc8dReportBody(BaseModel):
+    client_nc_registry: str | None = Field(default=None, max_length=100)
+    customer_name: str | None = Field(default=None, max_length=300)
+    customer_contact: str | None = Field(default=None, max_length=300)
+    product_code: str | None = Field(default=None, max_length=50)
+    product_description: str | None = Field(default=None, max_length=500)
+    batch_number: str | None = Field(default=None, max_length=100)
+    reported_problem: str | None = None
+    template_payload: dict | None = None
+    team_members: list[TeamMemberBody] | None = None
 
 
 class EffectivenessReviewBody(BaseModel):
@@ -181,6 +253,19 @@ def create_action_plan(body: CreateActionPlanBody = Body(...)):
                 recurrence_key=body.recurrence_key,
             )
         )
+        if body.customer_template or body.client_nc_registry:
+            repo = build_quality_action_plan_repository()
+            repo.update_plan(
+                str(plan["id"]),
+                {
+                    "customer_template": body.customer_template,
+                    "client_nc_registry": body.client_nc_registry,
+                    "updated_by_user_id": _current_user_id(),
+                },
+            )
+            refreshed = build_get_quality_action_plan_use_case().execute(str(plan["id"]))
+            if refreshed:
+                plan = refreshed
         return success_response(
             plan,
             message="Plano de ação criado com sucesso.",
@@ -356,6 +441,31 @@ def record_effectiveness_review(plan_id: str, body: EffectivenessReviewBody = Bo
         return error_response("Erro ao registrar eficácia.", status_code=500, code="PAC_REPOSITORY_ERROR")
 
 
+@router.patch("/{plan_id}", operation_id="pac_update_action_plan")
+@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
+def update_action_plan(plan_id: str, body: UpdateActionPlanBody = Body(...)):
+    try:
+        fields = body.model_dump(exclude_unset=True)
+        if not fields:
+            plan = build_get_quality_action_plan_use_case().execute(plan_id)
+            if not plan:
+                return not_found_response("Plano de ação não encontrado.")
+            return success_response(plan, message="Nenhuma alteração informada.")
+        result = build_update_quality_action_plan_use_case().execute(
+            plan_id,
+            UpdateQualityActionPlanRequest(**fields),
+            updated_by=_current_user_id(),
+        )
+        if not result:
+            return not_found_response("Plano de ação não encontrado.")
+        return success_response(result, message="Plano atualizado.")
+    except ValueError as exc:
+        return error_response(str(exc), status_code=400)
+    except PluginsRepositoryError:
+        logger.exception("Erro ao atualizar plano PAC %s.", plan_id)
+        return error_response("Erro ao atualizar plano.", status_code=500, code="PAC_REPOSITORY_ERROR")
+
+
 @router.patch("/{plan_id}/status", operation_id="pac_update_action_plan_status")
 @require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def update_action_plan_status(plan_id: str, body: UpdateActionPlanStatusBody = Body(...)):
@@ -379,3 +489,173 @@ def update_action_plan_status(plan_id: str, body: UpdateActionPlanStatusBody = B
             status_code=500,
             code="PAC_REPOSITORY_ERROR",
         )
+
+
+@router.put("/{plan_id}/rnc-8d", operation_id="pac_upsert_rnc_8d")
+@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
+def upsert_rnc_8d_report(plan_id: str, body: Rnc8dReportBody = Body(...)):
+    try:
+        repo = build_quality_action_plan_repository()
+        result = repo.upsert_rnc_8d_report(
+            plan_id,
+            {
+                "customer_template": "rnc_8d",
+                "client_nc_registry": body.client_nc_registry,
+                "customer_name": body.customer_name,
+                "customer_contact": body.customer_contact,
+                "product_code": body.product_code,
+                "product_description": body.product_description,
+                "batch_number": body.batch_number,
+                "reported_problem": body.reported_problem,
+                "template_payload": body.template_payload,
+                "team_members": [member.model_dump() for member in body.team_members]
+                if body.team_members is not None
+                else None,
+            },
+            updated_by=_current_user_id(),
+        )
+        if not result:
+            return not_found_response("Plano de ação não encontrado.")
+        return success_response(result, message="Relatório 8D salvo.")
+    except PluginsRepositoryError:
+        logger.exception("Erro ao salvar relatório 8D do plano %s.", plan_id)
+        return error_response("Erro ao salvar relatório 8D.", status_code=500, code="PAC_REPOSITORY_ERROR")
+
+
+@router.get("/{plan_id}/export/rnc-8d", operation_id="pac_export_rnc_8d")
+@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
+def export_rnc_8d_spreadsheet(plan_id: str):
+    try:
+        repo = build_quality_action_plan_repository()
+        detail = repo.get_plan_detail(plan_id)
+        if not detail:
+            return not_found_response("Plano de ação não encontrado.")
+        content = build_rnc_8d_workbook(detail)
+        plan = detail.get("plan") or {}
+        registry = plan.get("client_nc_registry") or plan.get("code") or plan_id[:8]
+        filename = f"RNC_{registry}_8D.xlsx"
+        return Response(
+            content=content,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    except FileNotFoundError as exc:
+        return error_response(str(exc), status_code=500)
+    except Exception:
+        logger.exception("Erro ao exportar relatório 8D do plano %s.", plan_id)
+        return error_response("Erro ao gerar planilha 8D.", status_code=500)
+
+
+@router.get("/{plan_id}/evidences", operation_id="pac_list_plan_evidences")
+@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
+def list_plan_evidences(plan_id: str):
+    try:
+        repo = build_quality_action_plan_repository()
+        if not repo.get_plan_by_id(plan_id):
+            return not_found_response("Plano de ação não encontrado.")
+        return success_response(repo.list_evidences(plan_id))
+    except PluginsRepositoryError:
+        logger.exception("Erro ao listar evidências do plano %s.", plan_id)
+        return error_response("Erro ao listar evidências.", status_code=500, code="PAC_REPOSITORY_ERROR")
+
+
+@router.post("/{plan_id}/evidences", operation_id="pac_attach_plan_evidence")
+@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
+async def upload_plan_evidence(
+    plan_id: str,
+    evidence_type: str = Form(
+        ...,
+        pattern="^(email|message|spreadsheet|pdf|image|manual_text|system_reference|other)$",
+    ),
+    section: str = Form(
+        default="general",
+        pattern=(
+            "^(general|nc_description|containment|root_cause|corrective|"
+            "effectiveness|preventive|documentation|attachments)$"
+        ),
+    ),
+    description: str | None = Form(default=None),
+    knowledge_visible: bool = Form(default=True),
+    file: UploadFile = File(...),
+):
+    try:
+        content = await file.read()
+        storage = PacEvidenceStorage()
+        storage.validate_upload(mime_type=file.content_type, size_bytes=len(content))
+        stored_name = storage.save(
+            plan_id=plan_id,
+            original_name=file.filename or "evidence.bin",
+            content=content,
+            mime_type=file.content_type,
+        )
+        repo = build_quality_action_plan_repository()
+        data = repo.create_evidence(
+            plan_id,
+            {
+                "type": evidence_type,
+                "file_name": file.filename,
+                "stored_name": stored_name,
+                "mime_type": file.content_type,
+                "size_bytes": len(content),
+                "section": section,
+                "description": description,
+                "knowledge_visible": knowledge_visible,
+                "uploaded_by": _current_user_id(),
+            },
+        )
+        if not data:
+            storage.delete_file(plan_id=plan_id, stored_name=stored_name)
+            return not_found_response("Plano de ação não encontrado.")
+        return success_response(data, message="Evidência anexada com sucesso.")
+    except (PluginsRepositoryError, PacEvidenceStorageError) as exc:
+        return error_response(str(exc), status_code=422)
+    except Exception:
+        logger.exception("Erro ao anexar evidência ao plano %s.", plan_id)
+        return error_response("Erro interno ao anexar evidência.", status_code=500)
+
+
+@router.get("/{plan_id}/evidences/{evidence_id}/file", operation_id="pac_download_plan_evidence")
+@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
+def download_plan_evidence(plan_id: str, evidence_id: str):
+    try:
+        repo = build_quality_action_plan_repository()
+        evidence = repo.get_evidence(plan_id, evidence_id)
+        if not evidence or not evidence.get("stored_name"):
+            return not_found_response("Evidência não encontrada.")
+        storage = PacEvidenceStorage()
+        file_path = storage.resolve_file(
+            plan_id=plan_id,
+            stored_name=str(evidence["stored_name"]),
+        )
+        return FileResponse(
+            path=file_path,
+            media_type=evidence.get("mime_type") or "application/octet-stream",
+            filename=str(evidence.get("file_name") or evidence["stored_name"]),
+        )
+    except (PluginsRepositoryError, PacEvidenceStorageError) as exc:
+        return error_response(str(exc), status_code=404)
+    except Exception:
+        logger.exception("Erro ao baixar evidência %s.", evidence_id)
+        return error_response("Erro interno ao baixar evidência.", status_code=500)
+
+
+@router.delete("/{plan_id}/evidences/{evidence_id}", operation_id="pac_delete_plan_evidence")
+@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
+def delete_plan_evidence(plan_id: str, evidence_id: str):
+    try:
+        repo = build_quality_action_plan_repository()
+        evidence = repo.delete_evidence(plan_id, evidence_id)
+        if not evidence:
+            return not_found_response("Evidência não encontrada.")
+        if evidence.get("stored_name"):
+            try:
+                PacEvidenceStorage().delete_file(
+                    plan_id=plan_id,
+                    stored_name=str(evidence["stored_name"]),
+                )
+            except PacEvidenceStorageError:
+                pass
+        return success_response({"id": evidence_id, "deleted": True}, message="Evidência removida.")
+    except PluginsRepositoryError:
+        logger.exception("Erro ao remover evidência %s.", evidence_id)
+        return error_response("Erro ao remover evidência.", status_code=500, code="PAC_REPOSITORY_ERROR")

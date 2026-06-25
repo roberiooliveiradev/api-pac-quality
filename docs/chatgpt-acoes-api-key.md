@@ -101,15 +101,19 @@ Resumo das regras obrigatórias:
 
 | Intenção | operationId |
 |----------|-------------|
-| Criar plano | `create_quality_action_plan` |
-| Listar planos | `list_quality_action_plans` |
-| Detalhe | `get_quality_action_plan` |
-| Ishikawa | `upsert_ishikawa` |
-| 5 Porquês | `upsert_five_whys` |
-| Criar ações | `create_plan_actions` |
-| Casos similares | `search_similar_cases` |
-| Padrões de solução | `search_solution_patterns` |
-| Sugerir ações | `suggest_actions` |
+| Criar plano | `pac_create_action_plan` |
+| Listar planos | `pac_list_action_plans` |
+| Detalhe | `pac_get_action_plan` |
+| Atualizar plano | `pac_update_action_plan` |
+| Ishikawa | `pac_upsert_ishikawa` |
+| 5 Porquês | `pac_upsert_five_whys` |
+| Criar ações | `pac_create_plan_actions` |
+| Relatório 8D | `pac_upsert_rnc_8d` |
+| Exportar 8D | `pac_export_rnc_8d` |
+| Evidências | `pac_list_plan_evidences` / `pac_attach_plan_evidence` |
+| Casos similares | `pac_search_similar_cases` |
+| Padrões de solução | `pac_search_solution_patterns` |
+| Sugerir ações | `pac_suggest_actions` |
 
 Lista completa no OpenAPI.
 

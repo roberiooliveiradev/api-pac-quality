@@ -11,6 +11,9 @@ PLAN_SELECT = """
            p.customer_name,
            p.customer_contact,
            p.nonconformity_scope,
+           p.customer_template,
+           p.client_nc_registry,
+           p.template_payload,
            p.source_type,
            p.source_reference,
            p.product_code,
@@ -46,6 +49,8 @@ class QualityActionPlanRepositoryPort:
     def create_plan(self, fields: dict[str, Any]) -> dict[str, Any]: ...
 
     def get_plan_by_id(self, plan_id: str) -> dict[str, Any] | None: ...
+
+    def get_plan_detail(self, plan_id: str) -> dict[str, Any] | None: ...
 
     def list_plans(
         self,
@@ -118,6 +123,18 @@ class QualityActionPlanRepositoryPort:
         nonconformity_scope: str | None = None,
     ) -> dict[str, Any]: ...
 
+    def upsert_rnc_8d_report(
+        self, plan_id: str, fields: dict[str, Any], *, updated_by: str
+    ) -> dict[str, Any] | None: ...
+
+    def list_evidences(self, plan_id: str) -> list[dict[str, Any]]: ...
+
+    def get_evidence(self, plan_id: str, evidence_id: str) -> dict[str, Any] | None: ...
+
+    def create_evidence(self, plan_id: str, fields: dict[str, Any]) -> dict[str, Any] | None: ...
+
+    def delete_evidence(self, plan_id: str, evidence_id: str) -> dict[str, Any] | None: ...
+
 
 def serialize_row(row: dict[str, Any] | None, *, id_keys: tuple[str, ...] = ("id",)) -> dict[str, Any] | None:
     if row is None:
@@ -144,4 +161,6 @@ def serialize_plan_row(row: dict[str, Any]) -> dict[str, Any]:
     tags = result.get("symptom_tags")
     if tags is None:
         result["symptom_tags"] = []
+    if result.get("template_payload") is None:
+        result["template_payload"] = {}
     return result

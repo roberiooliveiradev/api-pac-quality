@@ -10,7 +10,7 @@ Consultas consolidadas e **CRUD do plugin MFE** são expostos pela **api-delpi**
 |--------|-------------|------------------|
 | **Plugin MFE + api-delpi** | `delpi-central` | CRUD e leitura via JWT (`quality-action-plans` caller) |
 | **API transacional GPT** | `api-pac-quality` (este repo) | Mesmos endpoints de escrita + inteligência; auth JWT ou `PAC_QUALITY_API_KEY` |
-| **Migrations + PostgreSQL** | `delpi-central/api-delpi/migrations/plugins/quality-action-plans/` | Schema `quality.*` (V001–V005; `nonconformity_scope` em V005) |
+| **Migrations + PostgreSQL** | `delpi-central/api-delpi/migrations/plugins/quality-action-plans/` | Schema `quality.*` (V001–V006; relatório 8D e evidências em V006) |
 | **Agente ChatGPT** | Custom GPT + Actions | OpenAPI desta API em `pac-api.minhadelpi.com.br` |
 | **Agente Minha DELPI** (roadmap) | `minha-delpi-ai-api` | Provider OpenAPI sync |
 
@@ -154,11 +154,13 @@ O índice de similaridade é atualizado automaticamente ao criar plano, registra
 
 Migration: `V003__create_pac_knowledge_layer.sql` (tabelas + `pg_trgm`).
 
-## Próximos passos (playbook)
+## Roadmap e excelência
 
-1. ~~Knowledge layer simples~~ (Fase 2 — MVP textual)
-2. ~~CRUD plugin via api-delpi~~ — implementado jun/2026
-3. Subdomínio `pac-api.minhadelpi.com.br` — [docs/cloudflare-subdominio-pac-api.md](docs/cloudflare-subdominio-pac-api.md)
-4. Agente Minha DELPI + provider OpenAPI (`minha-delpi-ai-api`)
+| Documento | Repositório | Conteúdo |
+|---|---|---|
+| `docs/12-roadmap-e-evolucao/quality-action-plans/PLAYBOOK-EXCELENCIA.md` | delpi-central | North star, ondas 0–7, métricas, priorização 90 dias |
+| `docs/12-roadmap-e-evolucao/quality-action-plans/status-atual.md` | delpi-central | Snapshot do que está implementado |
+| `docs/12-roadmap-e-evolucao/quality-action-plans/HOMOLOGACAO.md` | delpi-central | Roteiro de homologação |
+| `playbook_pac_qualidade_delpi.md` | api-pac-quality | Especificação funcional v0.1 |
 
-Documentação completa: `playbook_pac_qualidade_delpi.md`.
+**Próxima onda (Onda 1):** paridade API PAC com 8D/evidências, homologar 3 casos reais, fechar operação NC sem planilha paralela.

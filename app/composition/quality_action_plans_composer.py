@@ -3,6 +3,7 @@ from app.application.use_cases.quality_action_plans_use_cases import (
     GetQualityActionPlanUseCase,
     ListQualityActionPlansUseCase,
     UpdateQualityActionPlanStatusUseCase,
+    UpdateQualityActionPlanUseCase,
 )
 from app.application.use_cases.quality_action_plan_analysis_use_cases import (
     CreatePlanActionsUseCase,
@@ -42,6 +43,10 @@ def build_list_quality_action_plans_use_case() -> ListQualityActionPlansUseCase:
 
 def build_update_quality_action_plan_status_use_case() -> UpdateQualityActionPlanStatusUseCase:
     return UpdateQualityActionPlanStatusUseCase(build_quality_action_plan_repository())
+
+
+def build_update_quality_action_plan_use_case() -> UpdateQualityActionPlanUseCase:
+    return UpdateQualityActionPlanUseCase(build_quality_action_plan_repository())
 
 
 def build_upsert_ishikawa_use_case() -> UpsertIshikawaUseCase:

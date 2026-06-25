@@ -50,6 +50,7 @@ def test_create_plan_delegates_to_repository():
             created_by_user_id="user-1",
             product_code="010101",
             branch_code="01",
+            nonconformity_scope="external",
         )
     )
 

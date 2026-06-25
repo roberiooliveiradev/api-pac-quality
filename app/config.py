@@ -33,5 +33,10 @@ class Settings:
     PLUGINS_DB_CONNECT_TIMEOUT: str = _get_env("PLUGINS_DB_CONNECT_TIMEOUT", default="5")
     PLUGINS_DB_SSLMODE: str = _get_env("PLUGINS_DB_SSLMODE", default="prefer")
 
+    PAC_EVIDENCE_UPLOAD_DIR: str = _get_env(
+        "PAC_EVIDENCE_UPLOAD_DIR",
+        default="/app/data/pac-quality-evidences",
+    )
+
 
 settings = Settings()

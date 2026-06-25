@@ -24,6 +24,11 @@ class UpsertFiveWhysRequest:
     why_3: str | None = None
     why_4: str | None = None
     why_5: str | None = None
+    detection_why_1: str | None = None
+    detection_why_2: str | None = None
+    detection_why_3: str | None = None
+    detection_why_4: str | None = None
+    detection_why_5: str | None = None
     root_cause: str | None = None
     confidence_level: str | None = None
 
@@ -38,6 +43,7 @@ class CreateActionItemRequest:
     due_date: str | None = None
     status: str = "pending"
     evidence_required: bool = False
+    cause_track: str | None = None
 
 
 @dataclass(frozen=True)
@@ -95,6 +101,11 @@ class UpsertFiveWhysUseCase:
                 "why_3": request.why_3,
                 "why_4": request.why_4,
                 "why_5": request.why_5,
+                "detection_why_1": request.detection_why_1,
+                "detection_why_2": request.detection_why_2,
+                "detection_why_3": request.detection_why_3,
+                "detection_why_4": request.detection_why_4,
+                "detection_why_5": request.detection_why_5,
                 "root_cause": request.root_cause,
                 "confidence_level": request.confidence_level,
             },
@@ -143,6 +154,7 @@ class CreatePlanActionsUseCase:
                     "due_date": action.due_date,
                     "status": action.status,
                     "evidence_required": action.evidence_required,
+                    "cause_track": action.cause_track,
                 }
             )
         return self._repository.create_actions(plan_id, payload, created_by=created_by)
@@ -153,16 +165,7 @@ class GetPlanDetailUseCase:
         self._repository = repository
 
     def execute(self, plan_id: str) -> dict[str, Any] | None:
-        plan = self._repository.get_plan_by_id(plan_id)
-        if not plan:
-            return None
-        return {
-            "plan": plan,
-            "ishikawa": self._repository.get_ishikawa(plan_id),
-            "five_whys": self._repository.get_five_whys(plan_id),
-            "actions": self._repository.list_actions(plan_id),
-            "history": self._repository.list_history(plan_id),
-        }
+        return self._repository.get_plan_detail(plan_id)
 
 
 class RecordEffectivenessReviewUseCase:
