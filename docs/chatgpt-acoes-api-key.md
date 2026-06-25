@@ -113,6 +113,7 @@ Atualizado jun/2026 — paridade com api-delpi (escrita + leituras de governanç
 | 5 Porquês | `pac_upsert_five_whys` | PUT |
 | Criar ações | `pac_create_plan_actions` | POST |
 | Atualizar ação | `pac_update_plan_action` | PATCH |
+| Remover ação | `pac_delete_plan_action` | DELETE |
 | Submeter eficácia | `pac_submit_effectiveness_review` | POST |
 | Eficácia direta | `pac_record_effectiveness_review` | POST |
 | Relatório 8D | `pac_upsert_rnc_8d` | PUT |

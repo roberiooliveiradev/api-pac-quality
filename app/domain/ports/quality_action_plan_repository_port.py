@@ -119,6 +119,10 @@ class QualityActionPlanRepositoryPort:
         self, plan_id: str, action_id: str, fields: dict[str, Any], *, updated_by: str
     ) -> dict[str, Any] | None: ...
 
+    def delete_action(
+        self, plan_id: str, action_id: str, *, updated_by: str
+    ) -> dict[str, Any] | None: ...
+
     def record_effectiveness_review(
         self, plan_id: str, fields: dict[str, Any], *, updated_by: str
     ) -> dict[str, Any] | None: ...

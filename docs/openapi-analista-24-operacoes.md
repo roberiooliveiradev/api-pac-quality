@@ -26,7 +26,7 @@ Em vez de manter um schema filtrado (`/openapi.chatgpt.json`) com allowlist JSON
 | Planos — leitura | `pac_list_action_plans`, `pac_get_action_plan`, `pac_list_plan_evidences`, `pac_download_plan_evidence`, `pac_export_rnc_8d` |
 | Planos — escrita | `pac_create_action_plan`, `pac_update_action_plan`, `pac_update_action_plan_status`, `pac_reopen_action_plan` |
 | Análise | `pac_upsert_ishikawa`, `pac_upsert_five_whys` |
-| Ações | `pac_create_plan_actions`, `pac_update_plan_action` |
+| Ações | `pac_create_plan_actions`, `pac_update_plan_action`, `pac_delete_plan_action` |
 | 8D | `pac_upsert_rnc_8d` |
 | Evidências | `pac_attach_plan_evidence`, `pac_delete_plan_evidence` |
 | Eficácia (analista) | `pac_submit_effectiveness_review`, `pac_record_effectiveness_review` |

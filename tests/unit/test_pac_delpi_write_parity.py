@@ -17,6 +17,7 @@ WRITE_PARITY: dict[str, str] = {
     "upsert_quality_action_plan_five_whys": "pac_upsert_five_whys",
     "create_quality_action_plan_actions": "pac_create_plan_actions",
     "update_quality_action_plan_action": "pac_update_plan_action",
+    "delete_quality_action_plan_action": "pac_delete_plan_action",
     "record_quality_action_plan_effectiveness": "pac_record_effectiveness_review",
     "submit_quality_action_plan_effectiveness_review": "pac_submit_effectiveness_review",
     "upsert_quality_action_plan_rnc_8d": "pac_upsert_rnc_8d",

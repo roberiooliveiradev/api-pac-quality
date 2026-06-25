@@ -9,6 +9,7 @@ from app.application.use_cases.quality_action_plans_use_cases import (
 from app.application.use_cases.quality_action_plan_analysis_use_cases import (
     ApproveEffectivenessReviewUseCase,
     CreatePlanActionsUseCase,
+    DeletePlanActionUseCase,
     GetPlanDetailUseCase,
     ListPendingEffectivenessReviewsUseCase,
     RecordEffectivenessReviewUseCase,
@@ -86,6 +87,10 @@ def build_record_effectiveness_review_use_case() -> RecordEffectivenessReviewUse
 
 def build_update_plan_action_use_case() -> UpdatePlanActionUseCase:
     return UpdatePlanActionUseCase(build_quality_action_plan_repository())
+
+
+def build_delete_plan_action_use_case() -> DeletePlanActionUseCase:
+    return DeletePlanActionUseCase(build_quality_action_plan_repository())
 
 
 def build_submit_effectiveness_review_use_case() -> SubmitEffectivenessReviewUseCase:

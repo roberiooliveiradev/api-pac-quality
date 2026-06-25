@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.domain.ports.quality_action_plan_repository_port import QualityActionPlanRepositoryPort
+from app.domain.services.five_whys_service import normalize_five_whys_payload
 from app.domain.services.ishikawa_causes_service import normalize_ishikawa_payload
 
 
@@ -20,6 +21,10 @@ class UpsertIshikawaRequest:
 
 @dataclass(frozen=True)
 class UpsertFiveWhysRequest:
+    occurrence_whys: list[str] | None = None
+    detection_whys: list[str] | None = None
+    root_cause: str | None = None
+    confidence_level: str | None = None
     why_1: str | None = None
     why_2: str | None = None
     why_3: str | None = None
@@ -30,8 +35,6 @@ class UpsertFiveWhysRequest:
     detection_why_3: str | None = None
     detection_why_4: str | None = None
     detection_why_5: str | None = None
-    root_cause: str | None = None
-    confidence_level: str | None = None
 
 
 @dataclass(frozen=True)
@@ -102,20 +105,24 @@ class UpsertFiveWhysUseCase:
             raise ValueError("confidence_level inválido.")
         result = self._repository.upsert_five_whys(
             plan_id,
-            {
-                "why_1": request.why_1,
-                "why_2": request.why_2,
-                "why_3": request.why_3,
-                "why_4": request.why_4,
-                "why_5": request.why_5,
-                "detection_why_1": request.detection_why_1,
-                "detection_why_2": request.detection_why_2,
-                "detection_why_3": request.detection_why_3,
-                "detection_why_4": request.detection_why_4,
-                "detection_why_5": request.detection_why_5,
-                "root_cause": request.root_cause,
-                "confidence_level": request.confidence_level,
-            },
+            normalize_five_whys_payload(
+                {
+                    "occurrence_whys": request.occurrence_whys,
+                    "detection_whys": request.detection_whys,
+                    "root_cause": request.root_cause,
+                    "confidence_level": request.confidence_level,
+                    "why_1": request.why_1,
+                    "why_2": request.why_2,
+                    "why_3": request.why_3,
+                    "why_4": request.why_4,
+                    "why_5": request.why_5,
+                    "detection_why_1": request.detection_why_1,
+                    "detection_why_2": request.detection_why_2,
+                    "detection_why_3": request.detection_why_3,
+                    "detection_why_4": request.detection_why_4,
+                    "detection_why_5": request.detection_why_5,
+                }
+            ),
             updated_by=updated_by,
         )
         if result and self._intelligence_sync:
@@ -288,6 +295,7 @@ class ListPendingEffectivenessReviewsUseCase:
 
 class UpdatePlanActionUseCase:
     VALID_STATUSES = {"pending", "in_progress", "blocked", "completed", "cancelled", "overdue"}
+    VALID_ACTION_TYPES = CreatePlanActionsUseCase.VALID_ACTION_TYPES
 
     def __init__(self, repository: QualityActionPlanRepositoryPort) -> None:
         self._repository = repository
@@ -303,4 +311,17 @@ class UpdatePlanActionUseCase:
         status = fields.get("status")
         if status is not None and status not in self.VALID_STATUSES:
             raise ValueError("status da ação inválido.")
+        action_type = fields.get("action_type")
+        if action_type is not None and action_type not in self.VALID_ACTION_TYPES:
+            raise ValueError(f"action_type inválido: {action_type}")
+        if fields.get("cause_track") == "":
+            fields = {**fields, "cause_track": None}
         return self._repository.update_action(plan_id, action_id, fields, updated_by=updated_by)
+
+
+class DeletePlanActionUseCase:
+    def __init__(self, repository: QualityActionPlanRepositoryPort) -> None:
+        self._repository = repository
+
+    def execute(self, plan_id: str, action_id: str, *, updated_by: str):
+        return self._repository.delete_action(plan_id, action_id, updated_by=updated_by)

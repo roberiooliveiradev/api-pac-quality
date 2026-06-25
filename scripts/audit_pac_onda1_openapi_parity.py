@@ -24,6 +24,7 @@ ONDA1_PAC_OPERATION_IDS = (
     "pac_upsert_five_whys",
     "pac_create_plan_actions",
     "pac_update_plan_action",
+    "pac_delete_plan_action",
 )
 
 ONDA1_PAC_PATHS = (

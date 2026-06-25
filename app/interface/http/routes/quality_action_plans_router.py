@@ -19,6 +19,7 @@ from app.application.services.pac_evidence_storage import (
 from app.composition.quality_action_plans_composer import (
     build_create_plan_actions_use_case,
     build_create_quality_action_plan_use_case,
+    build_delete_plan_action_use_case,
     build_get_plan_detail_use_case,
     build_get_quality_action_plan_use_case,
     build_list_quality_action_plans_use_case,
@@ -157,6 +158,10 @@ class IshikawaBody(BaseModel):
 
 
 class FiveWhysBody(BaseModel):
+    occurrence_whys: list[str] | None = None
+    detection_whys: list[str] | None = None
+    root_cause: str | None = None
+    confidence_level: str | None = Field(default=None, pattern="^(low|medium|high)$")
     why_1: str | None = None
     why_2: str | None = None
     why_3: str | None = None
@@ -167,8 +172,6 @@ class FiveWhysBody(BaseModel):
     detection_why_3: str | None = None
     detection_why_4: str | None = None
     detection_why_5: str | None = None
-    root_cause: str | None = None
-    confidence_level: str | None = Field(default=None, pattern="^(low|medium|high)$")
 
 
 class ActionItemBody(BaseModel):
@@ -191,6 +194,10 @@ class CreateActionsBody(BaseModel):
 
 
 class UpdateActionBody(BaseModel):
+    action_type: str | None = Field(
+        default=None,
+        pattern="^(containment|corrective|preventive|verification|standardization|training)$",
+    )
     description: str | None = Field(default=None, min_length=3)
     responsible_user_id: str | None = None
     responsible_name: str | None = None
@@ -443,6 +450,22 @@ def update_plan_action(plan_id: str, action_id: str, body: UpdateActionBody = Bo
     except PluginsRepositoryError:
         logger.exception("Erro ao atualizar ação %s.", action_id)
         return error_response("Erro ao atualizar ação.", status_code=500, code="PAC_REPOSITORY_ERROR")
+
+
+@router.delete("/{plan_id}/actions/{action_id}", operation_id="pac_delete_plan_action")
+def delete_plan_action(plan_id: str, action_id: str):
+    try:
+        result = build_delete_plan_action_use_case().execute(
+            plan_id,
+            action_id,
+            updated_by=_current_user_id(),
+        )
+        if not result:
+            return not_found_response("Ação não encontrada.")
+        return success_response(result, message="Ação removida.")
+    except PluginsRepositoryError:
+        logger.exception("Erro ao remover ação %s.", action_id)
+        return error_response("Erro ao remover ação.", status_code=500, code="PAC_REPOSITORY_ERROR")
 
 
 @router.post("/{plan_id}/effectiveness-review", operation_id="pac_record_effectiveness_review")

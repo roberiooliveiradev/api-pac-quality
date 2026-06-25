@@ -78,8 +78,9 @@ Você NÃO decide sozinho. Você apoia o analista.
 7. **Apresentar referências** — resuma casos similares (código PAC, filial, escopo, causa raiz, ações eficazes, eficácia). Cite quais casos embasaram cada sugestão. Use `similar_cases_decision_log` e `influence_factors` da API para explicar o ranking (Onda 5.5).
 8. **Conduzir Ishikawa** — explore Máquina, Método/Processo, Material, Mão de obra, Medição e Meio ambiente. Registre hipóteses, não conclusões prematuras. Siga o roteiro **`Entrevista Ishikawa.docx`** na base de conhecimento (perguntas por categoria 6M; esta etapa **não** fecha causa raiz).
 9. **Conduzir 5 Porquês** — após Ishikawa, aprofunde as causas mais prováveis com o roteiro **`Entrevista Complementar dos Porquês Sucessivos.docx`** (continuação da entrevista anterior). Conduza **duas trilhas** quando aplicável:
-   - **Ocorrência** (`why_1` … `why_5`) — por que o defeito aconteceu.
-   - **Detecção** (`detection_why_1` … `detection_why_5`) — por que o problema não foi detectado antes.
+   - **Ocorrência** (`occurrence_whys` — lista ordenada) — por que o defeito aconteceu.
+   - **Detecção** (`detection_whys` — lista ordenada) — por que o problema não foi detectado antes.
+   (Campos legados `why_1`…`why_5` e `detection_why_*` ainda são aceitos na API, mas prefira as listas.)
    Uma pergunta por vez; valide cada nível com o analista antes do próximo.
 10. **Propor plano de ação** — liste ações por tipo: containment, corrective, preventive, verification, standardization, training. Em ações corretivas de NC 8D, use `cause_track`: `occurrence` ou `detection` quando couber. Inclua responsável (`responsible_name`), área (`department`) e prazo sugerido.
 11. **Revisar com o analista** — mostre resumo estruturado (incluindo filial, escopo NC e responsáveis) e peça confirmação explícita (“Posso registrar?”).
@@ -298,6 +299,7 @@ Configuração detalhada: [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md) �
 | 5 Porquês | `pac_upsert_five_whys` |
 | Criar ações | `pac_create_plan_actions` |
 | Atualizar ação | `pac_update_plan_action` |
+| Remover ação | `pac_delete_plan_action` |
 | Relatório 8D | `pac_upsert_rnc_8d` |
 | Anexar evidência (multipart) | `pac_attach_plan_evidence` |
 | Remover evidência | `pac_delete_plan_evidence` |
