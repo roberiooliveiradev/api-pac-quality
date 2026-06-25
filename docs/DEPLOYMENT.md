@@ -9,6 +9,7 @@ Consumida pelo **agente GPT** da Minha DELPI via provider OpenAPI (`api-pac-qual
 | Documento | Conteúdo |
 |-----------|----------|
 | [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md) | **ChatGPT Custom GPT** — chave API Bearer |
+| [autenticacao-api-pac.md](autenticacao-api-pac.md) | **Autenticação** — só `PAC_QUALITY_API_KEY` (sem delpi_auth) |
 | [chatgpt-especialista-qualidade.md](chatgpt-especialista-qualidade.md) | **Prompt, descrição e quebra-gelos** do agente |
 | `GET /openapi.json` | Contrato OpenAPI do agente GPT (24 operações — fluxo analista) |
 
@@ -37,7 +38,7 @@ api-pac-quality/
 
 ## Build
 
-Contexto de build = pasta pai `projetos/` (irmãos `api-pac-quality` + `delpi-central/shared`).
+Contexto de build = pasta pai `projetos/` (`api-pac-quality/Dockerfile` — sem dependência de `delpi-central/shared`).
 
 ```bash
 cd /caminho/projetos

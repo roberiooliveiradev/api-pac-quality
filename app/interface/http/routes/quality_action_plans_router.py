@@ -6,15 +6,7 @@ from fastapi import APIRouter, Body, File, Form, Query, UploadFile
 from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel, Field
 
-from delpi_auth.authorization import require_any_permission
-from delpi_auth.request_context import get_current_user
-
-from app.application.security.pac_quality_permissions import (
-    QUALITY_ACTION_PLANS_CLOSE_PERMISSIONS,
-    QUALITY_ACTION_PLANS_READ_PERMISSIONS,
-    QUALITY_ACTION_PLANS_VALIDATE_EFFECTIVENESS_PERMISSIONS,
-    QUALITY_ACTION_PLANS_WRITE_PERMISSIONS,
-)
+from app.interface.http.middleware.pac_request_context import get_pac_authenticated_user_id
 from app.application.services.pac_evidence_storage import (
     PacEvidenceStorage,
     PacEvidenceStorageError,
@@ -243,14 +235,10 @@ class ReopenActionPlanBody(BaseModel):
 
 
 def _current_user_id() -> str:
-    user = get_current_user()
-    if user is None:
-        return "unknown"
-    return str(getattr(user, "id", "unknown"))
+    return get_pac_authenticated_user_id()
 
 
 @router.post("", operation_id="pac_create_action_plan")
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def create_action_plan(body: CreateActionPlanBody = Body(...)):
     try:
         use_case = build_create_quality_action_plan_use_case()
@@ -309,7 +297,6 @@ def create_action_plan(body: CreateActionPlanBody = Body(...)):
 
 
 @router.get("", operation_id="pac_list_action_plans")
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def list_action_plans(
     status: str | None = Query(default=None),
     severity: str | None = Query(default=None, pattern="^(low|medium|high|critical)$"),
@@ -345,7 +332,6 @@ def list_action_plans(
 
 
 @router.get("/{plan_id}", operation_id="pac_get_action_plan")
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def get_action_plan(plan_id: str, detail: bool = Query(default=True)):
     try:
         if detail:
@@ -368,7 +354,6 @@ def get_action_plan(plan_id: str, detail: bool = Query(default=True)):
 
 
 @router.put("/{plan_id}/ishikawa", operation_id="pac_upsert_ishikawa")
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def upsert_ishikawa(plan_id: str, body: IshikawaBody = Body(...)):
     try:
         result = build_upsert_ishikawa_use_case().execute(
@@ -385,7 +370,6 @@ def upsert_ishikawa(plan_id: str, body: IshikawaBody = Body(...)):
 
 
 @router.put("/{plan_id}/five-whys", operation_id="pac_upsert_five_whys")
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def upsert_five_whys(plan_id: str, body: FiveWhysBody = Body(...)):
     try:
         result = build_upsert_five_whys_use_case().execute(
@@ -404,7 +388,6 @@ def upsert_five_whys(plan_id: str, body: FiveWhysBody = Body(...)):
 
 
 @router.post("/{plan_id}/actions", operation_id="pac_create_plan_actions")
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def create_plan_actions(plan_id: str, body: CreateActionsBody = Body(...)):
     try:
         actions = [
@@ -427,7 +410,6 @@ def create_plan_actions(plan_id: str, body: CreateActionsBody = Body(...)):
 
 
 @router.patch("/{plan_id}/actions/{action_id}", operation_id="pac_update_plan_action")
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def update_plan_action(plan_id: str, action_id: str, body: UpdateActionBody = Body(...)):
     try:
         fields = body.model_dump(exclude_unset=True)
@@ -448,7 +430,6 @@ def update_plan_action(plan_id: str, action_id: str, body: UpdateActionBody = Bo
 
 
 @router.post("/{plan_id}/effectiveness-review", operation_id="pac_record_effectiveness_review")
-@require_any_permission(QUALITY_ACTION_PLANS_VALIDATE_EFFECTIVENESS_PERMISSIONS)
 def record_effectiveness_review(plan_id: str, body: EffectivenessReviewBody = Body(...)):
     try:
         result = build_record_effectiveness_review_use_case().execute(
@@ -473,7 +454,6 @@ def record_effectiveness_review(plan_id: str, body: EffectivenessReviewBody = Bo
     "/{plan_id}/effectiveness-review/submit",
     operation_id="pac_submit_effectiveness_review",
 )
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def submit_effectiveness_review(plan_id: str, body: SubmitEffectivenessReviewBody = Body(...)):
     try:
         result = build_submit_effectiveness_review_use_case().execute(
@@ -495,7 +475,6 @@ def submit_effectiveness_review(plan_id: str, body: SubmitEffectivenessReviewBod
 
 
 @router.patch("/{plan_id}", operation_id="pac_update_action_plan")
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def update_action_plan(plan_id: str, body: UpdateActionPlanBody = Body(...)):
     try:
         fields = body.model_dump(exclude_unset=True)
@@ -521,7 +500,6 @@ def update_action_plan(plan_id: str, body: UpdateActionPlanBody = Body(...)):
 
 
 @router.patch("/{plan_id}/status", operation_id="pac_update_action_plan_status")
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def update_action_plan_status(plan_id: str, body: UpdateActionPlanStatusBody = Body(...)):
     try:
         use_case = build_update_quality_action_plan_status_use_case()
@@ -546,7 +524,6 @@ def update_action_plan_status(plan_id: str, body: UpdateActionPlanStatusBody = B
 
 
 @router.post("/{plan_id}/reopen", operation_id="pac_reopen_action_plan")
-@require_any_permission(QUALITY_ACTION_PLANS_CLOSE_PERMISSIONS)
 def reopen_action_plan(plan_id: str, body: ReopenActionPlanBody = Body(...)):
     try:
         plan = build_reopen_quality_action_plan_use_case().execute(
@@ -566,7 +543,6 @@ def reopen_action_plan(plan_id: str, body: ReopenActionPlanBody = Body(...)):
 
 
 @router.put("/{plan_id}/rnc-8d", operation_id="pac_upsert_rnc_8d")
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def upsert_rnc_8d_report(plan_id: str, body: Rnc8dReportBody = Body(...)):
     try:
         repo = build_quality_action_plan_repository()
@@ -597,7 +573,6 @@ def upsert_rnc_8d_report(plan_id: str, body: Rnc8dReportBody = Body(...)):
 
 
 @router.get("/{plan_id}/export/rnc-8d", operation_id="pac_export_rnc_8d")
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def export_rnc_8d_spreadsheet(plan_id: str):
     try:
         repo = build_quality_action_plan_repository()
@@ -627,7 +602,6 @@ def export_rnc_8d_spreadsheet(plan_id: str):
 
 
 @router.get("/{plan_id}/evidences", operation_id="pac_list_plan_evidences")
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def list_plan_evidences(plan_id: str):
     try:
         repo = build_quality_action_plan_repository()
@@ -640,7 +614,6 @@ def list_plan_evidences(plan_id: str):
 
 
 @router.post("/{plan_id}/evidences", operation_id="pac_attach_plan_evidence")
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 async def upload_plan_evidence(
     plan_id: str,
     evidence_type: str = Form(
@@ -700,7 +673,6 @@ async def upload_plan_evidence(
 
 
 @router.get("/{plan_id}/evidences/{evidence_id}/file", operation_id="pac_download_plan_evidence")
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def download_plan_evidence(plan_id: str, evidence_id: str):
     try:
         repo = build_quality_action_plan_repository()
@@ -725,7 +697,6 @@ def download_plan_evidence(plan_id: str, evidence_id: str):
 
 
 @router.delete("/{plan_id}/evidences/{evidence_id}", operation_id="pac_delete_plan_evidence")
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def delete_plan_evidence(plan_id: str, evidence_id: str):
     try:
         repo = build_quality_action_plan_repository()

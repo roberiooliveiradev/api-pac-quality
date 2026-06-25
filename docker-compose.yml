@@ -1,6 +1,6 @@
 # Stack standalone: API PAC Qualidade + nginx próprio.
 #
-# Build context = pasta pai `projetos/` (irmãos api-pac-quality + delpi-central/shared).
+# Build context = pasta pai `projetos/` (`api-pac-quality/Dockerfile`).
 #
 #   cd api-pac-quality
 #   cp .env.example .env

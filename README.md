@@ -9,7 +9,7 @@ Consultas consolidadas e **CRUD do plugin MFE** são expostos pela **api-delpi**
 | Camada | Repositório | Responsabilidade |
 |--------|-------------|------------------|
 | **Plugin MFE + api-delpi** | `delpi-central` | CRUD e leitura via JWT (`quality-action-plans` caller) |
-| **API transacional GPT** | `api-pac-quality` (este repo) | Mesmos endpoints de escrita + inteligência; auth JWT ou `PAC_QUALITY_API_KEY` |
+| **API transacional GPT** | `api-pac-quality` (este repo) | 24 rotas analista; auth **`PAC_QUALITY_API_KEY`** apenas |
 | **Migrations + PostgreSQL** | `delpi-central/api-delpi/migrations/plugins/quality-action-plans/` | Schema `quality.*` (V001–V007) |
 | **Agente ChatGPT** | Custom GPT + Actions | OpenAPI desta API em `pac-api.minhadelpi.com.br` |
 | **Agente Minha DELPI** (roadmap) | `minha-delpi-ai-api` | Provider OpenAPI sync |
@@ -21,8 +21,7 @@ O banco é o **mesmo PostgreSQL de plugins** da Minha DELPI (`PLUGINS_DB_*`), no
 ## Pré-requisitos
 
 1. Migrations do plugin `quality` já aplicadas (sequências e `quality.submodules`).
-2. SDK `delpi-auth` instalado (`pip install -e ../delpi-central/shared[fastapi]`).
-3. Variáveis `PLUGINS_DB_*` e Keycloak configuradas (ver `.env.example`).
+2. Variáveis `PLUGINS_DB_*` e `PAC_QUALITY_API_KEY` configuradas (ver `.env.example`).
 
 ## Migrations (delpi-central)
 
@@ -67,10 +66,10 @@ cd api-pac-quality
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-pip install -e ../delpi-central/shared[fastapi]
 
 cp .env.example .env
 # PLUGINS_DB_* ← mesmos valores de delpi-central/infra/.env (host localhost:5433 se Postgres exposto)
+# PAC_QUALITY_API_KEY ← token para testar rotas protegidas
 
 python -m uvicorn app.asgi:application --reload --port 8010
 ```
@@ -93,15 +92,18 @@ curl -s http://localhost:8082/health
 | Deploy geral | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) |
 | **Subdomínio Cloudflare** | [docs/cloudflare-subdominio-pac-api.md](docs/cloudflare-subdominio-pac-api.md) |
 | **ChatGPT Actions (API Key)** | [docs/chatgpt-acoes-api-key.md](docs/chatgpt-acoes-api-key.md) |
+| **Autenticação (API key only)** | [docs/autenticacao-api-pac.md](docs/autenticacao-api-pac.md) |
 | **GPT Especialista Qualidade** | [docs/chatgpt-especialista-qualidade.md](docs/chatgpt-especialista-qualidade.md) |
 | OpenAPI agente GPT | `GET /openapi.json` — 24 operações (fluxo analista, ≤30 ChatGPT) |
 
 Documentação: [docs/openapi-analista-24-operacoes.md](docs/openapi-analista-24-operacoes.md)
 | `.env` produção | [.env.srv-api.example](.env.srv-api.example) |
 
-Build context: raiz `projetos/` (irmãos `api-pac-quality` + `delpi-central/shared`).
+Build context: raiz `projetos/` (Dockerfile em `api-pac-quality/Dockerfile`).
 
-## Permissões (Core API)
+## Permissões (plugin Minha DELPI — api-delpi)
+
+RBAC por usuário aplica-se ao **plugin**, não a esta API GPT. Códigos de referência em `app/application/security/pac_quality_permissions.py`.
 
 Registrar manifesto do plugin (cria permissões RBAC):
 

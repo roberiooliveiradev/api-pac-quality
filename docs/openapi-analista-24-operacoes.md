@@ -12,6 +12,12 @@ Em vez de manter um schema filtrado (`/openapi.chatgpt.json`) com allowlist JSON
 2. Funcionalidades de **coordenação, auditoria, cron e grafo avançado** ficam **apenas no plugin Minha DELPI** (`api-delpi`), com RBAC por usuário — mais seguro para o agente GPT com chave compartilhada.
 3. `GET /health` permanece na API mas **fora do OpenAPI** (`include_in_schema=False`) para não consumir cota do ChatGPT.
 
+## Autenticação
+
+- **Único método:** `PAC_QUALITY_API_KEY` via `Authorization: Bearer` ou header `X-Api-Key`.
+- **Sem** `delpi_auth`, JWT Keycloak nem RBAC por rota — o agente GPT compartilha uma chave de serviço.
+- Permissões granulares (`quality-action-plans.*`) aplicam-se ao **plugin** na api-delpi. Detalhes: [autenticacao-api-pac.md](autenticacao-api-pac.md).
+
 ## Operações expostas ao GPT (24)
 
 | Grupo | operationId |

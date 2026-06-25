@@ -146,9 +146,8 @@ Ver detalhes em [chatgpt-especialista-qualidade.md](chatgpt-especialista-qualida
 | Só compartilhar GPT com usuários autorizados | A chave fica no GPT, não por usuário |
 | Rotacionar `PAC_QUALITY_API_KEY` se vazar | Gere novo token + atualize `.env` e GPT |
 | Não commitar `.env` | Token é segredo |
-| Restringir quem edita o GPT no workspace | Quem edita vê a chave nas Actions |
 
-A API ainda aceita **JWT Keycloak** (Minha DELPI) se no futuro usar o chat interno com `authMode: user_token`.
+A api-pac-quality **não** usa JWT Keycloak — apenas `PAC_QUALITY_API_KEY`. RBAC por usuário fica no plugin Minha DELPI (api-delpi).
 
 ---
 

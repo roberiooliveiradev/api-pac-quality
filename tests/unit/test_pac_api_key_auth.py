@@ -1,36 +1,60 @@
-"""Testes de autenticação por chave API (ChatGPT Actions)."""
+"""Autenticação PAC — somente PAC_QUALITY_API_KEY (sem delpi_auth / JWT)."""
 
-from types import SimpleNamespace
+from __future__ import annotations
+
+import os
+from unittest.mock import patch
 
 import pytest
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
-from app.interface.http.middleware.pac_api_key import request_has_valid_pac_api_key
-
-
-class _FakeRequest:
-    def __init__(self, headers: dict[str, str]):
-        self.headers = headers
+from app.interface.http.middleware.pac_auth_middleware import pac_auth_middleware
 
 
-def test_request_has_valid_pac_api_key_bearer(monkeypatch):
-    monkeypatch.setenv("PAC_QUALITY_API_KEY", "secret-token-123")
-    request = _FakeRequest({"Authorization": "Bearer secret-token-123"})
-    assert request_has_valid_pac_api_key(request) is True
+def _build_test_app() -> FastAPI:
+    app = FastAPI()
+    app.middleware("http")(pac_auth_middleware)
+
+    @app.get("/health")
+    def health():
+        return {"status": "ok"}
+
+    @app.get("/quality/action-plans")
+    def list_plans():
+        return {"success": True}
+
+    return app
 
 
-def test_request_has_valid_pac_api_key_x_api_key(monkeypatch):
-    monkeypatch.setenv("PAC_QUALITY_API_KEY", "secret-token-123")
-    request = _FakeRequest({"X-Api-Key": "secret-token-123"})
-    assert request_has_valid_pac_api_key(request) is True
+def test_public_health_without_api_key():
+    client = TestClient(_build_test_app())
+    response = client.get("/health")
+    assert response.status_code == 200
 
 
-def test_request_rejects_invalid_pac_api_key(monkeypatch):
-    monkeypatch.setenv("PAC_QUALITY_API_KEY", "secret-token-123")
-    request = _FakeRequest({"Authorization": "Bearer wrong"})
-    assert request_has_valid_pac_api_key(request) is False
+def test_protected_route_requires_api_key():
+    client = TestClient(_build_test_app())
+    response = client.get("/quality/action-plans")
+    assert response.status_code == 401
+    assert response.json()["success"] is False
 
 
-def test_request_without_configured_key(monkeypatch):
-    monkeypatch.delenv("PAC_QUALITY_API_KEY", raising=False)
-    request = _FakeRequest({"Authorization": "Bearer anything"})
-    assert request_has_valid_pac_api_key(request) is False
+def test_protected_route_accepts_bearer_api_key():
+    with patch.dict(os.environ, {"PAC_QUALITY_API_KEY": "test-pac-key"}, clear=False):
+        client = TestClient(_build_test_app())
+        response = client.get(
+            "/quality/action-plans",
+            headers={"Authorization": "Bearer test-pac-key"},
+        )
+        assert response.status_code == 200
+
+
+def test_protected_route_accepts_x_api_key_header():
+    with patch.dict(os.environ, {"PAC_QUALITY_API_KEY": "test-pac-key"}, clear=False):
+        client = TestClient(_build_test_app())
+        response = client.get(
+            "/quality/action-plans",
+            headers={"X-Api-Key": "test-pac-key"},
+        )
+        assert response.status_code == 200

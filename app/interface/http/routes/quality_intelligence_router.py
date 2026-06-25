@@ -5,12 +5,6 @@ import logging
 from fastapi import APIRouter, Body, File, Form, UploadFile
 from pydantic import BaseModel, Field
 
-from delpi_auth.authorization import require_any_permission
-
-from app.application.security.pac_quality_permissions import (
-    QUALITY_ACTION_PLANS_READ_PERMISSIONS,
-    QUALITY_ACTION_PLANS_WRITE_PERMISSIONS,
-)
 from app.application.use_cases.quality_intelligence_use_cases import (
     AssessRecurrenceOnOpeningRequest,
     SearchSimilarCasesUseCase,
@@ -85,7 +79,6 @@ class SuggestEvidenceTagsBody(BaseModel):
 
 
 @router.post("/similar-cases", operation_id="pac_search_similar_cases")
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def search_similar_cases(body: SimilarCasesBody = Body(...)):
     try:
         use_case: SearchSimilarCasesUseCase = build_search_similar_cases_use_case()
@@ -118,7 +111,6 @@ def search_similar_cases(body: SimilarCasesBody = Body(...)):
     "/recurrence-opening-assessment",
     operation_id="pac_assess_recurrence_on_opening",
 )
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def assess_recurrence_on_opening(body: RecurrenceOpeningAssessmentBody = Body(...)):
     try:
         use_case = build_assess_recurrence_on_opening_use_case()
@@ -165,7 +157,6 @@ def _build_evidence_tag_suggestion(
 
 
 @router.post("/suggest-evidence-tags", operation_id="pac_suggest_evidence_tags")
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def suggest_evidence_tags(body: SuggestEvidenceTagsBody = Body(...)):
     if not any(
         [
@@ -192,7 +183,6 @@ def suggest_evidence_tags(body: SuggestEvidenceTagsBody = Body(...)):
     "/suggest-evidence-tags/from-image",
     operation_id="pac_suggest_evidence_tags_from_image",
 )
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 async def suggest_evidence_tags_from_image(
     file: UploadFile = File(...),
     file_name: str | None = Form(default=None),
@@ -216,7 +206,6 @@ async def suggest_evidence_tags_from_image(
 
 
 @router.post("/solution-patterns/search", operation_id="pac_search_solution_patterns")
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def search_solution_patterns(body: SolutionPatternSearchBody = Body(...)):
     try:
         use_case: SearchSolutionPatternsUseCase = build_search_solution_patterns_use_case()
@@ -239,7 +228,6 @@ def search_solution_patterns(body: SolutionPatternSearchBody = Body(...)):
 
 
 @router.post("/suggest-actions", operation_id="pac_suggest_actions")
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def suggest_actions(body: SuggestActionsBody = Body(...)):
     try:
         use_case: SuggestActionsUseCase = build_suggest_actions_use_case()

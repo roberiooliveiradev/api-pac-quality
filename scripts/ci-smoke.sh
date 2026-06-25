@@ -14,5 +14,5 @@ echo "[ci] PAC agent evals (Onda 5.4)"
 echo "[ci] OpenAPI Onda 1 registry"
 .venv/bin/python -m pytest tests/unit/test_openapi_onda1_paths.py -q
 echo "[ci] OpenAPI analista GPT (≤30 operações)"
-PYTHONPATH="${PYTHONPATH:-}:$(cd .. && pwd)/delpi-central/shared" .venv/bin/python scripts/audit_pac_openapi_operation_limit.py --check
-.venv/bin/python -m pytest tests/unit/test_pac_openapi_operation_limit.py -q
+.venv/bin/python scripts/audit_pac_openapi_operation_limit.py --check
+.venv/bin/python -m pytest tests/unit/test_pac_openapi_operation_limit.py tests/unit/test_pac_api_key_auth.py -q

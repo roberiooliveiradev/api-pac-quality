@@ -1,57 +1,49 @@
 from __future__ import annotations
 
 import logging
-from types import SimpleNamespace
 
 from fastapi import Request
-from fastapi.responses import JSONResponse
 
-from delpi_auth.middleware.fastapi_auth import is_public_path, jwt_middleware
-from delpi_auth.request_context import (
-    clear_current_user,
-    clear_request_authorization,
-    reset_current_user,
-    reset_request_authorization,
-    set_current_user,
-    set_request_authorization,
-)
-
+from app.core.responses import error_response
 from app.interface.http.middleware.pac_api_key import request_has_valid_pac_api_key
+from app.interface.http.middleware.pac_public_paths import is_public_path
+from app.interface.http.middleware.pac_request_context import (
+    PAC_GPT_AGENT_ACTOR,
+    actor_as_request_user,
+    clear_pac_authenticated_actor,
+    reset_pac_authenticated_actor,
+    set_pac_authenticated_actor,
+)
 
 logger = logging.getLogger(__name__)
 
-_PAC_GPT_AGENT_USER = SimpleNamespace(
-    id="pac-gpt-agent",
-    email="pac-gpt-agent@delpi.internal",
-    name="Agente GPT PAC",
-    roles=["pac-api-key"],
-    groups=[],
-    permissions=[],
-    is_superadmin=True,
-    access_token=None,
-)
-
 
 async def pac_auth_middleware(request: Request, call_next):
-    """Aceita PAC_QUALITY_API_KEY (ChatGPT Actions) ou JWT Keycloak (Minha DELPI)."""
-    clear_current_user()
-    clear_request_authorization()
+    """Autenticação única da API PAC: `PAC_QUALITY_API_KEY` (Bearer ou X-Api-Key)."""
+    clear_pac_authenticated_actor()
 
     path = request.url.path
     if is_public_path(path):
         return await call_next(request)
 
-    if request_has_valid_pac_api_key(request):
-        request.state.user = _PAC_GPT_AGENT_USER
-        context_token = set_current_user(_PAC_GPT_AGENT_USER)
-        auth_context_token = set_request_authorization("Bearer [pac-api-key]")
-        try:
-            return await call_next(request)
-        except Exception:
-            logger.exception("unhandled_error_pac_api_key_request path=%s", path)
-            return JSONResponse(status_code=500, content={"detail": "Internal server error"})
-        finally:
-            reset_request_authorization(auth_context_token)
-            reset_current_user(context_token)
+    if not request_has_valid_pac_api_key(request):
+        return error_response(
+            "Não autorizado.",
+            status_code=401,
+            code="UNAUTHORIZED",
+        )
 
-    return await jwt_middleware(request, call_next)
+    request.state.user = actor_as_request_user(PAC_GPT_AGENT_ACTOR)
+    context_token = set_pac_authenticated_actor(PAC_GPT_AGENT_ACTOR)
+
+    try:
+        return await call_next(request)
+    except Exception:
+        logger.exception("unhandled_error_pac_api_key_request path=%s", path)
+        return error_response(
+            "Erro interno do servidor.",
+            status_code=500,
+            code="INTERNAL_ERROR",
+        )
+    finally:
+        reset_pac_authenticated_actor(context_token)
