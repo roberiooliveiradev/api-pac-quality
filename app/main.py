@@ -59,7 +59,7 @@ app.include_router(intelligence_router)
 app.include_router(action_plans_router)
 
 
-@app.get("/health")
+@app.get("/health", include_in_schema=False)
 def health():
     plugins_ok = check_plugins_connection()
     status = "ok" if plugins_ok else "degraded"

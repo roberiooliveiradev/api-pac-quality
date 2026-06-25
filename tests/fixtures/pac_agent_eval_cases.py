@@ -196,11 +196,13 @@ PAC_AGENT_EVAL_CASES: list[dict[str, Any]] = [
     ),
     _case(
         "EVAL13",
-        "Fila eficácia coordenação",
+        "Fila eficácia coordenação (plugin)",
         "coordination_read",
         "Quais planos estão aguardando aprovação de eficácia?",
         expected={
-            "must_call_reads": ["pac_list_pending_effectiveness_reviews"],
+            "forbidden_phrases_in_response": [
+                "pac_list_pending_effectiveness_reviews",
+            ],
             "forbidden_writes_before_confirm": True,
         },
     ),
@@ -216,21 +218,26 @@ PAC_AGENT_EVAL_CASES: list[dict[str, Any]] = [
     ),
     _case(
         "EVAL15",
-        "Audit log interno",
+        "Audit log interno (plugin)",
         "coordination_read",
         "Mostre a trilha de auditoria do plano PAC-2026-0077.",
         expected={
-            "must_call_reads": ["pac_list_plan_audit_log"],
+            "forbidden_phrases_in_response": [
+                "pac_list_plan_audit_log",
+            ],
         },
     ),
     _case(
         "EVAL16",
-        "Promover padrão após eficácia",
+        "Promover padrão (plugin)",
         "governance",
         "Promova este plano eficaz como padrão de solução para oxidação.",
         expected={
             "must_ask": ["confirmação"],
             "forbidden_writes_before_confirm": True,
+            "forbidden_phrases_in_response": [
+                "pac_promote_solution_pattern",
+            ],
         },
     ),
     _case(

@@ -13,7 +13,6 @@ from app.application.security.pac_quality_permissions import (
 )
 from app.application.use_cases.quality_intelligence_use_cases import (
     AssessRecurrenceOnOpeningRequest,
-    KnowledgeGraphRequest,
     SearchSimilarCasesUseCase,
     SearchSolutionPatternsUseCase,
     SimilarCasesRequest,
@@ -23,7 +22,6 @@ from app.application.use_cases.quality_intelligence_use_cases import (
 )
 from app.composition.quality_intelligence_composer import (
     build_assess_recurrence_on_opening_use_case,
-    build_get_quality_knowledge_graph_use_case,
     build_search_similar_cases_use_case,
     build_search_solution_patterns_use_case,
     build_suggest_actions_use_case,
@@ -84,32 +82,6 @@ class SuggestEvidenceTagsBody(BaseModel):
     ocr_text: str | None = None
     file_name: str | None = Field(default=None, max_length=500)
     description: str | None = Field(default=None, max_length=2000)
-
-
-@router.get("/knowledge-graph", operation_id="pac_get_quality_knowledge_graph")
-@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
-def get_quality_knowledge_graph(
-    branch_code: str | None = None,
-    product_code: str | None = None,
-    limit: int | None = None,
-):
-    try:
-        use_case = build_get_quality_knowledge_graph_use_case()
-        result = use_case.execute(
-            KnowledgeGraphRequest(
-                branch_code=branch_code,
-                product_code=product_code,
-                limit=limit,
-            )
-        )
-        return success_response(result)
-    except PluginsRepositoryError:
-        logger.exception("Erro ao montar grafo de conhecimento PAC.")
-        return error_response(
-            "Erro ao consultar grafo de conhecimento.",
-            status_code=500,
-            code="PAC_INTELLIGENCE_ERROR",
-        )
 
 
 @router.post("/similar-cases", operation_id="pac_search_similar_cases")

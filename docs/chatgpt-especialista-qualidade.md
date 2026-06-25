@@ -6,7 +6,7 @@ Guia para configurar o agente **Especialista Qualidade** no builder do ChatGPT (
 
 - API PAC em produção: `https://pac-api.minhadelpi.com.br`
 - Actions configuradas conforme [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md)
-- Schema OpenAPI importado de `https://pac-api.minhadelpi.com.br/openapi.json`
+- Schema OpenAPI importado de `https://pac-api.minhadelpi.com.br/openapi.json` (24 operações — fluxo analista)
 
 **Nome sugerido no builder:** `Especialista Qualidade`
 
@@ -66,10 +66,10 @@ Você NÃO decide sozinho. Você apoia o analista.
    - Para NC com relatório 8D: `pac_upsert_rnc_8d` com `template_payload` e equipe; anexe evidências com `pac_attach_plan_evidence` (ver § Upload de evidências).
 13. **Encerramento e eficácia** — ao concluir tratativa:
    - **Analista:** submeta para aprovação com `pac_submit_effectiveness_review` (`effective` | `partially_effective` | `ineffective` + `notes`).
-   - **Coordenador** (perfil com permissão de validação): `pac_approve_effectiveness_review` ou `pac_reject_effectiveness_review` (motivo ≥ 5 caracteres).
+   - Aprovação/rejeição pela coordenação (`pac_approve_effectiveness_review`, `pac_reject_effectiveness_review`) **não** está neste GPT — use o plugin Minha DELPI ou um GPT de liderança com schema completo.
    - `pac_record_effectiveness_review` — registro **direto** pela coordenação (sem fila); use só quando o analista confirmar que a coordenação já validou offline.
    - Exportação da planilha: `pac_export_rnc_8d` (imagens anexadas aparecem na aba `Anexos(Evidencias)`).
-   - Plano eficaz com ações concluídas: opcional `pac_promote_solution_pattern` para virar padrão reutilizável (após confirmação).
+   - Plano eficaz com ações concluídas: promover padrão de solução — somente via **plugin Minha DELPI** (não disponível nesta API).
 14. **Reabertura** — plano `completed` ou `cancelled` só reabre com `pac_reopen_action_plan` (motivo ≥ 5 caracteres; confirmação explícita).
 
 ## Escopo NC (`nonconformity_scope`)
@@ -108,10 +108,7 @@ Leituras (GET, buscas de inteligência) podem ser feitas proativamente para apoi
 | Papel | Action | Quando |
 |-------|--------|--------|
 | Analista | `pac_submit_effectiveness_review` | Após verificação, envia proposta à coordenação |
-| Coordenador | `pac_list_pending_effectiveness_reviews` | Consultar fila (leitura) |
-| Coordenador | `pac_approve_effectiveness_review` | Aprovar submissão pendente |
-| Coordenador | `pac_reject_effectiveness_review` | Rejeitar com motivo |
-| Coordenador | `pac_record_effectiveness_review` | Registro direto (bypass da fila) |
+| Coordenador | *(plugin ou GPT com `/openapi.json`)* | Aprovar/rejeitar fila — fora do schema ChatGPT analista |
 
 Status submetíveis: `effective`, `partially_effective`, `ineffective` (não use `pending` na submissão).
 
@@ -130,8 +127,7 @@ Multipart **obrigatório** — não envie JSON para arquivo.
 Fluxo: crie ações primeiro (`pac_create_plan_actions`), depois anexe com `action_id` se `evidence_required` na ação.
 
 ## Governança (leituras)
-- `pac_list_plan_audit_log` — trilha imutável do plano (criação, status, eficácia, reabertura).
-- `pac_list_pending_effectiveness_reviews` — fila para coordenação.
+- Trilha de auditoria e fila de eficácia — consulte no **plugin Minha DELPI** (não expostas neste schema ChatGPT).
 
 Não exponha audit log ao cliente final; uso interno qualidade.
 
@@ -227,20 +223,21 @@ Configuração detalhada: [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md).
 | Autenticação | Chave API → **Bearer** (`PAC_QUALITY_API_KEY`) |
 | Servidor | `https://pac-api.minhadelpi.com.br` |
 
-### Actions disponíveis
+> A API PAC expõe **somente** o fluxo do analista (24 operações). Coordenação, auditoria, dispatch e grafo de conhecimento ficam no **plugin Minha DELPI** (api-delpi).
 
 | Intenção | operationId |
 |----------|-------------|
 | **Inteligência** | |
 | Casos similares | `pac_search_similar_cases` |
+| Recorrência na abertura | `pac_assess_recurrence_on_opening` |
 | Padrões de solução | `pac_search_solution_patterns` |
 | Sugerir ações | `pac_suggest_actions` |
+| Tags de evidência | `pac_suggest_evidence_tags` / `pac_suggest_evidence_tags_from_image` |
 | **Planos — leitura** | |
 | Listar planos | `pac_list_action_plans` |
 | Detalhe do plano | `pac_get_action_plan` |
-| Fila eficácia pendente | `pac_list_pending_effectiveness_reviews` |
-| Auditoria do plano | `pac_list_plan_audit_log` |
 | Listar evidências | `pac_list_plan_evidences` |
+| Download evidência | `pac_download_plan_evidence` |
 | Exportar planilha 8D | `pac_export_rnc_8d` |
 | **Planos — escrita** | |
 | Criar plano | `pac_create_action_plan` |
@@ -256,12 +253,9 @@ Configuração detalhada: [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md).
 | Remover evidência | `pac_delete_plan_evidence` |
 | **Eficácia** | |
 | Submeter para aprovação | `pac_submit_effectiveness_review` |
-| Aprovar (coordenador) | `pac_approve_effectiveness_review` |
-| Rejeitar (coordenador) | `pac_reject_effectiveness_review` |
-| Registrar direto (coordenador) | `pac_record_effectiveness_review` |
-| Promover padrão de solução | `pac_promote_solution_pattern` |
+| Registrar direto (coordenação) | `pac_record_effectiveness_review` |
 
-> `pac_dispatch_notifications` é operação administrativa (cron); **não** use no fluxo do analista.
+> Coordenação/admin **não** estão na API PAC: aprovar/rejeitar eficácia, fila pendente, audit log, promover padrão, dispatch e knowledge graph — use o plugin.
 
 Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após cada deploy da API PAC.
 
@@ -273,7 +267,7 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 - [ ] Descrição colada (§ 1)
 - [ ] Instruções coladas (§ 2)
 - [ ] Quebra-gelos (§ 3)
-- [ ] Actions: schema de `/openapi.json` + Bearer — **reimportar após deploy** (novas rotas Onda 4/5)
+- [ ] Actions: schema de `/openapi.json` + Bearer — **reimportar após deploy**
 - [ ] Teste `/health` no preview → `plugins_database: ok`
 - [ ] Teste conversa: relato de problema → consulta histórico → proposta sem gravar
 - [ ] Teste escrita: criar plano só após confirmação explícita
@@ -288,6 +282,7 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 | GPT não consulta histórico | Reforçar nas instruções; iniciar com quebra-gelo sobre casos similares |
 | Grava sem pedir confirmação | Revisar § “Escritas na API” nas instruções |
 | `401` nas actions | Verificar Bearer e `PAC_QUALITY_API_KEY` no srv-api |
+| Erro «máximo 30 operações» | Deploy recente da api-pac-quality; `/openapi.json` deve ter 24 operações |
 | Campos rejeitados (`422`) | Usar snake_case (`branch_code`, `problem_description`, `customer_name`, etc.); `branch_code` obrigatório no create (`01` ou `02`) |
 | operationId diferente do esperado | Normal — FastAPI gera sufixos; usar nomes exibidos no builder |
 

@@ -94,7 +94,9 @@ curl -s http://localhost:8082/health
 | **Subdomínio Cloudflare** | [docs/cloudflare-subdominio-pac-api.md](docs/cloudflare-subdominio-pac-api.md) |
 | **ChatGPT Actions (API Key)** | [docs/chatgpt-acoes-api-key.md](docs/chatgpt-acoes-api-key.md) |
 | **GPT Especialista Qualidade** | [docs/chatgpt-especialista-qualidade.md](docs/chatgpt-especialista-qualidade.md) |
-| OpenAPI agente GPT | `GET /openapi.json` (ex.: `https://pac-api.minhadelpi.com.br/openapi.json`) |
+| OpenAPI agente GPT | `GET /openapi.json` — 24 operações (fluxo analista, ≤30 ChatGPT) |
+
+Documentação: [docs/openapi-analista-24-operacoes.md](docs/openapi-analista-24-operacoes.md)
 | `.env` produção | [.env.srv-api.example](.env.srv-api.example) |
 
 Build context: raiz `projetos/` (irmãos `api-pac-quality` + `delpi-central/shared`).

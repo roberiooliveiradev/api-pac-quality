@@ -11,11 +11,41 @@ class RouteContract:
     shape: str
 
 
+# Fluxo analista GPT — máx. 30 operações no OpenAPI (ChatGPT Custom GPT).
+ANALYST_PAC_OPERATION_IDS: frozenset[str] = frozenset(
+    {
+        "pac_search_similar_cases",
+        "pac_assess_recurrence_on_opening",
+        "pac_search_solution_patterns",
+        "pac_suggest_actions",
+        "pac_suggest_evidence_tags",
+        "pac_suggest_evidence_tags_from_image",
+        "pac_create_action_plan",
+        "pac_list_action_plans",
+        "pac_get_action_plan",
+        "pac_update_action_plan",
+        "pac_update_action_plan_status",
+        "pac_reopen_action_plan",
+        "pac_submit_effectiveness_review",
+        "pac_record_effectiveness_review",
+        "pac_upsert_ishikawa",
+        "pac_upsert_five_whys",
+        "pac_create_plan_actions",
+        "pac_update_plan_action",
+        "pac_upsert_rnc_8d",
+        "pac_export_rnc_8d",
+        "pac_list_plan_evidences",
+        "pac_attach_plan_evidence",
+        "pac_delete_plan_evidence",
+        "pac_download_plan_evidence",
+    }
+)
+
+CHATGPT_MAX_OPENAPI_OPERATIONS = 30
+
 ROUTE_CONTRACTS: dict[str, RouteContract] = {
     "pac_create_action_plan": RouteContract("quality_action_plan", "scalar"),
     "pac_list_action_plans": RouteContract("quality_action_plan", "paged_list"),
-    "pac_list_pending_effectiveness_reviews": RouteContract("quality_action_plan", "paged_list"),
-    "pac_list_plan_audit_log": RouteContract("quality_action_plan_audit_log", "paged_list"),
     "pac_get_action_plan": RouteContract("quality_action_plan", "composite_analysis"),
     "pac_update_action_plan": RouteContract("quality_action_plan", "scalar"),
     "pac_update_action_plan_status": RouteContract("quality_action_plan", "scalar"),
@@ -25,16 +55,13 @@ ROUTE_CONTRACTS: dict[str, RouteContract] = {
     "pac_update_plan_action": RouteContract("quality_action_plan_action", "scalar"),
     "pac_record_effectiveness_review": RouteContract("quality_action_plan", "scalar"),
     "pac_submit_effectiveness_review": RouteContract("quality_action_plan", "scalar"),
-    "pac_approve_effectiveness_review": RouteContract("quality_action_plan", "scalar"),
-    "pac_reject_effectiveness_review": RouteContract("quality_action_plan", "scalar"),
     "pac_reopen_action_plan": RouteContract("quality_action_plan", "scalar"),
-    "pac_promote_solution_pattern": RouteContract("quality_solution_pattern", "scalar"),
-    "pac_dispatch_notifications": RouteContract("quality_action_plan_notifications", "scalar"),
     "pac_upsert_rnc_8d": RouteContract("quality_action_plan_rnc_8d", "scalar"),
     "pac_export_rnc_8d": RouteContract("quality_action_plan_rnc_8d", "scalar"),
     "pac_list_plan_evidences": RouteContract("quality_action_plan_evidence", "paged_list"),
     "pac_attach_plan_evidence": RouteContract("quality_action_plan_evidence", "scalar"),
     "pac_delete_plan_evidence": RouteContract("quality_action_plan_evidence", "scalar"),
+    "pac_download_plan_evidence": RouteContract("quality_action_plan_evidence", "scalar"),
     "pac_search_similar_cases": RouteContract("pac_quality_similar_cases", "paged_list"),
     "pac_search_solution_patterns": RouteContract("pac_quality_solution_patterns", "paged_list"),
     "pac_suggest_actions": RouteContract("pac_quality_action_suggestions", "composite_analysis"),
@@ -48,10 +75,6 @@ ROUTE_CONTRACTS: dict[str, RouteContract] = {
     ),
     "pac_suggest_evidence_tags_from_image": RouteContract(
         "pac_quality_evidence_tag_suggestions",
-        "composite_analysis",
-    ),
-    "pac_get_quality_knowledge_graph": RouteContract(
-        "pac_quality_knowledge_graph",
         "composite_analysis",
     ),
 }

@@ -46,7 +46,7 @@ No builder do GPT → **Configurar** → **Ações** → **Criar nova ação** (
 1. **Importar schema** — **Importar de URL:**
    `https://pac-api.minhadelpi.com.br/openapi.json`
 
-   O schema é gerado pelo FastAPI (mesmo padrão da api-delpi). Inclui `security: PacApiKey` (Bearer) e `servers` quando `PUBLIC_BASE_URL` está configurado.
+   A API PAC publica **24 operações** (fluxo analista). Limite ChatGPT: 30. Coordenação e admin ficam no plugin Minha DELPI.
 2. Confirme o servidor:
    ```json
    "url": "https://pac-api.minhadelpi.com.br"
@@ -114,21 +114,17 @@ Atualizado jun/2026 — paridade com api-delpi (escrita + leituras de governanç
 | Criar ações | `pac_create_plan_actions` | POST |
 | Atualizar ação | `pac_update_plan_action` | PATCH |
 | Submeter eficácia | `pac_submit_effectiveness_review` | POST |
-| Aprovar eficácia | `pac_approve_effectiveness_review` | POST |
-| Rejeitar eficácia | `pac_reject_effectiveness_review` | POST |
 | Eficácia direta | `pac_record_effectiveness_review` | POST |
-| Fila eficácia | `pac_list_pending_effectiveness_reviews` | GET |
-| Auditoria | `pac_list_plan_audit_log` | GET |
 | Relatório 8D | `pac_upsert_rnc_8d` | PUT |
 | Exportar 8D | `pac_export_rnc_8d` | GET |
-| Evidências | `pac_list_plan_evidences` / `pac_attach_plan_evidence` / `pac_delete_plan_evidence` | GET / POST multipart / DELETE |
-| Promover padrão | `pac_promote_solution_pattern` | POST |
+| Evidências | `pac_list_plan_evidences` / `pac_attach_plan_evidence` / `pac_delete_plan_evidence` / `pac_download_plan_evidence` | GET / POST multipart / DELETE / GET |
 | Casos similares | `pac_search_similar_cases` | POST |
 | Padrões de solução | `pac_search_solution_patterns` | POST |
 | Sugerir ações | `pac_suggest_actions` | POST |
-| Dispatch notificações | `pac_dispatch_notifications` | POST (admin/cron) |
 
-Lista completa e contratos no OpenAPI. Após deploy, **reimporte** o schema no GPT.
+Rotas de coordenação/admin ficam só no **plugin Minha DELPI** (api-delpi).
+
+Gate CI: `python scripts/audit_pac_openapi_operation_limit.py --check`. Após deploy, **reimporte** `/openapi.json` no GPT.
 
 ### Upload de evidência (multipart)
 
@@ -163,6 +159,7 @@ A API ainda aceita **JWT Keycloak** (Minha DELPI) se no futuro usar o chat inter
 | `401 Unauthorized` | Token errado ou `PAC_QUALITY_API_KEY` ausente no `.env` |
 | `Could not resolve` / host errado | Servidor no schema deve ser `pac-api.minhadelpi.com.br` |
 | GPT não chama a API | Verificar se ações estão habilitadas e schema importado sem erro |
+| Erro «máximo 30 operações» | API PAC desatualizada — deploy com 24 operações em `/openapi.json` |
 | `422` | Body incompleto — ver campos obrigatórios no schema |
 
 ---
