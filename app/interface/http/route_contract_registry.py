@@ -38,6 +38,10 @@ ROUTE_CONTRACTS: dict[str, RouteContract] = {
     "pac_search_similar_cases": RouteContract("pac_quality_similar_cases", "paged_list"),
     "pac_search_solution_patterns": RouteContract("pac_quality_solution_patterns", "paged_list"),
     "pac_suggest_actions": RouteContract("pac_quality_action_suggestions", "composite_analysis"),
+    "pac_assess_recurrence_on_opening": RouteContract(
+        "pac_quality_recurrence_opening_assessment",
+        "composite_analysis",
+    ),
 }
 
 

@@ -122,6 +122,27 @@ def score_responses(path: Path, *, min_pass_rate: float) -> int:
     return 0 if ok else 1
 
 
+def export_template(path: Path) -> int:
+    rows = [
+        {
+            "id": str(case["id"]),
+            "user_message": str(case.get("user_message") or ""),
+            "response": "",
+        }
+        for case in PAC_AGENT_EVAL_CASES
+    ]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(rows, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(
+        json.dumps(
+            {"ok": True, "path": str(path), "caseCount": len(rows)},
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check-catalog", action="store_true", help="Valida fixtures EVAL01–EVAL20.")
@@ -136,10 +157,18 @@ def main() -> int:
         default=0.9,
         help="Taxa mínima de aprovação (default 0.9 = 90%%).",
     )
+    parser.add_argument(
+        "--export-template",
+        type=Path,
+        help="Gera JSON esqueleto com EVAL01–EVAL20 para homologação H13.",
+    )
     args = parser.parse_args()
 
     if args.check_catalog:
         return check_catalog()
+
+    if args.export_template:
+        return export_template(args.export_template)
 
     if args.score_file:
         return score_responses(args.score_file, min_pass_rate=args.min_pass_rate)

@@ -12,6 +12,7 @@ from app.application.security.pac_quality_permissions import (
     QUALITY_ACTION_PLANS_WRITE_PERMISSIONS,
 )
 from app.application.use_cases.quality_intelligence_use_cases import (
+    AssessRecurrenceOnOpeningRequest,
     SearchSimilarCasesUseCase,
     SearchSolutionPatternsUseCase,
     SimilarCasesRequest,
@@ -20,6 +21,7 @@ from app.application.use_cases.quality_intelligence_use_cases import (
     SuggestActionsUseCase,
 )
 from app.composition.quality_intelligence_composer import (
+    build_assess_recurrence_on_opening_use_case,
     build_search_similar_cases_use_case,
     build_search_solution_patterns_use_case,
     build_suggest_actions_use_case,
@@ -62,6 +64,16 @@ class SuggestActionsBody(BaseModel):
     symptom_tags: list[str] | None = None
 
 
+class RecurrenceOpeningAssessmentBody(BaseModel):
+    problem_description: str = Field(..., min_length=3)
+    product_code: str | None = None
+    failure_mode: str | None = None
+    branch_code: str | None = Field(default=None, pattern="^(01|02)$")
+    symptoms: list[str] | None = None
+    root_cause_category: str | None = None
+    recurrence_key: str | None = Field(default=None, max_length=500)
+
+
 @router.post("/similar-cases", operation_id="pac_search_similar_cases")
 @require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def search_similar_cases(body: SimilarCasesBody = Body(...)):
@@ -87,6 +99,37 @@ def search_similar_cases(body: SimilarCasesBody = Body(...)):
         logger.exception("Erro ao buscar casos similares.")
         return error_response(
             "Erro ao consultar histórico de casos.",
+            status_code=500,
+            code="PAC_INTELLIGENCE_ERROR",
+        )
+
+
+@router.post(
+    "/recurrence-opening-assessment",
+    operation_id="pac_assess_recurrence_on_opening",
+)
+@require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
+def assess_recurrence_on_opening(body: RecurrenceOpeningAssessmentBody = Body(...)):
+    try:
+        use_case = build_assess_recurrence_on_opening_use_case()
+        result = use_case.execute(
+            AssessRecurrenceOnOpeningRequest(
+                problem_description=body.problem_description,
+                product_code=body.product_code,
+                failure_mode=body.failure_mode,
+                branch_code=body.branch_code,
+                symptoms=body.symptoms,
+                root_cause_category=body.root_cause_category,
+                recurrence_key=body.recurrence_key,
+            )
+        )
+        return success_response(result)
+    except ValueError as exc:
+        return error_response(str(exc), status_code=400)
+    except PluginsRepositoryError:
+        logger.exception("Erro ao avaliar recorrência na abertura.")
+        return error_response(
+            "Erro ao avaliar recorrência histórica.",
             status_code=500,
             code="PAC_INTELLIGENCE_ERROR",
         )

@@ -34,6 +34,18 @@ def test_score_sample_responses():
     assert exit_code == 1  # amostra parcial — falta cobrir os 20 casos
 
 
+def test_export_template_writes_all_cases(tmp_path):
+    script = _load_script()
+    target = tmp_path / "eval_template.json"
+
+    assert script.export_template(target) == 0
+
+    payload = json.loads(target.read_text(encoding="utf-8"))
+    assert len(payload) == 20
+    assert payload[0]["id"] == "EVAL01"
+    assert payload[0]["response"] == ""
+
+
 def test_score_partial_sample_reports_missing():
     from app.domain.services.pac_agent_eval_policy_service import PacAgentEvalPolicyService
 
