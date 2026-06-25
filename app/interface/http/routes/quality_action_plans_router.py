@@ -4,7 +4,12 @@ import logging
 
 from fastapi import APIRouter, Body, File, Form, Query, UploadFile
 from fastapi.responses import FileResponse, Response
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+from app.domain.services.ishikawa_causes_service import (
+    ISHIKAWA_CATEGORY_FIELDS,
+    normalize_category_causes,
+)
 
 from app.interface.http.middleware.pac_request_context import get_pac_authenticated_user_id
 from app.application.services.pac_evidence_storage import (
@@ -131,13 +136,24 @@ class UpdateActionPlanStatusBody(BaseModel):
 
 
 class IshikawaBody(BaseModel):
-    machine: str | None = None
-    method_process: str | None = None
-    material: str | None = None
-    manpower: str | None = None
-    measurement: str | None = None
-    environment: str | None = None
+    machine: list[str] | None = None
+    method_process: list[str] | None = None
+    material: list[str] | None = None
+    manpower: list[str] | None = None
+    measurement: list[str] | None = None
+    environment: list[str] | None = None
     notes: str | None = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def _normalize_categories(cls, data: object) -> object:
+        if not isinstance(data, dict):
+            return data
+        normalized = dict(data)
+        for key in ISHIKAWA_CATEGORY_FIELDS:
+            if key in normalized:
+                normalized[key] = normalize_category_causes(normalized.get(key))
+        return normalized
 
 
 class FiveWhysBody(BaseModel):

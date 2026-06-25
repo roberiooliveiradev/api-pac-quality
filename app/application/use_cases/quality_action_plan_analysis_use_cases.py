@@ -4,16 +4,17 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.domain.ports.quality_action_plan_repository_port import QualityActionPlanRepositoryPort
+from app.domain.services.ishikawa_causes_service import normalize_ishikawa_payload
 
 
 @dataclass(frozen=True)
 class UpsertIshikawaRequest:
-    machine: str | None = None
-    method_process: str | None = None
-    material: str | None = None
-    manpower: str | None = None
-    measurement: str | None = None
-    environment: str | None = None
+    machine: list[str] | None = None
+    method_process: list[str] | None = None
+    material: list[str] | None = None
+    manpower: list[str] | None = None
+    measurement: list[str] | None = None
+    environment: list[str] | None = None
     notes: str | None = None
 
 
@@ -72,15 +73,17 @@ class UpsertIshikawaUseCase:
     def execute(self, plan_id: str, request: UpsertIshikawaRequest, *, updated_by: str):
         return self._repository.upsert_ishikawa(
             plan_id,
-            {
-                "machine": request.machine,
-                "method_process": request.method_process,
-                "material": request.material,
-                "manpower": request.manpower,
-                "measurement": request.measurement,
-                "environment": request.environment,
-                "notes": request.notes,
-            },
+            normalize_ishikawa_payload(
+                {
+                    "machine": request.machine,
+                    "method_process": request.method_process,
+                    "material": request.material,
+                    "manpower": request.manpower,
+                    "measurement": request.measurement,
+                    "environment": request.environment,
+                    "notes": request.notes,
+                }
+            ),
             updated_by=updated_by,
         )
 
