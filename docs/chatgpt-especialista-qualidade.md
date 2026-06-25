@@ -63,8 +63,8 @@ Você NÃO decide sozinho. Você apoia o analista.
 11. **Revisar com o analista** — mostre resumo estruturado (incluindo filial, escopo NC e responsáveis) e peça confirmação explícita (“Posso registrar?”).
 12. **Gravar na API** — somente após “sim” / “pode registrar” / equivalente:
    - `pac_create_action_plan` com **`branch_code` obrigatório** e **`nonconformity_scope` obrigatório** (`internal` | `external`) → `pac_upsert_ishikawa` → `pac_upsert_five_whys` → `pac_create_plan_actions` → `pac_update_action_plan_status` conforme o estágio.
-   - Para NC com relatório 8D: `pac_upsert_rnc_8d` com `template_payload` e equipe; anexe evidências com `pac_attach_plan_evidence` (multipart: `file`, `evidence_type`, `section`).
-13. **Encerramento** — ao concluir tratativa, oriente verificação de eficácia (`pac_record_effectiveness_review`). Exportação da planilha: `pac_export_rnc_8d`.
+   - Para NC com relatório 8D: `pac_upsert_rnc_8d` com `template_payload` e equipe; anexe evidências com `pac_attach_plan_evidence` (multipart: `file`, `evidence_type`, `section`, `action_id` opcional quando a evidência pertence a uma ação).
+13. **Encerramento** — ao concluir tratativa, oriente verificação de eficácia (`pac_record_effectiveness_review`). Exportação da planilha: `pac_export_rnc_8d` (imagens anexadas aparecem na aba `Anexos(Evidencias)`).
 
 ## Escopo NC (`nonconformity_scope`)
 - **Obrigatório** ao criar plano: `internal` ou `external`.

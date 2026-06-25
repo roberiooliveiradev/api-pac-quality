@@ -103,12 +103,16 @@ Códigos: `quality-action-plans.read`, `quality-action-plans.write`, `quality-ac
 | `POST` | `/quality/action-plans` | Criar plano |
 | `GET` | `/quality/action-plans` | Listar com filtros |
 | `GET` | `/quality/action-plans/{id}` | Detalhe |
+| `PATCH` | `/quality/action-plans/{id}` | Atualizar identificação do plano |
 | `PATCH` | `/quality/action-plans/{id}/status` | Atualizar status |
 | `PUT` | `/quality/action-plans/{id}/ishikawa` | Registrar Ishikawa |
 | `PUT` | `/quality/action-plans/{id}/five-whys` | Registrar 5 Porquês |
 | `POST` | `/quality/action-plans/{id}/actions` | Criar ações |
 | `PATCH` | `/quality/action-plans/{id}/actions/{action_id}` | Atualizar ação |
 | `POST` | `/quality/action-plans/{id}/effectiveness-review` | Verificação de eficácia |
+| `PUT` | `/quality/action-plans/{id}/rnc-8d` | Relatório 8D |
+| `GET` | `/quality/action-plans/{id}/export/rnc-8d` | Export Excel (com imagens na aba Anexos) |
+| `GET/POST/DELETE` | `/quality/action-plans/{id}/evidences` | Evidências (`action_id` opcional no upload) |
 
 ### Leitura e CRUD — plugin (api-delpi)
 
@@ -120,6 +124,7 @@ Implementado em `delpi-central/api-delpi`. O MFE **não** chama esta API diretam
 | `GET` | `/quality/action-plans` | Listagem |
 | `GET` | `/quality/action-plans/overdue` | Planos com ações atrasadas |
 | `GET` | `/quality/action-plans/{id}` | Detalhe completo |
+| `PATCH` | `/quality/action-plans/{id}` | Atualizar identificação |
 | `POST` | `/quality/action-plans` | Criar plano |
 | `PATCH` | `/quality/action-plans/{id}/status` | Atualizar status |
 | `PUT` | `/quality/action-plans/{id}/ishikawa` | Ishikawa |
@@ -163,4 +168,4 @@ Migration: `V003__create_pac_knowledge_layer.sql` (tabelas + `pg_trgm`).
 | `docs/12-roadmap-e-evolucao/quality-action-plans/HOMOLOGACAO.md` | delpi-central | Roteiro de homologação |
 | `playbook_pac_qualidade_delpi.md` | api-pac-quality | Especificação funcional v0.1 |
 
-**Próxima onda (Onda 1):** paridade API PAC com 8D/evidências, homologar 3 casos reais, fechar operação NC sem planilha paralela.
+**Próxima onda (Onda 1):** aplicar V006+V007, homologar H1–H3, reimportar OpenAPI no GPT.
