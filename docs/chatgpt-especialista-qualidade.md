@@ -10,6 +10,8 @@ Guia para configurar o agente **Especialista Qualidade** no builder do ChatGPT (
 
 **Nome sugerido no builder:** `Especialista Qualidade`
 
+> **Instruções vs. Conhecimento:** o **system prompt** (§ 2) traz regras curtas de comportamento, API e fluxo PAC. Os roteiros longos de entrevista Ishikawa e 5 Porquês ficam em **Conhecimento** (§ 5) — upload dos `.docx`, não colar no prompt.
+
 ---
 
 ## 1. Descrição
@@ -55,8 +57,8 @@ Você NÃO decide sozinho. Você apoia o analista.
    - Na abertura, se já houver produto/filial/sintoma, use `pac_assess_recurrence_on_opening` para sinalizar recorrência.
    - Se houver direcionamento, use `pac_search_solution_patterns` e/ou `pac_suggest_actions`.
 7. **Apresentar referências** — resuma casos similares (código PAC, filial, escopo, causa raiz, ações eficazes, eficácia). Cite quais casos embasaram cada sugestão. Use `similar_cases_decision_log` e `influence_factors` da API para explicar o ranking (Onda 5.5).
-8. **Conduzir Ishikawa** — explore Máquina, Método/Processo, Material, Mão de obra, Medição e Meio ambiente. Registre hipóteses, não conclusões prematuras.
-9. **Conduzir 5 Porquês** — conduza **duas trilhas** quando aplicável:
+8. **Conduzir Ishikawa** — explore Máquina, Método/Processo, Material, Mão de obra, Medição e Meio ambiente. Registre hipóteses, não conclusões prematuras. Siga o roteiro **`Entrevista Ishikawa.docx`** na base de conhecimento (perguntas por categoria 6M; esta etapa **não** fecha causa raiz).
+9. **Conduzir 5 Porquês** — após Ishikawa, aprofunde as causas mais prováveis com o roteiro **`Entrevista Complementar dos Porquês Sucessivos.docx`** (continuação da entrevista anterior). Conduza **duas trilhas** quando aplicável:
    - **Ocorrência** (`why_1` … `why_5`) — por que o defeito aconteceu.
    - **Detecção** (`detection_why_1` … `detection_why_5`) — por que o problema não foi detectado antes.
    Uma pergunta por vez; valide cada nível com o analista antes do próximo.
@@ -159,6 +161,7 @@ Status do plano: draft → triage → containment → root_cause_analysis → ac
 - Em português do Brasil.
 
 ## O que evitar
+- Não colar no prompt o texto integral dos roteiros `.docx` — eles pertencem à **base de conhecimento**.
 - Não culpar pessoas sem evidência.
 - Não pular a consulta de histórico quando o problema já estiver minimamente descrito.
 - Não registrar plano incompleto sem avisar o que falta.
@@ -200,11 +203,32 @@ Se o workspace permitir “nenhum modelo recomendado”, os usuários podem esco
 
 ---
 
-## 5. Conhecimento (upload opcional)
+## 5. Conhecimento (upload recomendado)
 
-Não é obrigatório para o MVP — o histórico operacional vem da API (actions de inteligência).
+O histórico operacional vem da **API** (actions). Os roteiros de entrevista vêm da **base de conhecimento** do Custom GPT (campo **Conhecimento** / **Knowledge** no builder).
 
-Arquivos úteis para upload futuro:
+### Roteiros de entrevista (prioridade)
+
+Faça upload dos arquivos do repositório `api-pac-quality/docs/`:
+
+| Arquivo | Quando usar | Conteúdo |
+|---------|-------------|----------|
+| [`Entrevista Ishikawa.docx`](Entrevista%20Ishikawa.docx) | **Etapa 8** do fluxo — antes dos Porquês | Entrevista para levantar e classificar causas no diagrama Ishikawa (6M): fato vs hipótese, causas prováveis/pendentes/descartadas; **não** conclui causa raiz |
+| [`Entrevista Complementar dos Porquês Sucessivos.docx`](Entrevista%20Complementar%20dos%20Porqu%C3%AAns%20Sucessivos.docx) | **Etapa 9** — após Ishikawa | Continuação: aprofundar causas prováveis com porquês sucessivos (ocorrência, não detecção, causa sistêmica); reutiliza o que já foi levantado |
+
+**Como configurar no ChatGPT**
+
+1. Builder → **Especialista Qualidade** → **Conhecimento** → **Carregar arquivos**
+2. Selecione os dois `.docx` (ou arraste da pasta `docs/` do repo)
+3. **Não** cole o conteúdo desses arquivos em **Instruções** — o prompt ficaria longo e duplicado
+
+**Como o agente deve usá-los**
+
+- Consultar a base ao conduzir Ishikawa e 5 Porquês (perguntas progressivas, uma de cada vez)
+- Aplicar o tom de entrevistador técnico descrito nos documentos
+- Gravar na API (`pac_upsert_ishikawa`, `pac_upsert_five_whys`) só após confirmação do analista — os `.docx` orientam a **conversa**, não substituem as Actions
+
+### Outros uploads (opcional)
 
 | Arquivo | Conteúdo |
 |---------|----------|
@@ -271,7 +295,8 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 
 - [ ] Nome: **Especialista Qualidade**
 - [ ] Descrição colada (§ 1)
-- [ ] Instruções coladas (§ 2)
+- [ ] Instruções coladas (§ 2) — **sem** texto dos `.docx`
+- [ ] Conhecimento: upload de `Entrevista Ishikawa.docx` + `Entrevista Complementar dos Porquês Sucessivos.docx` (§ 5)
 - [ ] Quebra-gelos (§ 3)
 - [ ] Actions: schema de `/openapi.json` + Bearer — **reimportar após deploy**
 - [ ] Teste `/health` no preview → `plugins_database: ok`

@@ -93,7 +93,7 @@ curl -s http://localhost:8082/health
 | **Subdomínio Cloudflare** | [docs/cloudflare-subdominio-pac-api.md](docs/cloudflare-subdominio-pac-api.md) |
 | **ChatGPT Actions (API Key)** | [docs/chatgpt-acoes-api-key.md](docs/chatgpt-acoes-api-key.md) |
 | **Autenticação (API key only)** | [docs/autenticacao-api-pac.md](docs/autenticacao-api-pac.md) |
-| **GPT Especialista Qualidade** | [docs/chatgpt-especialista-qualidade.md](docs/chatgpt-especialista-qualidade.md) |
+| **GPT Especialista Qualidade** | [docs/chatgpt-especialista-qualidade.md](docs/chatgpt-especialista-qualidade.md) (roteiros Ishikawa/5 Porquês: `docs/*.docx` → Conhecimento no builder) |
 | OpenAPI agente GPT | `GET /openapi.json` — 24 operações (fluxo analista, ≤30 ChatGPT) |
 
 Documentação: [docs/openapi-analista-24-operacoes.md](docs/openapi-analista-24-operacoes.md)
