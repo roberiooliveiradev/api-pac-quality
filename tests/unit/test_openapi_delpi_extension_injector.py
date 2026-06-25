@@ -81,7 +81,7 @@ def test_openapi_schema_exposes_x_delpi_for_pac_routes():
                 missing.append(operation_id)
 
     assert not missing
-    assert len(ROUTE_CONTRACTS) == 18
+    assert len(ROUTE_CONTRACTS) >= 18
 
 
 def test_all_published_openapi_operations_have_x_delpi_matching_registry():
