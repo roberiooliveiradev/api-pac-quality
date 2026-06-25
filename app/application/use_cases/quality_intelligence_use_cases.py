@@ -3,6 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+from app.domain.services.quality_intelligence.case_similarity_decision_log_service import (
+    CaseSimilarityDecisionLogService,
+)
 from app.domain.services.quality_intelligence.case_similarity_scoring_service import (
     CaseSimilarityScoringService,
     IndexedCaseCandidate,
@@ -51,9 +54,11 @@ class SearchSimilarCasesUseCase:
         self,
         repository: PostgresQualityIntelligenceRepository,
         scoring: CaseSimilarityScoringService | None = None,
+        decision_log: CaseSimilarityDecisionLogService | None = None,
     ) -> None:
         self._repository = repository
         self._scoring = scoring or CaseSimilarityScoringService()
+        self._decision_log = decision_log or CaseSimilarityDecisionLogService(self._scoring)
 
     def execute(self, request: SimilarCasesRequest) -> dict[str, Any]:
         if not request.problem_description.strip():
@@ -96,13 +101,17 @@ class SearchSimilarCasesUseCase:
             for item in raw_candidates
         ]
 
-        similar_cases = self._scoring.rank_cases(query, candidates)
+        similar_cases = self._decision_log.enrich_ranked_cases(query, candidates)
         recurrence = self._scoring.recurrence_signals(query, candidates)
 
         return {
             "similar_cases": similar_cases,
             "recurrence_signals": recurrence,
             "suggested_focus_areas": self._scoring.suggested_focus_areas(similar_cases),
+            "similar_cases_decision_log": self._decision_log.build_from_ranked_cases(
+                query,
+                similar_cases,
+            ),
         }
 
 
@@ -151,7 +160,7 @@ class SuggestActionsUseCase:
                 problem_category=request.problem_category,
                 failure_mode=request.failure_mode,
                 root_cause_category=request.root_cause_category,
-                symptom_tags=request.symptom_tags,
+                symptoms=request.symptom_tags,
             )
         )
 
@@ -166,6 +175,7 @@ class SuggestActionsUseCase:
 
         suggestions: list[dict[str, Any]] = []
         seen_descriptions: set[str] = set()
+        influenced_plan_uuids: set[str] = set()
 
         for pattern in patterns:
             for description in pattern.get("recommended_actions") or []:
@@ -191,6 +201,9 @@ class SuggestActionsUseCase:
                     continue
                 seen_descriptions.add(key)
                 confidence = "high" if case.get("effectiveness_status") == "effective" else "medium"
+                plan_uuid = str(case.get("plan_uuid") or "").strip()
+                if plan_uuid:
+                    influenced_plan_uuids.add(plan_uuid)
                 suggestions.append(
                     {
                         "action_type": "corrective",
@@ -222,6 +235,19 @@ class SuggestActionsUseCase:
             "suggestions": suggestions[:10],
             "warnings": warnings,
             "similar_cases": similar_result.get("similar_cases") or [],
+            "similar_cases_decision_log": CaseSimilarityDecisionLogService(
+                self._case_scoring
+            ).build_from_ranked_cases(
+                SimilarCaseQuery(
+                    problem_description=request.problem_description.strip(),
+                    problem_category=request.problem_category,
+                    failure_mode=request.failure_mode,
+                    root_cause_category=request.root_cause_category,
+                    symptoms=tuple(request.symptom_tags or ()),
+                ),
+                similar_result.get("similar_cases") or [],
+                influenced_plan_uuids=influenced_plan_uuids,
+            ),
         }
 
 
