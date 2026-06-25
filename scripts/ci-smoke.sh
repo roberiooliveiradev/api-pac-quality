@@ -7,3 +7,5 @@ if [ ! -d .venv ]; then
   .venv/bin/pip install -q -r requirements.txt
 fi
 .venv/bin/pytest tests/ -q
+echo "[ci] OpenAPI Onda 1 registry"
+.venv/bin/python -m pytest tests/unit/test_openapi_onda1_paths.py -q

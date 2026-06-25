@@ -126,10 +126,23 @@ pytest tests/ -q
 
 ## Checklist produção
 
-1. Migrations `quality-action-plans` (`V001`–`V003`)
-2. Stack PAC + override de rede Docker
-3. `curl http://localhost:8082/health` → `plugins_database: ok`
-4. Subdomínio Cloudflare configurado (ver guia dedicado)
-5. `curl https://pac-api.minhadelpi.com.br/health` → OK
-6. Provider + `sync_api_pac_quality_openapi.py`
-7. Manifesto RBAC `quality-action-plans`
+1. Migrations `quality-action-plans` (`V001`–`V007`) no Postgres `plugins_hub`
+2. Template 8D: `bash ../delpi-central/api-delpi/scripts/deploy_rnc_8d_template.sh` no srv-api (ou copiar xlsx para volume PAC)
+3. Stack PAC + override de rede Docker
+4. `docker compose up -d --build` (rebuild obrigatório após rotas 8D/evidências)
+5. `curl http://localhost:8082/health` → `plugins_database: ok`
+6. `bash scripts/post_deploy_verify.sh` (ou `../delpi-central/scripts/homologacao/check-pac-api-server.sh`)
+7. Subdomínio Cloudflare → `curl https://pac-api.minhadelpi.com.br/health` → OK
+8. OpenAPI com **≥ 16 rotas** (inclui `rnc-8d`, `evidences`, `export/rnc-8d`)
+9. `python3 ../delpi-central/scripts/homologacao/run_h2_pac_api_smoke.py` (homologação H2)
+10. `docker exec delpi-minha-delpi-ai-api python scripts/sync_api_pac_quality_openapi.py --check-onda1`
+11. Manifesto RBAC `quality-action-plans`
+
+### Deploy rápido (srv-api)
+
+```bash
+cd ~/projetos/api-pac-quality
+git pull
+docker compose up -d --build
+bash scripts/post_deploy_verify.sh
+```
