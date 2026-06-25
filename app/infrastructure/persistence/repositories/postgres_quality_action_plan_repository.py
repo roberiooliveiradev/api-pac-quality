@@ -319,11 +319,13 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
             "effectiveness_verified_at",
             "effectiveness_notes",
             "linked_kaizen_id",
+            "linked_audit_5s_nc_id",
         }
+        nullable_link_fields = frozenset({"linked_kaizen_id", "linked_audit_5s_nc_id"})
         updates = {
             key: value
             for key, value in fields.items()
-            if key in allowed and (value is not None or key == "linked_kaizen_id")
+            if key in allowed and (value is not None or key in nullable_link_fields)
         }
         if not updates:
             return current
@@ -340,6 +342,21 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
             )
             if not kaizen_row:
                 raise ValueError("linked_kaizen_id não encontrado ou kaizen inativo.")
+
+        if updates.get("linked_audit_5s_nc_id"):
+            nc_row = self.fetch_one(
+                """
+                SELECT id
+                  FROM quality.audit_5s_nonconformities
+                 WHERE id = %s
+                   AND status <> 'cancelled'
+                """,
+                (updates["linked_audit_5s_nc_id"],),
+            )
+            if not nc_row:
+                raise ValueError(
+                    "linked_audit_5s_nc_id não encontrado ou NC 5S cancelada."
+                )
 
         set_parts = [f"{column} = %s" for column in updates]
         set_parts.append("updated_at = NOW()")
