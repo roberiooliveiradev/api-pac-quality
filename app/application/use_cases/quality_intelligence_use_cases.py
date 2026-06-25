@@ -6,6 +6,10 @@ from typing import Any
 from app.domain.services.quality_intelligence.case_similarity_decision_log_service import (
     CaseSimilarityDecisionLogService,
 )
+from app.domain.services.quality_intelligence.case_similarity_embedding_service import (
+    CaseSimilarityEmbeddingPort,
+    CaseSimilarityEmbeddingService,
+)
 from app.domain.services.quality_intelligence.case_similarity_scoring_service import (
     CaseSimilarityScoringService,
     IndexedCaseCandidate,
@@ -55,10 +59,12 @@ class SearchSimilarCasesUseCase:
         repository: PostgresQualityIntelligenceRepository,
         scoring: CaseSimilarityScoringService | None = None,
         decision_log: CaseSimilarityDecisionLogService | None = None,
+        embedding_gateway: CaseSimilarityEmbeddingPort | None = None,
     ) -> None:
         self._repository = repository
         self._scoring = scoring or CaseSimilarityScoringService()
         self._decision_log = decision_log or CaseSimilarityDecisionLogService(self._scoring)
+        self._embedding_gateway = embedding_gateway
 
     def execute(self, request: SimilarCasesRequest) -> dict[str, Any]:
         if not request.problem_description.strip():
@@ -76,11 +82,19 @@ class SearchSimilarCasesUseCase:
             branch_code=request.branch_code,
         )
 
+        query_embedding = None
+        if self._embedding_gateway is not None:
+            query_embedding = CaseSimilarityEmbeddingService.embed_search_text(
+                self._embedding_gateway,
+                query.problem_description,
+            )
+
         raw_candidates = self._repository.fetch_similar_case_candidates(
             problem_description=query.problem_description,
             product_code=query.product_code,
             symptoms=list(query.symptoms),
             branch_code=query.branch_code,
+            query_embedding=query_embedding,
         )
         candidates = [
             IndexedCaseCandidate(
@@ -97,6 +111,7 @@ class SearchSimilarCasesUseCase:
                 closed_at=item.get("closed_at"),
                 effective_actions=item.get("effective_actions") or [],
                 branch_code=item.get("branch_code"),
+                semantic_similarity=item.get("semantic_similarity"),
             )
             for item in raw_candidates
         ]
@@ -144,16 +159,22 @@ class SuggestActionsUseCase:
         repository: PostgresQualityIntelligenceRepository,
         case_scoring: CaseSimilarityScoringService | None = None,
         pattern_ranking: SolutionPatternRankingService | None = None,
+        embedding_gateway: CaseSimilarityEmbeddingPort | None = None,
     ) -> None:
         self._repository = repository
         self._case_scoring = case_scoring or CaseSimilarityScoringService()
         self._pattern_ranking = pattern_ranking or SolutionPatternRankingService()
+        self._embedding_gateway = embedding_gateway
 
     def execute(self, request: SuggestActionsRequest) -> dict[str, Any]:
         if not request.problem_description.strip():
             raise ValueError("problem_description é obrigatório.")
 
-        similar_uc = SearchSimilarCasesUseCase(self._repository, self._case_scoring)
+        similar_uc = SearchSimilarCasesUseCase(
+            self._repository,
+            self._case_scoring,
+            embedding_gateway=self._embedding_gateway,
+        )
         similar_result = similar_uc.execute(
             SimilarCasesRequest(
                 problem_description=request.problem_description,
@@ -252,11 +273,25 @@ class SuggestActionsUseCase:
 
 
 class SyncCaseSimilarityIndexUseCase:
-    def __init__(self, repository: PostgresQualityIntelligenceRepository) -> None:
+    def __init__(
+        self,
+        repository: PostgresQualityIntelligenceRepository,
+        embedding_gateway: CaseSimilarityEmbeddingPort | None = None,
+    ) -> None:
         self._repository = repository
+        self._embedding_gateway = embedding_gateway
 
     def execute(self, plan_id: str) -> None:
-        self._repository.sync_case_similarity_index(plan_id)
+        search_text = self._repository.sync_case_similarity_index(plan_id)
+        if not search_text or self._embedding_gateway is None:
+            return
+
+        embedding = CaseSimilarityEmbeddingService.embed_search_text(
+            self._embedding_gateway,
+            search_text,
+        )
+        if embedding:
+            self._repository.update_search_embedding(plan_id, embedding)
 
 
 class UpsertSolutionPatternFromPlanUseCase:
