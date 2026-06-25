@@ -181,7 +181,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
             """
             SELECT id, plan_id, type, file_name, file_url, text_excerpt,
                    stored_name, mime_type, size_bytes, section, description,
-                   knowledge_visible, uploaded_by, created_at
+                   knowledge_visible, uploaded_by, action_id, created_at
               FROM quality.quality_problem_evidences
              WHERE plan_id = %s
              ORDER BY created_at DESC
@@ -208,7 +208,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 serialize_row(row, id_keys=("id", "plan_id")) for row in team_members if row
             ],
             "evidences": [
-                serialize_row(row, id_keys=("id", "plan_id")) for row in evidences if row
+                serialize_row(row, id_keys=("id", "plan_id", "action_id")) for row in evidences if row
             ],
             "actions": [
                 serialize_row(row, id_keys=("id", "plan_id")) for row in actions if row
@@ -415,6 +415,13 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
              WHERE id = %s AND deleted_at IS NULL
             """,
             (plan_id,),
+        )
+        return row is not None
+
+    def action_belongs_to_plan(self, plan_id: str, action_id: str) -> bool:
+        row = self.fetch_one(
+            "SELECT id FROM quality.quality_actions WHERE id = %s AND plan_id = %s",
+            (action_id, plan_id),
         )
         return row is not None
 
@@ -780,41 +787,44 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
             """
             SELECT id, plan_id, type, file_name, file_url, text_excerpt,
                    stored_name, mime_type, size_bytes, section, description,
-                   knowledge_visible, uploaded_by, created_at
+                   knowledge_visible, uploaded_by, action_id, created_at
               FROM quality.quality_problem_evidences
              WHERE plan_id = %s
              ORDER BY created_at DESC
             """,
             (plan_id,),
         )
-        return [serialize_row(row, id_keys=("id", "plan_id")) or {} for row in rows if row]
+        return [serialize_row(row, id_keys=("id", "plan_id", "action_id")) or {} for row in rows if row]
 
     def get_evidence(self, plan_id: str, evidence_id: str) -> dict[str, Any] | None:
         row = self.fetch_one(
             """
             SELECT id, plan_id, type, file_name, file_url, text_excerpt,
                    stored_name, mime_type, size_bytes, section, description,
-                   knowledge_visible, uploaded_by, created_at
+                   knowledge_visible, uploaded_by, action_id, created_at
               FROM quality.quality_problem_evidences
              WHERE id = %s AND plan_id = %s
             """,
             (evidence_id, plan_id),
         )
-        return serialize_row(row, id_keys=("id", "plan_id")) if row else None
+        return serialize_row(row, id_keys=("id", "plan_id", "action_id")) if row else None
 
     def create_evidence(self, plan_id: str, fields: dict[str, Any]) -> dict[str, Any] | None:
         if not self._plan_exists(plan_id):
+            return None
+        action_id = fields.get("action_id")
+        if action_id and not self.action_belongs_to_plan(plan_id, str(action_id)):
             return None
         row = self.execute_returning_one(
             """
             INSERT INTO quality.quality_problem_evidences (
                 plan_id, type, file_name, file_url, text_excerpt,
                 stored_name, mime_type, size_bytes, section, description,
-                knowledge_visible, uploaded_by
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                knowledge_visible, uploaded_by, action_id
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, plan_id, type, file_name, file_url, text_excerpt,
                       stored_name, mime_type, size_bytes, section, description,
-                      knowledge_visible, uploaded_by, created_at
+                      knowledge_visible, uploaded_by, action_id, created_at
             """,
             (
                 plan_id,
@@ -829,10 +839,11 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 fields.get("description"),
                 fields.get("knowledge_visible", True),
                 fields["uploaded_by"],
+                action_id,
             ),
             auto_commit=True,
         )
-        return serialize_row(row, id_keys=("id", "plan_id")) if row else None
+        return serialize_row(row, id_keys=("id", "plan_id", "action_id")) if row else None
 
     def delete_evidence(self, plan_id: str, evidence_id: str) -> dict[str, Any] | None:
         row = self.fetch_one(

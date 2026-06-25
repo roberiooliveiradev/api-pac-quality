@@ -42,7 +42,10 @@ from app.application.use_cases.quality_action_plan_analysis_use_cases import (
     UpsertIshikawaRequest,
 )
 from app.core.responses import error_response, not_found_response, success_response
-from app.domain.services.rnc_8d_excel_export_service import build_rnc_8d_workbook
+from app.domain.services.rnc_8d_excel_export_service import (
+    build_rnc_8d_workbook,
+    collect_image_annexes_for_export,
+)
 from app.infrastructure.persistence.plugins.plugin_base_repository import PluginsRepositoryError
 
 logger = logging.getLogger(__name__)
@@ -530,7 +533,13 @@ def export_rnc_8d_spreadsheet(plan_id: str):
         detail = repo.get_plan_detail(plan_id)
         if not detail:
             return not_found_response("Plano de ação não encontrado.")
-        content = build_rnc_8d_workbook(detail)
+        storage = PacEvidenceStorage()
+        image_annexes = collect_image_annexes_for_export(
+            plan_id=plan_id,
+            evidences=detail.get("evidences") or [],
+            storage=storage,
+        )
+        content = build_rnc_8d_workbook(detail, image_annexes=image_annexes)
         plan = detail.get("plan") or {}
         registry = plan.get("client_nc_registry") or plan.get("code") or plan_id[:8]
         filename = f"RNC_{registry}_8D.xlsx"
@@ -576,6 +585,7 @@ async def upload_plan_evidence(
     ),
     description: str | None = Form(default=None),
     knowledge_visible: bool = Form(default=True),
+    action_id: str | None = Form(default=None),
     file: UploadFile = File(...),
 ):
     try:
@@ -589,6 +599,9 @@ async def upload_plan_evidence(
             mime_type=file.content_type,
         )
         repo = build_quality_action_plan_repository()
+        if action_id and not repo.action_belongs_to_plan(plan_id, action_id):
+            storage.delete_file(plan_id=plan_id, stored_name=stored_name)
+            return error_response("Ação não pertence a este plano.", status_code=422)
         data = repo.create_evidence(
             plan_id,
             {
@@ -601,6 +614,7 @@ async def upload_plan_evidence(
                 "description": description,
                 "knowledge_visible": knowledge_visible,
                 "uploaded_by": _current_user_id(),
+                "action_id": action_id,
             },
         )
         if not data:
