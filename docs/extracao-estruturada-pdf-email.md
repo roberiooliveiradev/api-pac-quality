@@ -77,6 +77,7 @@ O agente monta um rascunho **antes** de `pac_create_action_plan`:
 1. Descrever só o visível — defeito, localização, quantidade aparente.
 2. Não inferir causa raiz pela imagem.
 3. `evidence_type: image`; causa raiz continua em Ishikawa / 5 Porquês.
+4. **Tags sugeridas (Onda 6.3):** `pac_suggest_evidence_tags` com `ocr_text` (visão do GPT) ou `pac_suggest_evidence_tags_from_image` (OCR local com `PAC_EVIDENCE_OCR_ENABLED=true`). Validar `suggested_symptom_tags` com o analista antes de gravar no plano.
 
 ---
 

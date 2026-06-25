@@ -42,6 +42,14 @@ ROUTE_CONTRACTS: dict[str, RouteContract] = {
         "pac_quality_recurrence_opening_assessment",
         "composite_analysis",
     ),
+    "pac_suggest_evidence_tags": RouteContract(
+        "pac_quality_evidence_tag_suggestions",
+        "composite_analysis",
+    ),
+    "pac_suggest_evidence_tags_from_image": RouteContract(
+        "pac_quality_evidence_tag_suggestions",
+        "composite_analysis",
+    ),
 }
 
 
