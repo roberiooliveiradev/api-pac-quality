@@ -26,7 +26,26 @@ Assistente de qualidade da DELPI para estruturar reclamações de clientes, cond
 
 ## 2. Instruções (system prompt)
 
-Cole no campo **Instruções**:
+O ChatGPT limita o campo **Instruções** a **8.000 caracteres**. O prompt expandido abaixo (~11k) **não cabe** — use a versão compacta.
+
+### Cole no builder (≤8.000 caracteres)
+
+Arquivo pronto para copiar/colar:
+
+**[`docs/chatgpt-instrucoes-system-prompt.txt`](chatgpt-instrucoes-system-prompt.txt)** (~2.900 caracteres)
+
+1. Abra o arquivo → selecione tudo → cole em **Instruções**
+2. Não inclua os roteiros `.docx` nem a tabela longa de evidências aqui
+
+### Referência expandida (não colar no prompt)
+
+Detalhes de campos, evidências e status — upload em **Conhecimento**:
+
+- [`chatgpt-referencia-campos-api.md`](chatgpt-referencia-campos-api.md)
+- `Entrevista Ishikawa.docx` + `Entrevista Complementar dos Porquês Sucessivos.docx` (§ 5)
+
+<details>
+<summary>Texto expandido (referência interna — excede limite do builder)</summary>
 
 ```text
 Você é o Especialista Qualidade da DELPI — assistente para analistas de qualidade na abertura, investigação e registro de planos de ação (PAC).
@@ -173,7 +192,7 @@ Status do plano: draft → triage → containment → root_cause_analysis → ac
 Cada problema resolvido deve virar conhecimento reutilizável: mais velocidade, mais evidência e menos reincidência.
 ```
 
-Referência de domínio completa: [playbook_pac_qualidade_delpi.md](../playbook_pac_qualidade_delpi.md) (§ 10 — regra de ouro, § 18 — fluxo do agente).
+</details>
 
 ---
 
@@ -215,12 +234,13 @@ Faça upload dos arquivos do repositório `api-pac-quality/docs/`:
 |---------|-------------|----------|
 | [`Entrevista Ishikawa.docx`](Entrevista%20Ishikawa.docx) | **Etapa 8** do fluxo — antes dos Porquês | Entrevista para levantar e classificar causas no diagrama Ishikawa (6M): fato vs hipótese, causas prováveis/pendentes/descartadas; **não** conclui causa raiz |
 | [`Entrevista Complementar dos Porquês Sucessivos.docx`](Entrevista%20Complementar%20dos%20Porqu%C3%AAns%20Sucessivos.docx) | **Etapa 9** — após Ishikawa | Continuação: aprofundar causas prováveis com porquês sucessivos (ocorrência, não detecção, causa sistêmica); reutiliza o que já foi levantado |
+| [`chatgpt-referencia-campos-api.md`](chatgpt-referencia-campos-api.md) | Consulta durante o chat | Campos PAC, tabela de evidências multipart, eficácia, status — **não** colar no prompt |
 
 **Como configurar no ChatGPT**
 
-1. Builder → **Especialista Qualidade** → **Conhecimento** → **Carregar arquivos**
-2. Selecione os dois `.docx` (ou arraste da pasta `docs/` do repo)
-3. **Não** cole o conteúdo desses arquivos em **Instruções** — o prompt ficaria longo e duplicado
+1. Builder → **Especialista Qualidade** → **Instruções** → colar `chatgpt-instrucoes-system-prompt.txt` (limite 8.000 caracteres)
+2. **Conhecimento** → carregar os dois `.docx` + opcionalmente `chatgpt-referencia-campos-api.md`
+3. **Não** cole roteiros nem tabelas longas em Instruções
 
 **Como o agente deve usá-los**
 
@@ -295,8 +315,8 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 
 - [ ] Nome: **Especialista Qualidade**
 - [ ] Descrição colada (§ 1)
-- [ ] Instruções coladas (§ 2) — **sem** texto dos `.docx`
-- [ ] Conhecimento: upload de `Entrevista Ishikawa.docx` + `Entrevista Complementar dos Porquês Sucessivos.docx` (§ 5)
+- [ ] Instruções: colar `chatgpt-instrucoes-system-prompt.txt` (verificar **≤8.000** caracteres no builder)
+- [ ] Conhecimento: `Entrevista Ishikawa.docx` + `Entrevista Complementar…docx` + opcional `chatgpt-referencia-campos-api.md`
 - [ ] Quebra-gelos (§ 3)
 - [ ] Actions: schema de `/openapi.json` + Bearer — **reimportar após deploy**
 - [ ] Teste `/health` no preview → `plugins_database: ok`
@@ -314,6 +334,7 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 | Grava sem pedir confirmação | Revisar § “Escritas na API” nas instruções |
 | `401` nas actions | Verificar Bearer e `PAC_QUALITY_API_KEY` no srv-api |
 | Erro «máximo 30 operações» | Deploy recente da api-pac-quality; `/openapi.json` deve ter 24 operações |
+| Aviso «Instruções não podem exceder 8000 caracteres» | Usar `docs/chatgpt-instrucoes-system-prompt.txt`; detalhes em Conhecimento (§ 5) |
 | Campos rejeitados (`422`) | Usar snake_case (`branch_code`, `problem_description`, `customer_name`, etc.); `branch_code` obrigatório no create (`01` ou `02`) |
 | operationId diferente do esperado | Normal — FastAPI gera sufixos; usar nomes exibidos no builder |
 
