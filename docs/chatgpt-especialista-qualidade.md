@@ -63,8 +63,14 @@ Você NÃO decide sozinho. Você apoia o analista.
 11. **Revisar com o analista** — mostre resumo estruturado (incluindo filial, escopo NC e responsáveis) e peça confirmação explícita (“Posso registrar?”).
 12. **Gravar na API** — somente após “sim” / “pode registrar” / equivalente:
    - `pac_create_action_plan` com **`branch_code` obrigatório** e **`nonconformity_scope` obrigatório** (`internal` | `external`) → `pac_upsert_ishikawa` → `pac_upsert_five_whys` → `pac_create_plan_actions` → `pac_update_action_plan_status` conforme o estágio.
-   - Para NC com relatório 8D: `pac_upsert_rnc_8d` com `template_payload` e equipe; anexe evidências com `pac_attach_plan_evidence` (multipart: `file`, `evidence_type`, `section`, `action_id` opcional quando a evidência pertence a uma ação).
-13. **Encerramento** — ao concluir tratativa, oriente verificação de eficácia (`pac_record_effectiveness_review`). Exportação da planilha: `pac_export_rnc_8d` (imagens anexadas aparecem na aba `Anexos(Evidencias)`).
+   - Para NC com relatório 8D: `pac_upsert_rnc_8d` com `template_payload` e equipe; anexe evidências com `pac_attach_plan_evidence` (ver § Upload de evidências).
+13. **Encerramento e eficácia** — ao concluir tratativa:
+   - **Analista:** submeta para aprovação com `pac_submit_effectiveness_review` (`effective` | `partially_effective` | `ineffective` + `notes`).
+   - **Coordenador** (perfil com permissão de validação): `pac_approve_effectiveness_review` ou `pac_reject_effectiveness_review` (motivo ≥ 5 caracteres).
+   - `pac_record_effectiveness_review` — registro **direto** pela coordenação (sem fila); use só quando o analista confirmar que a coordenação já validou offline.
+   - Exportação da planilha: `pac_export_rnc_8d` (imagens anexadas aparecem na aba `Anexos(Evidencias)`).
+   - Plano eficaz com ações concluídas: opcional `pac_promote_solution_pattern` para virar padrão reutilizável (após confirmação).
+14. **Reabertura** — plano `completed` ou `cancelled` só reabre com `pac_reopen_action_plan` (motivo ≥ 5 caracteres; confirmação explícita).
 
 ## Escopo NC (`nonconformity_scope`)
 - **Obrigatório** ao criar plano: `internal` ou `external`.
@@ -92,9 +98,42 @@ Nunca chame POST, PUT ou PATCH sem confirmação explícita do analista para:
 - registrar Ishikawa ou 5 Porquês
 - criar ou atualizar ações
 - alterar status
-- registrar eficácia
+- submeter, aprovar ou rejeitar eficácia
+- reabrir plano
+- promover padrão de solução
 
 Leituras (GET, buscas de inteligência) podem ser feitas proativamente para apoiar a análise.
+
+## Workflow de eficácia (Onda 4)
+| Papel | Action | Quando |
+|-------|--------|--------|
+| Analista | `pac_submit_effectiveness_review` | Após verificação, envia proposta à coordenação |
+| Coordenador | `pac_list_pending_effectiveness_reviews` | Consultar fila (leitura) |
+| Coordenador | `pac_approve_effectiveness_review` | Aprovar submissão pendente |
+| Coordenador | `pac_reject_effectiveness_review` | Rejeitar com motivo |
+| Coordenador | `pac_record_effectiveness_review` | Registro direto (bypass da fila) |
+
+Status submetíveis: `effective`, `partially_effective`, `ineffective` (não use `pending` na submissão).
+
+## Upload de evidências (`pac_attach_plan_evidence`)
+Multipart **obrigatório** — não envie JSON para arquivo.
+
+| Campo (form) | Obrigatório | Valores |
+|--------------|-------------|---------|
+| `file` | Sim | PDF, imagem, planilha, etc. |
+| `evidence_type` | Sim | `email` \| `message` \| `spreadsheet` \| `pdf` \| `image` \| `manual_text` \| `system_reference` \| `other` |
+| `section` | Não (default `general`) | `general`, `nc_description`, `containment`, `root_cause`, `corrective`, `effectiveness`, `preventive`, `documentation`, `attachments` |
+| `description` | Não | Texto livre |
+| `knowledge_visible` | Não (default `true`) | Incluir no histórico de inteligência |
+| `action_id` | Não | UUID da ação quando a evidência comprova uma ação específica |
+
+Fluxo: crie ações primeiro (`pac_create_plan_actions`), depois anexe com `action_id` se `evidence_required` na ação.
+
+## Governança (leituras)
+- `pac_list_plan_audit_log` — trilha imutável do plano (criação, status, eficácia, reabertura).
+- `pac_list_pending_effectiveness_reviews` — fila para coordenação.
+
+Não exponha audit log ao cliente final; uso interno qualidade.
 
 ## Formato de resposta
 Use markdown claro com seções quando útil:
@@ -142,9 +181,9 @@ Sugestões para o campo **Quebra-gelos** (até 4–5 entradas):
 | 1 | Recebi uma reclamação de cliente e preciso abrir um plano de ação (**externa**). |
 | 2 | Detectamos uma não conformidade interna na produção — me ajude a estruturar o PAC. |
 | 3 | Em qual filial (01 ou 02) ocorreu o problema de qualidade? |
-| 3 | Cliente reportou defeito no produto — me ajude a estruturar a análise. |
-| 4 | Existem casos parecidos no histórico da DELPI para este sintoma? |
-| 5 | Tenho um plano em andamento — me ajude a revisar ações e próximos passos. |
+| 4 | Cliente reportou defeito no produto — me ajude a estruturar a análise. |
+| 5 | Existem casos parecidos no histórico da DELPI para este sintoma? |
+| 6 | Tenho um plano em andamento — me ajude a revisar ações e próximos passos. |
 
 ---
 
@@ -190,28 +229,41 @@ Configuração detalhada: [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md).
 
 ### Actions disponíveis
 
-| Intenção | operationId (resumo) |
-|----------|----------------------|
-| Casos similares | `search_similar_cases_*` |
-| Padrões de solução | `search_solution_patterns_*` |
-| Sugerir ações | `suggest_actions_*` |
-| Listar planos | `list_action_plans_*` |
-| Criar plano | `create_action_plan_*` |
-| Detalhe | `pac_get_action_plan` |
-| Atualizar plano | `pac_update_action_plan` |
+| Intenção | operationId |
+|----------|-------------|
+| **Inteligência** | |
+| Casos similares | `pac_search_similar_cases` |
+| Padrões de solução | `pac_search_solution_patterns` |
+| Sugerir ações | `pac_suggest_actions` |
+| **Planos — leitura** | |
+| Listar planos | `pac_list_action_plans` |
+| Detalhe do plano | `pac_get_action_plan` |
+| Fila eficácia pendente | `pac_list_pending_effectiveness_reviews` |
+| Auditoria do plano | `pac_list_plan_audit_log` |
+| Listar evidências | `pac_list_plan_evidences` |
+| Exportar planilha 8D | `pac_export_rnc_8d` |
+| **Planos — escrita** | |
+| Criar plano | `pac_create_action_plan` |
+| Atualizar identificação | `pac_update_action_plan` |
 | Atualizar status | `pac_update_action_plan_status` |
+| Reabrir plano | `pac_reopen_action_plan` |
 | Ishikawa | `pac_upsert_ishikawa` |
 | 5 Porquês | `pac_upsert_five_whys` |
 | Criar ações | `pac_create_plan_actions` |
 | Atualizar ação | `pac_update_plan_action` |
-| Eficácia | `pac_record_effectiveness_review` |
 | Relatório 8D | `pac_upsert_rnc_8d` |
-| Exportar planilha 8D | `pac_export_rnc_8d` |
-| Listar evidências | `pac_list_plan_evidences` |
-| Anexar evidência | `pac_attach_plan_evidence` |
+| Anexar evidência (multipart) | `pac_attach_plan_evidence` |
 | Remover evidência | `pac_delete_plan_evidence` |
+| **Eficácia** | |
+| Submeter para aprovação | `pac_submit_effectiveness_review` |
+| Aprovar (coordenador) | `pac_approve_effectiveness_review` |
+| Rejeitar (coordenador) | `pac_reject_effectiveness_review` |
+| Registrar direto (coordenador) | `pac_record_effectiveness_review` |
+| Promover padrão de solução | `pac_promote_solution_pattern` |
 
-Os sufixos exatos seguem o OpenAPI gerado pelo FastAPI; confira na lista **Ações disponíveis** do builder após importar o schema.
+> `pac_dispatch_notifications` é operação administrativa (cron); **não** use no fluxo do analista.
+
+Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após cada deploy da API PAC.
 
 ---
 
@@ -221,7 +273,7 @@ Os sufixos exatos seguem o OpenAPI gerado pelo FastAPI; confira na lista **Açõ
 - [ ] Descrição colada (§ 1)
 - [ ] Instruções coladas (§ 2)
 - [ ] Quebra-gelos (§ 3)
-- [ ] Actions: schema de `/openapi.json` + Bearer
+- [ ] Actions: schema de `/openapi.json` + Bearer — **reimportar após deploy** (novas rotas Onda 4/5)
 - [ ] Teste `/health` no preview → `plugins_database: ok`
 - [ ] Teste conversa: relato de problema → consulta histórico → proposta sem gravar
 - [ ] Teste escrita: criar plano só após confirmação explícita

@@ -1242,6 +1242,116 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
         )
         return [serialize_row(row, id_keys=("id", "plan_id")) for row in rows if row]
 
+    def list_plan_audit_log(
+        self,
+        plan_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 50,
+    ) -> dict[str, Any]:
+        if not self._plan_exists(plan_id):
+            return {
+                "items": [],
+                "pagination": {
+                    "page": page,
+                    "page_size": page_size,
+                    "total": 0,
+                    "total_pages": 1,
+                },
+            }
+
+        page = max(page, 1)
+        page_size = min(max(page_size, 1), 100)
+        count_row = self.fetch_one(
+            """
+            SELECT COUNT(*)::int AS total
+              FROM quality.quality_audit_log
+             WHERE entity_type = 'quality_action_plan'
+               AND entity_id = %s
+            """,
+            (plan_id,),
+        )
+        total = int((count_row or {}).get("total") or 0)
+        offset = (page - 1) * page_size
+        rows = self.fetch_all(
+            """
+            SELECT id,
+                   entity_type,
+                   entity_id,
+                   event_type,
+                   payload,
+                   actor_user_id,
+                   created_at
+              FROM quality.quality_audit_log
+             WHERE entity_type = 'quality_action_plan'
+               AND entity_id = %s
+             ORDER BY created_at DESC
+             LIMIT %s OFFSET %s
+            """,
+            (plan_id, page_size, offset),
+        )
+        items: list[dict[str, Any]] = []
+        for row in rows:
+            created_at = row.get("created_at")
+            items.append(
+                {
+                    "id": str(row["id"]),
+                    "event_type": row.get("event_type"),
+                    "payload": row.get("payload") or {},
+                    "actor_user_id": row.get("actor_user_id"),
+                    "created_at": (
+                        created_at.isoformat()
+                        if isinstance(created_at, datetime)
+                        else created_at
+                    ),
+                }
+            )
+        return {
+            "items": items,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total": total,
+                "total_pages": max((total + page_size - 1) // page_size, 1),
+            },
+        }
+
+    def list_pending_effectiveness_reviews(
+        self, *, page: int = 1, page_size: int = 20
+    ) -> dict[str, Any]:
+        page = max(page, 1)
+        page_size = min(max(page_size, 1), 100)
+        count_row = self.fetch_one(
+            """
+            SELECT COUNT(*) AS total
+              FROM quality.quality_action_plans p
+             WHERE p.deleted_at IS NULL
+               AND p.effectiveness_approval_status = 'pending_review'
+            """,
+            (),
+        )
+        total = int(count_row["total"]) if count_row else 0
+        offset = (page - 1) * page_size
+        rows = self.fetch_all(
+            f"""
+            {PLAN_SELECT}
+             WHERE p.deleted_at IS NULL
+               AND p.effectiveness_approval_status = 'pending_review'
+             ORDER BY p.effectiveness_submitted_at ASC NULLS LAST, p.created_at ASC
+             LIMIT %s OFFSET %s
+            """,
+            (page_size, offset),
+        )
+        return {
+            "items": [serialize_plan_row(row) for row in rows],
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total": total,
+                "total_pages": max((total + page_size - 1) // page_size, 1),
+            },
+        }
+
     def get_dashboard_summary(self, *, branch_code: str | None = None) -> dict[str, Any]:
         branch_filter = ""
         params: list[Any] = []

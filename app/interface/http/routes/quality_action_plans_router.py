@@ -27,6 +27,7 @@ from app.composition.quality_action_plans_composer import (
     build_dispatch_pac_quality_notifications_use_case,
     build_get_plan_detail_use_case,
     build_get_quality_action_plan_use_case,
+    build_list_pending_effectiveness_reviews_use_case,
     build_list_quality_action_plans_use_case,
     build_quality_action_plan_repository,
     build_record_effectiveness_review_use_case,
@@ -382,6 +383,30 @@ def dispatch_quality_action_plan_notifications(dry_run: bool = Query(default=Fal
         )
 
 
+@router.get(
+    "/effectiveness-review/pending",
+    operation_id="pac_list_pending_effectiveness_reviews",
+)
+@require_any_permission(QUALITY_ACTION_PLANS_VALIDATE_EFFECTIVENESS_PERMISSIONS)
+def list_pending_effectiveness_reviews(
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+):
+    try:
+        result = build_list_pending_effectiveness_reviews_use_case().execute(
+            page=page,
+            page_size=page_size,
+        )
+        return success_response(result, message="Fila de aprovação de eficácia.")
+    except PluginsRepositoryError:
+        logger.exception("Erro ao listar eficácia pendente PAC.")
+        return error_response(
+            "Erro ao listar eficácia pendente.",
+            status_code=500,
+            code="PAC_REPOSITORY_ERROR",
+        )
+
+
 @router.get("/{plan_id}", operation_id="pac_get_action_plan")
 @require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def get_action_plan(plan_id: str, detail: bool = Query(default=True)):
@@ -400,6 +425,28 @@ def get_action_plan(plan_id: str, detail: bool = Query(default=True)):
         logger.exception("Erro de persistência ao buscar plano PAC %s.", plan_id)
         return error_response(
             "Erro ao consultar plano de ação.",
+            status_code=500,
+            code="PAC_REPOSITORY_ERROR",
+        )
+
+
+@router.get("/{plan_id}/audit-log", operation_id="pac_list_plan_audit_log")
+@require_any_permission(QUALITY_ACTION_PLANS_VALIDATE_EFFECTIVENESS_PERMISSIONS)
+def list_plan_audit_log(
+    plan_id: str,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=50, ge=1, le=100),
+):
+    try:
+        repo = build_quality_action_plan_repository()
+        if not repo.get_plan_by_id(plan_id):
+            return not_found_response("Plano de ação não encontrado.")
+        result = repo.list_plan_audit_log(plan_id, page=page, page_size=page_size)
+        return success_response(result, message="Trilha de auditoria do plano.")
+    except PluginsRepositoryError:
+        logger.exception("Erro ao listar auditoria do plano %s.", plan_id)
+        return error_response(
+            "Erro ao consultar auditoria.",
             status_code=500,
             code="PAC_REPOSITORY_ERROR",
         )

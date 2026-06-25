@@ -272,6 +272,17 @@ class RejectEffectivenessReviewUseCase:
         )
 
 
+class ListPendingEffectivenessReviewsUseCase:
+    def __init__(self, repository: QualityActionPlanRepositoryPort) -> None:
+        self._repository = repository
+
+    def execute(self, *, page: int = 1, page_size: int = 20):
+        return self._repository.list_pending_effectiveness_reviews(
+            page=page,
+            page_size=page_size,
+        )
+
+
 class UpdatePlanActionUseCase:
     VALID_STATUSES = {"pending", "in_progress", "blocked", "completed", "cancelled", "overdue"}
 

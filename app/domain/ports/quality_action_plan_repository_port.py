@@ -169,6 +169,18 @@ class QualityActionPlanRepositoryPort:
         entity_id: str | None,
     ) -> None: ...
 
+    def list_plan_audit_log(
+        self,
+        plan_id: str,
+        *,
+        page: int = 1,
+        page_size: int = 50,
+    ) -> dict[str, Any]: ...
+
+    def list_pending_effectiveness_reviews(
+        self, *, page: int = 1, page_size: int = 20
+    ) -> dict[str, Any]: ...
+
     def list_history(self, plan_id: str, *, limit: int = 100) -> list[dict[str, Any]]: ...
 
     def get_dashboard_summary(

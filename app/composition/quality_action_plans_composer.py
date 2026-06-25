@@ -10,6 +10,7 @@ from app.application.use_cases.quality_action_plan_analysis_use_cases import (
     ApproveEffectivenessReviewUseCase,
     CreatePlanActionsUseCase,
     GetPlanDetailUseCase,
+    ListPendingEffectivenessReviewsUseCase,
     RecordEffectivenessReviewUseCase,
     RejectEffectivenessReviewUseCase,
     SubmitEffectivenessReviewUseCase,
@@ -109,3 +110,7 @@ def build_reopen_quality_action_plan_use_case() -> ReopenQualityActionPlanUseCas
 
 def build_dispatch_pac_quality_notifications_use_case() -> DispatchPacQualityNotificationsUseCase:
     return DispatchPacQualityNotificationsUseCase(build_quality_action_plan_repository())
+
+
+def build_list_pending_effectiveness_reviews_use_case() -> ListPendingEffectivenessReviewsUseCase:
+    return ListPendingEffectivenessReviewsUseCase(build_quality_action_plan_repository())

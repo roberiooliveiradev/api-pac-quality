@@ -99,23 +99,46 @@ Resumo das regras obrigatórias:
 
 ## 5. Rotas disponíveis (resumo)
 
-| Intenção | operationId |
-|----------|-------------|
-| Criar plano | `pac_create_action_plan` |
-| Listar planos | `pac_list_action_plans` |
-| Detalhe | `pac_get_action_plan` |
-| Atualizar plano | `pac_update_action_plan` |
-| Ishikawa | `pac_upsert_ishikawa` |
-| 5 Porquês | `pac_upsert_five_whys` |
-| Criar ações | `pac_create_plan_actions` |
-| Relatório 8D | `pac_upsert_rnc_8d` |
-| Exportar 8D | `pac_export_rnc_8d` |
-| Evidências | `pac_list_plan_evidences` / `pac_attach_plan_evidence` |
-| Casos similares | `pac_search_similar_cases` |
-| Padrões de solução | `pac_search_solution_patterns` |
-| Sugerir ações | `pac_suggest_actions` |
+Atualizado jun/2026 — paridade com api-delpi (escrita + leituras de governança).
 
-Lista completa no OpenAPI.
+| Intenção | operationId | Método |
+|----------|-------------|--------|
+| Criar plano | `pac_create_action_plan` | POST |
+| Listar planos | `pac_list_action_plans` | GET |
+| Detalhe | `pac_get_action_plan` | GET |
+| Atualizar plano | `pac_update_action_plan` | PATCH |
+| Atualizar status | `pac_update_action_plan_status` | PATCH |
+| Reabrir plano | `pac_reopen_action_plan` | POST |
+| Ishikawa | `pac_upsert_ishikawa` | PUT |
+| 5 Porquês | `pac_upsert_five_whys` | PUT |
+| Criar ações | `pac_create_plan_actions` | POST |
+| Atualizar ação | `pac_update_plan_action` | PATCH |
+| Submeter eficácia | `pac_submit_effectiveness_review` | POST |
+| Aprovar eficácia | `pac_approve_effectiveness_review` | POST |
+| Rejeitar eficácia | `pac_reject_effectiveness_review` | POST |
+| Eficácia direta | `pac_record_effectiveness_review` | POST |
+| Fila eficácia | `pac_list_pending_effectiveness_reviews` | GET |
+| Auditoria | `pac_list_plan_audit_log` | GET |
+| Relatório 8D | `pac_upsert_rnc_8d` | PUT |
+| Exportar 8D | `pac_export_rnc_8d` | GET |
+| Evidências | `pac_list_plan_evidences` / `pac_attach_plan_evidence` / `pac_delete_plan_evidence` | GET / POST multipart / DELETE |
+| Promover padrão | `pac_promote_solution_pattern` | POST |
+| Casos similares | `pac_search_similar_cases` | POST |
+| Padrões de solução | `pac_search_solution_patterns` | POST |
+| Sugerir ações | `pac_suggest_actions` | POST |
+| Dispatch notificações | `pac_dispatch_notifications` | POST (admin/cron) |
+
+Lista completa e contratos no OpenAPI. Após deploy, **reimporte** o schema no GPT.
+
+### Upload de evidência (multipart)
+
+`pac_attach_plan_evidence` exige `multipart/form-data`:
+
+- `file` (obrigatório)
+- `evidence_type` (obrigatório)
+- `section`, `description`, `knowledge_visible`, `action_id` (opcionais)
+
+Ver detalhes em [chatgpt-especialista-qualidade.md](chatgpt-especialista-qualidade.md) § Upload de evidências.
 
 ---
 

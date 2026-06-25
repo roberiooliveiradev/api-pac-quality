@@ -14,6 +14,8 @@ class RouteContract:
 ROUTE_CONTRACTS: dict[str, RouteContract] = {
     "pac_create_action_plan": RouteContract("quality_action_plan", "scalar"),
     "pac_list_action_plans": RouteContract("quality_action_plan", "paged_list"),
+    "pac_list_pending_effectiveness_reviews": RouteContract("quality_action_plan", "paged_list"),
+    "pac_list_plan_audit_log": RouteContract("quality_action_plan_audit_log", "paged_list"),
     "pac_get_action_plan": RouteContract("quality_action_plan", "composite_analysis"),
     "pac_update_action_plan": RouteContract("quality_action_plan", "scalar"),
     "pac_update_action_plan_status": RouteContract("quality_action_plan", "scalar"),
