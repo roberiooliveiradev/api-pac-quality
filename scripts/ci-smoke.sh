@@ -7,7 +7,9 @@ if [ ! -d .venv ]; then
   .venv/bin/pip install -q -r requirements.txt
 fi
 .venv/bin/pytest tests/ -q
+echo "[ci] PAC agent eval catalog"
+.venv/bin/python scripts/run_pac_agent_eval.py --check-catalog
 echo "[ci] PAC agent evals (Onda 5.4)"
-.venv/bin/pytest tests/unit/test_pac_agent_eval_cases.py -q
+.venv/bin/pytest tests/unit/test_pac_agent_eval_cases.py tests/unit/test_run_pac_agent_eval_script.py -q
 echo "[ci] OpenAPI Onda 1 registry"
 .venv/bin/python -m pytest tests/unit/test_openapi_onda1_paths.py -q

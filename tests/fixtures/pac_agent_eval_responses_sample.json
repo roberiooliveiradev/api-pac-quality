@@ -1,0 +1,10 @@
+[
+  {
+    "id": "EVAL01",
+    "response": "**Resumo:** oxidação em parafusos.\n\nAntes de registrar, confirme a **filial** (01 ou 02) e se a NC é **interna** ou **externa**. Vou consultar casos similares.\n\n**Hipótese:** tratamento superficial — a validar com o analista."
+  },
+  {
+    "id": "EVAL06",
+    "response": "**Ishikawa (hipóteses):** possível contaminação por óleo — **sugestão**, não conclusão. Precisamos validar cada 6M antes de falar em causa raiz."
+  }
+]

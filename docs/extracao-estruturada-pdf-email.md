@@ -97,6 +97,7 @@ Cenários anonimizados: `tests/fixtures/pac_agent_eval_cases.py` (Onda 5.4).
 
 ```bash
 cd api-pac-quality
+.venv/bin/python scripts/run_pac_agent_eval.py --check-catalog
 .venv/bin/pytest tests/unit/test_pac_agent_eval_cases.py -q
 ```
 
