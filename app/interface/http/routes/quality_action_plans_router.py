@@ -10,7 +10,9 @@ from delpi_auth.authorization import require_any_permission
 from delpi_auth.request_context import get_current_user
 
 from app.application.security.pac_quality_permissions import (
+    QUALITY_ACTION_PLANS_CLOSE_PERMISSIONS,
     QUALITY_ACTION_PLANS_READ_PERMISSIONS,
+    QUALITY_ACTION_PLANS_VALIDATE_EFFECTIVENESS_PERMISSIONS,
     QUALITY_ACTION_PLANS_WRITE_PERMISSIONS,
 )
 from app.application.services.pac_evidence_storage import (
@@ -18,6 +20,7 @@ from app.application.services.pac_evidence_storage import (
     PacEvidenceStorageError,
 )
 from app.composition.quality_action_plans_composer import (
+    build_approve_effectiveness_review_use_case,
     build_create_plan_actions_use_case,
     build_create_quality_action_plan_use_case,
     build_get_plan_detail_use_case,
@@ -25,6 +28,9 @@ from app.composition.quality_action_plans_composer import (
     build_list_quality_action_plans_use_case,
     build_quality_action_plan_repository,
     build_record_effectiveness_review_use_case,
+    build_reject_effectiveness_review_use_case,
+    build_reopen_quality_action_plan_use_case,
+    build_submit_effectiveness_review_use_case,
     build_update_plan_action_use_case,
     build_update_quality_action_plan_status_use_case,
     build_update_quality_action_plan_use_case,
@@ -215,6 +221,29 @@ class EffectivenessReviewBody(BaseModel):
         pattern="^(pending|effective|partially_effective|ineffective|not_verified)$",
     )
     notes: str | None = None
+
+
+class SubmitEffectivenessReviewBody(BaseModel):
+    effectiveness_status: str = Field(
+        ...,
+        pattern="^(effective|partially_effective|ineffective)$",
+    )
+    notes: str | None = None
+
+
+class RejectEffectivenessReviewBody(BaseModel):
+    reason: str = Field(..., min_length=5)
+
+
+class ReopenActionPlanBody(BaseModel):
+    reason: str = Field(..., min_length=5)
+    target_status: str | None = Field(
+        default=None,
+        pattern=(
+            "^(triage|containment|root_cause_analysis|action_plan_defined|"
+            "in_progress|waiting_validation)$"
+        ),
+    )
 
 
 def _current_user_id() -> str:
@@ -423,7 +452,7 @@ def update_plan_action(plan_id: str, action_id: str, body: UpdateActionBody = Bo
 
 
 @router.post("/{plan_id}/effectiveness-review", operation_id="pac_record_effectiveness_review")
-@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
+@require_any_permission(QUALITY_ACTION_PLANS_VALIDATE_EFFECTIVENESS_PERMISSIONS)
 def record_effectiveness_review(plan_id: str, body: EffectivenessReviewBody = Body(...)):
     try:
         result = build_record_effectiveness_review_use_case().execute(
@@ -442,6 +471,77 @@ def record_effectiveness_review(plan_id: str, body: EffectivenessReviewBody = Bo
     except PluginsRepositoryError:
         logger.exception("Erro ao registrar eficácia do plano %s.", plan_id)
         return error_response("Erro ao registrar eficácia.", status_code=500, code="PAC_REPOSITORY_ERROR")
+
+
+@router.post(
+    "/{plan_id}/effectiveness-review/submit",
+    operation_id="pac_submit_effectiveness_review",
+)
+@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
+def submit_effectiveness_review(plan_id: str, body: SubmitEffectivenessReviewBody = Body(...)):
+    try:
+        result = build_submit_effectiveness_review_use_case().execute(
+            plan_id,
+            EffectivenessReviewRequest(
+                effectiveness_status=body.effectiveness_status,
+                notes=body.notes,
+            ),
+            updated_by=_current_user_id(),
+        )
+        if not result:
+            return not_found_response("Plano de ação não encontrado.")
+        return success_response(result, message="Eficácia submetida para aprovação.")
+    except ValueError as exc:
+        return error_response(str(exc), status_code=400)
+    except PluginsRepositoryError:
+        logger.exception("Erro ao submeter eficácia do plano %s.", plan_id)
+        return error_response("Erro ao submeter eficácia.", status_code=500, code="PAC_REPOSITORY_ERROR")
+
+
+@router.post(
+    "/{plan_id}/effectiveness-review/approve",
+    operation_id="pac_approve_effectiveness_review",
+)
+@require_any_permission(QUALITY_ACTION_PLANS_VALIDATE_EFFECTIVENESS_PERMISSIONS)
+def approve_effectiveness_review(plan_id: str):
+    try:
+        result = build_approve_effectiveness_review_use_case().execute(
+            plan_id,
+            updated_by=_current_user_id(),
+        )
+        if not result:
+            return not_found_response("Plano de ação não encontrado.")
+        return success_response(result, message="Eficácia aprovada.")
+    except ValueError as exc:
+        return error_response(str(exc), status_code=400)
+    except PluginsRepositoryError:
+        logger.exception("Erro ao aprovar eficácia do plano %s.", plan_id)
+        return error_response("Erro ao aprovar eficácia.", status_code=500, code="PAC_REPOSITORY_ERROR")
+
+
+@router.post(
+    "/{plan_id}/effectiveness-review/reject",
+    operation_id="pac_reject_effectiveness_review",
+)
+@require_any_permission(QUALITY_ACTION_PLANS_VALIDATE_EFFECTIVENESS_PERMISSIONS)
+def reject_effectiveness_review(
+    plan_id: str,
+    body: RejectEffectivenessReviewBody = Body(...),
+):
+    try:
+        result = build_reject_effectiveness_review_use_case().execute(
+            plan_id,
+            reason=body.reason,
+            updated_by=_current_user_id(),
+        )
+        if not result:
+            return not_found_response("Plano de ação não encontrado.")
+        return success_response(result, message="Eficácia rejeitada.")
+    except ValueError as exc:
+        return error_response(str(exc), status_code=400)
+    except PluginsRepositoryError:
+        logger.exception("Erro ao rejeitar eficácia do plano %s.", plan_id)
+        return error_response("Erro ao rejeitar eficácia.", status_code=500, code="PAC_REPOSITORY_ERROR")
 
 
 @router.patch("/{plan_id}", operation_id="pac_update_action_plan")
@@ -492,6 +592,26 @@ def update_action_plan_status(plan_id: str, body: UpdateActionPlanStatusBody = B
             status_code=500,
             code="PAC_REPOSITORY_ERROR",
         )
+
+
+@router.post("/{plan_id}/reopen", operation_id="pac_reopen_action_plan")
+@require_any_permission(QUALITY_ACTION_PLANS_CLOSE_PERMISSIONS)
+def reopen_action_plan(plan_id: str, body: ReopenActionPlanBody = Body(...)):
+    try:
+        plan = build_reopen_quality_action_plan_use_case().execute(
+            plan_id,
+            reason=body.reason,
+            target_status=body.target_status,
+            updated_by=_current_user_id(),
+        )
+        if not plan:
+            return not_found_response("Plano de ação não encontrado.")
+        return success_response(plan, message="Plano reaberto com sucesso.")
+    except ValueError as exc:
+        return error_response(str(exc), status_code=400)
+    except PluginsRepositoryError:
+        logger.exception("Erro ao reabrir plano PAC %s.", plan_id)
+        return error_response("Erro ao reabrir plano.", status_code=500, code="PAC_REPOSITORY_ERROR")
 
 
 @router.put("/{plan_id}/rnc-8d", operation_id="pac_upsert_rnc_8d")

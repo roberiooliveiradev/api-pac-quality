@@ -217,3 +217,54 @@ class UpdateQualityActionPlanUseCase:
             )
         fields["updated_by_user_id"] = updated_by
         return self._repository.update_plan(plan_id, fields)
+
+
+class ReopenQualityActionPlanUseCase:
+    REOPEN_TARGET_STATUSES = frozenset(
+        {
+            "triage",
+            "containment",
+            "root_cause_analysis",
+            "action_plan_defined",
+            "in_progress",
+            "waiting_validation",
+        }
+    )
+    DEFAULT_TARGET_BY_PREVIOUS = {
+        "completed": "in_progress",
+        "cancelled": "triage",
+    }
+
+    def __init__(self, repository: QualityActionPlanRepositoryPort) -> None:
+        self._repository = repository
+
+    def execute(
+        self,
+        plan_id: str,
+        *,
+        reason: str,
+        target_status: str | None = None,
+        updated_by: str,
+    ) -> dict[str, Any] | None:
+        normalized_reason = (reason or "").strip()
+        if len(normalized_reason) < 5:
+            raise ValueError("Informe o motivo da reabertura (mínimo 5 caracteres).")
+
+        current = self._repository.get_plan_by_id(plan_id)
+        if not current:
+            return None
+
+        previous_status = current.get("status")
+        resolved_target = target_status or self.DEFAULT_TARGET_BY_PREVIOUS.get(
+            previous_status,
+            "in_progress",
+        )
+        if resolved_target not in self.REOPEN_TARGET_STATUSES:
+            raise ValueError(f"status alvo inválido: {resolved_target}")
+
+        return self._repository.reopen_plan(
+            plan_id,
+            target_status=resolved_target,
+            reason=normalized_reason,
+            updated_by=updated_by,
+        )

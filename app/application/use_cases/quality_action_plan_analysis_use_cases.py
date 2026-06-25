@@ -60,6 +60,10 @@ VALID_EFFECTIVENESS = {
     "not_verified",
 }
 
+SUBMITTABLE_EFFECTIVENESS = frozenset(
+    {"effective", "partially_effective", "ineffective"},
+)
+
 
 class UpsertIshikawaUseCase:
     def __init__(self, repository: QualityActionPlanRepositoryPort) -> None:
@@ -201,6 +205,71 @@ class RecordEffectivenessReviewUseCase:
         if plan and self._pattern_upsert:
             self._pattern_upsert.execute(plan_id)
         return plan
+
+
+class SubmitEffectivenessReviewUseCase:
+    def __init__(self, repository: QualityActionPlanRepositoryPort) -> None:
+        self._repository = repository
+
+    def execute(
+        self,
+        plan_id: str,
+        request: EffectivenessReviewRequest,
+        *,
+        updated_by: str,
+    ):
+        if request.effectiveness_status not in SUBMITTABLE_EFFECTIVENESS:
+            raise ValueError(
+                "Para submissão, informe effective, partially_effective ou ineffective."
+            )
+        return self._repository.submit_effectiveness_review(
+            plan_id,
+            {
+                "effectiveness_status": request.effectiveness_status,
+                "notes": request.notes,
+            },
+            updated_by=updated_by,
+        )
+
+
+class ApproveEffectivenessReviewUseCase:
+    def __init__(
+        self,
+        repository: QualityActionPlanRepositoryPort,
+        intelligence_sync: Any | None = None,
+        pattern_upsert: Any | None = None,
+    ) -> None:
+        self._repository = repository
+        self._intelligence_sync = intelligence_sync
+        self._pattern_upsert = pattern_upsert
+
+    def execute(self, plan_id: str, *, updated_by: str):
+        plan = self._repository.approve_effectiveness_review(
+            plan_id,
+            updated_by=updated_by,
+        )
+        if plan and self._intelligence_sync:
+            self._intelligence_sync.execute(plan_id)
+        if plan and self._pattern_upsert:
+            self._pattern_upsert.execute(plan_id)
+        return plan
+
+
+class RejectEffectivenessReviewUseCase:
+    MIN_REASON_LENGTH = 5
+
+    def __init__(self, repository: QualityActionPlanRepositoryPort) -> None:
+        self._repository = repository
+
+    def execute(self, plan_id: str, *, reason: str, updated_by: str):
+        cleaned = (reason or "").strip()
+        if len(cleaned) < self.MIN_REASON_LENGTH:
+            raise ValueError("Informe o motivo da rejeição com ao menos 5 caracteres.")
+        return self._repository.reject_effectiveness_review(
+            plan_id,
+            reason=cleaned,
+            updated_by=updated_by,
+        )
 
 
 class UpdatePlanActionUseCase:

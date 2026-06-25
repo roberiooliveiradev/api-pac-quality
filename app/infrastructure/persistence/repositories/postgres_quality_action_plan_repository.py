@@ -15,6 +15,8 @@ from app.infrastructure.persistence.plugins.plugin_base_repository import (
     PluginsRepositoryError,
 )
 
+_TERMINAL_PLAN_STATUSES = frozenset({"completed", "cancelled"})
+
 
 class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPlanRepositoryPort):
     def next_plan_code(self) -> str:
@@ -688,12 +690,20 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                SET effectiveness_status = %s,
                    effectiveness_verified_at = NOW(),
                    effectiveness_notes = %s,
+                   effectiveness_approval_status = NULL,
+                   effectiveness_proposed_status = NULL,
+                   effectiveness_submitted_at = NULL,
+                   effectiveness_submitted_by = NULL,
+                   effectiveness_reviewed_at = NOW(),
+                   effectiveness_reviewed_by = %s,
+                   effectiveness_rejection_reason = NULL,
                    updated_at = NOW()
              WHERE id = %s AND deleted_at IS NULL
             """,
             (
                 fields["effectiveness_status"],
                 fields.get("notes"),
+                updated_by,
                 plan_id,
             ),
             auto_commit=False,
@@ -706,8 +716,256 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
             comment=fields.get("notes"),
             auto_commit=False,
         )
+        self.append_audit_log(
+            entity_type="quality_action_plan",
+            entity_id=plan_id,
+            event_type="effectiveness_reviewed",
+            actor_user_id=updated_by,
+            payload={
+                "effectiveness_status": fields["effectiveness_status"],
+                "notes": fields.get("notes"),
+            },
+            auto_commit=False,
+        )
         self.commit()
         return self.get_plan_by_id(plan_id)
+
+    def submit_effectiveness_review(
+        self, plan_id: str, fields: dict[str, Any], *, updated_by: str
+    ) -> dict[str, Any] | None:
+        if not self._plan_exists(plan_id):
+            return None
+
+        current = self.get_plan_by_id(plan_id)
+        if current is None:
+            return None
+        if current.get("effectiveness_approval_status") == "pending_review":
+            raise ValueError("Já existe submissão de eficácia aguardando aprovação.")
+
+        self.execute(
+            """
+            UPDATE quality.quality_action_plans
+               SET effectiveness_proposed_status = %s,
+                   effectiveness_approval_status = 'pending_review',
+                   effectiveness_notes = %s,
+                   effectiveness_submitted_at = NOW(),
+                   effectiveness_submitted_by = %s,
+                   effectiveness_reviewed_at = NULL,
+                   effectiveness_reviewed_by = NULL,
+                   effectiveness_rejection_reason = NULL,
+                   updated_at = NOW()
+             WHERE id = %s AND deleted_at IS NULL
+            """,
+            (
+                fields["effectiveness_status"],
+                fields.get("notes"),
+                updated_by,
+                plan_id,
+            ),
+            auto_commit=False,
+        )
+        self.append_history(
+            plan_id=plan_id,
+            event_type="effectiveness_submitted",
+            created_by=updated_by,
+            new_value=fields["effectiveness_status"],
+            comment=fields.get("notes"),
+            auto_commit=False,
+        )
+        self.append_audit_log(
+            entity_type="quality_action_plan",
+            entity_id=plan_id,
+            event_type="effectiveness_submitted",
+            actor_user_id=updated_by,
+            payload={
+                "proposed_status": fields["effectiveness_status"],
+                "notes": fields.get("notes"),
+            },
+            auto_commit=False,
+        )
+        self.commit()
+        return self.get_plan_by_id(plan_id)
+
+    def approve_effectiveness_review(
+        self, plan_id: str, *, updated_by: str
+    ) -> dict[str, Any] | None:
+        if not self._plan_exists(plan_id):
+            return None
+
+        current = self.get_plan_by_id(plan_id)
+        if current is None:
+            return None
+        if current.get("effectiveness_approval_status") != "pending_review":
+            raise ValueError("Não há submissão de eficácia pendente de aprovação.")
+        proposed = current.get("effectiveness_proposed_status")
+        if not proposed:
+            raise ValueError("Submissão sem resultado proposto.")
+
+        self.execute(
+            """
+            UPDATE quality.quality_action_plans
+               SET effectiveness_status = %s,
+                   effectiveness_verified_at = NOW(),
+                   effectiveness_approval_status = 'approved',
+                   effectiveness_reviewed_at = NOW(),
+                   effectiveness_reviewed_by = %s,
+                   effectiveness_rejection_reason = NULL,
+                   updated_at = NOW()
+             WHERE id = %s AND deleted_at IS NULL
+            """,
+            (proposed, updated_by, plan_id),
+            auto_commit=False,
+        )
+        self.append_history(
+            plan_id=plan_id,
+            event_type="effectiveness_reviewed",
+            created_by=updated_by,
+            new_value=proposed,
+            comment=current.get("effectiveness_notes"),
+            auto_commit=False,
+        )
+        self.append_audit_log(
+            entity_type="quality_action_plan",
+            entity_id=plan_id,
+            event_type="effectiveness_approved",
+            actor_user_id=updated_by,
+            payload={
+                "effectiveness_status": proposed,
+                "submitted_by": current.get("effectiveness_submitted_by"),
+            },
+            auto_commit=False,
+        )
+        self.commit()
+        return self.get_plan_by_id(plan_id)
+
+    def reject_effectiveness_review(
+        self, plan_id: str, *, reason: str, updated_by: str
+    ) -> dict[str, Any] | None:
+        if not self._plan_exists(plan_id):
+            return None
+
+        current = self.get_plan_by_id(plan_id)
+        if current is None:
+            return None
+        if current.get("effectiveness_approval_status") != "pending_review":
+            raise ValueError("Não há submissão de eficácia pendente de aprovação.")
+
+        self.execute(
+            """
+            UPDATE quality.quality_action_plans
+               SET effectiveness_approval_status = 'rejected',
+                   effectiveness_reviewed_at = NOW(),
+                   effectiveness_reviewed_by = %s,
+                   effectiveness_rejection_reason = %s,
+                   updated_at = NOW()
+             WHERE id = %s AND deleted_at IS NULL
+            """,
+            (updated_by, reason, plan_id),
+            auto_commit=False,
+        )
+        self.append_history(
+            plan_id=plan_id,
+            event_type="effectiveness_approval_rejected",
+            created_by=updated_by,
+            new_value=current.get("effectiveness_proposed_status"),
+            comment=reason,
+            auto_commit=False,
+        )
+        self.append_audit_log(
+            entity_type="quality_action_plan",
+            entity_id=plan_id,
+            event_type="effectiveness_approval_rejected",
+            actor_user_id=updated_by,
+            payload={
+                "proposed_status": current.get("effectiveness_proposed_status"),
+                "reason": reason,
+                "submitted_by": current.get("effectiveness_submitted_by"),
+            },
+            auto_commit=False,
+        )
+        self.commit()
+        return self.get_plan_by_id(plan_id)
+
+    def reopen_plan(
+        self,
+        plan_id: str,
+        *,
+        target_status: str,
+        reason: str,
+        updated_by: str,
+    ) -> dict[str, Any] | None:
+        current = self.get_plan_by_id(plan_id)
+        if not current:
+            return None
+
+        previous_status = current.get("status")
+        if previous_status not in _TERMINAL_PLAN_STATUSES:
+            raise ValueError(
+                "Somente planos concluídos ou cancelados podem ser reabertos."
+            )
+        if target_status in _TERMINAL_PLAN_STATUSES:
+            raise ValueError("Status alvo inválido para reabertura.")
+
+        self.execute(
+            """
+            UPDATE quality.quality_action_plans
+               SET status = %s,
+                   closed_at = NULL,
+                   updated_at = NOW()
+             WHERE id = %s AND deleted_at IS NULL
+            """,
+            (target_status, plan_id),
+            auto_commit=False,
+        )
+        self.append_history(
+            plan_id=plan_id,
+            event_type="plan_reopened",
+            created_by=updated_by,
+            old_value=previous_status,
+            new_value=target_status,
+            comment=reason,
+            auto_commit=False,
+        )
+        self.append_audit_log(
+            entity_type="quality_action_plan",
+            entity_id=plan_id,
+            event_type="plan_reopened",
+            actor_user_id=updated_by,
+            payload={
+                "previous_status": previous_status,
+                "target_status": target_status,
+                "reason": reason,
+            },
+            auto_commit=False,
+        )
+        self.commit()
+        return self.get_plan_by_id(plan_id)
+
+    def append_audit_log(
+        self,
+        *,
+        entity_type: str,
+        entity_id: str,
+        event_type: str,
+        actor_user_id: str,
+        payload: dict[str, Any] | None = None,
+        auto_commit: bool = True,
+    ) -> None:
+        self.execute(
+            """
+            INSERT INTO quality.quality_audit_log (
+                entity_type, entity_id, event_type, payload, actor_user_id
+            ) VALUES (%s, %s, %s, %s::jsonb, %s)
+            """,
+            (
+                entity_type,
+                entity_id,
+                event_type,
+                json.dumps(payload or {}),
+                actor_user_id,
+            ),
+            auto_commit=auto_commit,
+        )
 
     def upsert_rnc_8d_report(
         self, plan_id: str, fields: dict[str, Any], *, updated_by: str

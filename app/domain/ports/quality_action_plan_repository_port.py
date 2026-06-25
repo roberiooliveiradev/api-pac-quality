@@ -35,6 +35,13 @@ PLAN_SELECT = """
            p.effectiveness_status,
            p.effectiveness_verified_at,
            p.effectiveness_notes,
+           p.effectiveness_approval_status,
+           p.effectiveness_proposed_status,
+           p.effectiveness_submitted_at,
+           p.effectiveness_submitted_by,
+           p.effectiveness_reviewed_at,
+           p.effectiveness_reviewed_by,
+           p.effectiveness_rejection_reason,
            p.recurrence_key,
            p.created_at,
            p.updated_at,
@@ -114,6 +121,38 @@ class QualityActionPlanRepositoryPort:
         self, plan_id: str, fields: dict[str, Any], *, updated_by: str
     ) -> dict[str, Any] | None: ...
 
+    def submit_effectiveness_review(
+        self, plan_id: str, fields: dict[str, Any], *, updated_by: str
+    ) -> dict[str, Any] | None: ...
+
+    def approve_effectiveness_review(
+        self, plan_id: str, *, updated_by: str
+    ) -> dict[str, Any] | None: ...
+
+    def reject_effectiveness_review(
+        self, plan_id: str, *, reason: str, updated_by: str
+    ) -> dict[str, Any] | None: ...
+
+    def reopen_plan(
+        self,
+        plan_id: str,
+        *,
+        target_status: str,
+        reason: str,
+        updated_by: str,
+    ) -> dict[str, Any] | None: ...
+
+    def append_audit_log(
+        self,
+        *,
+        entity_type: str,
+        entity_id: str,
+        event_type: str,
+        actor_user_id: str,
+        payload: dict[str, Any] | None = None,
+        auto_commit: bool = True,
+    ) -> None: ...
+
     def list_history(self, plan_id: str, *, limit: int = 100) -> list[dict[str, Any]]: ...
 
     def get_dashboard_summary(
@@ -154,7 +193,16 @@ def serialize_plan_row(row: dict[str, Any]) -> dict[str, Any]:
     for key in ("id",):
         if result.get(key) is not None:
             result[key] = str(result[key])
-    for key in ("detected_at", "reported_at", "effectiveness_verified_at", "created_at", "updated_at", "closed_at"):
+    for key in (
+        "detected_at",
+        "reported_at",
+        "effectiveness_verified_at",
+        "effectiveness_submitted_at",
+        "effectiveness_reviewed_at",
+        "created_at",
+        "updated_at",
+        "closed_at",
+    ):
         value = result.get(key)
         if isinstance(value, datetime):
             result[key] = value.isoformat()

@@ -2,13 +2,17 @@ from app.application.use_cases.quality_action_plans_use_cases import (
     CreateQualityActionPlanUseCase,
     GetQualityActionPlanUseCase,
     ListQualityActionPlansUseCase,
+    ReopenQualityActionPlanUseCase,
     UpdateQualityActionPlanStatusUseCase,
     UpdateQualityActionPlanUseCase,
 )
 from app.application.use_cases.quality_action_plan_analysis_use_cases import (
+    ApproveEffectivenessReviewUseCase,
     CreatePlanActionsUseCase,
     GetPlanDetailUseCase,
     RecordEffectivenessReviewUseCase,
+    RejectEffectivenessReviewUseCase,
+    SubmitEffectivenessReviewUseCase,
     UpdatePlanActionUseCase,
     UpsertFiveWhysUseCase,
     UpsertIshikawaUseCase,
@@ -78,3 +82,23 @@ def build_record_effectiveness_review_use_case() -> RecordEffectivenessReviewUse
 
 def build_update_plan_action_use_case() -> UpdatePlanActionUseCase:
     return UpdatePlanActionUseCase(build_quality_action_plan_repository())
+
+
+def build_submit_effectiveness_review_use_case() -> SubmitEffectivenessReviewUseCase:
+    return SubmitEffectivenessReviewUseCase(build_quality_action_plan_repository())
+
+
+def build_approve_effectiveness_review_use_case() -> ApproveEffectivenessReviewUseCase:
+    return ApproveEffectivenessReviewUseCase(
+        build_quality_action_plan_repository(),
+        intelligence_sync=build_sync_case_similarity_index_use_case(),
+        pattern_upsert=build_upsert_solution_pattern_from_plan_use_case(),
+    )
+
+
+def build_reject_effectiveness_review_use_case() -> RejectEffectivenessReviewUseCase:
+    return RejectEffectivenessReviewUseCase(build_quality_action_plan_repository())
+
+
+def build_reopen_quality_action_plan_use_case() -> ReopenQualityActionPlanUseCase:
+    return ReopenQualityActionPlanUseCase(build_quality_action_plan_repository())
