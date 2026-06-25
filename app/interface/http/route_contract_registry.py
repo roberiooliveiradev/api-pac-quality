@@ -50,6 +50,10 @@ ROUTE_CONTRACTS: dict[str, RouteContract] = {
         "pac_quality_evidence_tag_suggestions",
         "composite_analysis",
     ),
+    "pac_get_quality_knowledge_graph": RouteContract(
+        "pac_quality_knowledge_graph",
+        "composite_analysis",
+    ),
 }
 
 

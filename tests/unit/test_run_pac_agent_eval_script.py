@@ -46,6 +46,17 @@ def test_export_template_writes_all_cases(tmp_path):
     assert payload[0]["response"] == ""
 
 
+def test_committed_eval_template_has_twenty_cases():
+    template = (
+        Path(__file__).resolve().parents[1]
+        / "fixtures"
+        / "pac_agent_eval_responses_template.json"
+    )
+    payload = json.loads(template.read_text(encoding="utf-8"))
+    assert len(payload) == 20
+    assert {row["id"] for row in payload} == {f"EVAL{i:02d}" for i in range(1, 21)}
+
+
 def test_score_partial_sample_reports_missing():
     from app.domain.services.pac_agent_eval_policy_service import PacAgentEvalPolicyService
 

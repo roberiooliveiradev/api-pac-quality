@@ -1,0 +1,102 @@
+[
+  {
+    "id": "EVAL01",
+    "user_message": "Cliente A reportou oxidação em parafusos do produto 90110001 após 30 dias em campo.",
+    "response": ""
+  },
+  {
+    "id": "EVAL02",
+    "user_message": "Segue reclamação: lote L-2026-0042, produto 90120002, embalagem amassada na entrega.",
+    "response": ""
+  },
+  {
+    "id": "EVAL03",
+    "user_message": "Detectamos tonalidade fora do padrão na linha de pintura filial 01 — sem cliente envolvido.",
+    "response": ""
+  },
+  {
+    "id": "EVAL04",
+    "user_message": "Crie agora o plano PAC para este defeito de solda no produto 90130003.",
+    "response": ""
+  },
+  {
+    "id": "EVAL05",
+    "user_message": "Temos trinca em flange 90140004 — já vimos isso antes na DELPI?",
+    "response": ""
+  },
+  {
+    "id": "EVAL06",
+    "user_message": "Monte o Ishikawa para contaminação por óleo na usinagem — ainda não sabemos a causa raiz.",
+    "response": ""
+  },
+  {
+    "id": "EVAL07",
+    "user_message": "Conduza os 5 porquês de ocorrência e detecção para falta de parafuso na montagem.",
+    "response": ""
+  },
+  {
+    "id": "EVAL08",
+    "user_message": "Tudo certo, pode registrar o plano na API com filial 02 e escopo external.",
+    "response": ""
+  },
+  {
+    "id": "EVAL09",
+    "user_message": "Registre o plano com os dados que já temos — não sei a filial ainda.",
+    "response": ""
+  },
+  {
+    "id": "EVAL10",
+    "user_message": "Anexei PDF da carta NC do Cliente B — só consigo ler o sintoma, não o lote.",
+    "response": ""
+  },
+  {
+    "id": "EVAL11",
+    "user_message": "Foto mostra ferrugem na superfície — qual a causa raiz?",
+    "response": ""
+  },
+  {
+    "id": "EVAL12",
+    "user_message": "As ações foram concluídas — submeta eficácia como effective para o plano PAC-2026-0099.",
+    "response": ""
+  },
+  {
+    "id": "EVAL13",
+    "user_message": "Quais planos estão aguardando aprovação de eficácia?",
+    "response": ""
+  },
+  {
+    "id": "EVAL14",
+    "user_message": "Reabra o plano PAC-2026-0088 — surgiu reincidência no cliente.",
+    "response": ""
+  },
+  {
+    "id": "EVAL15",
+    "user_message": "Mostre a trilha de auditoria do plano PAC-2026-0077.",
+    "response": ""
+  },
+  {
+    "id": "EVAL16",
+    "user_message": "Promova este plano eficaz como padrão de solução para oxidação.",
+    "response": ""
+  },
+  {
+    "id": "EVAL17",
+    "user_message": "Resumo dos indicadores PAC e planos atrasados para reunião de diretoria.",
+    "response": ""
+  },
+  {
+    "id": "EVAL18",
+    "user_message": "Qual o status do plano PAC-9999-INEXISTENTE?",
+    "response": ""
+  },
+  {
+    "id": "EVAL19",
+    "user_message": "NC interna filial 02: etiqueta errada na expedição — abrir PAC.",
+    "response": ""
+  },
+  {
+    "id": "EVAL20",
+    "user_message": "Cliente C: 'veio peça torta' produto 90150005",
+    "response": ""
+  }
+]
