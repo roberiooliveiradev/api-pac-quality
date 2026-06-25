@@ -662,6 +662,7 @@ def update_action_plan(plan_id: str, body: UpdateActionPlanBody = Body(...)):
             plan_id,
             UpdateQualityActionPlanRequest(**fields),
             updated_by=_current_user_id(),
+            explicit_fields=frozenset(fields.keys()),
         )
         if not result:
             return not_found_response("Plano de ação não encontrado.")
