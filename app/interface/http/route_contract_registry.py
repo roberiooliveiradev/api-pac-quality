@@ -26,6 +26,8 @@ ROUTE_CONTRACTS: dict[str, RouteContract] = {
     "pac_approve_effectiveness_review": RouteContract("quality_action_plan", "scalar"),
     "pac_reject_effectiveness_review": RouteContract("quality_action_plan", "scalar"),
     "pac_reopen_action_plan": RouteContract("quality_action_plan", "scalar"),
+    "pac_promote_solution_pattern": RouteContract("quality_solution_pattern", "scalar"),
+    "pac_dispatch_notifications": RouteContract("quality_action_plan_notifications", "scalar"),
     "pac_upsert_rnc_8d": RouteContract("quality_action_plan_rnc_8d", "scalar"),
     "pac_export_rnc_8d": RouteContract("quality_action_plan_rnc_8d", "scalar"),
     "pac_list_plan_evidences": RouteContract("quality_action_plan_evidence", "paged_list"),

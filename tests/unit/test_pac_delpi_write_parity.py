@@ -22,6 +22,8 @@ WRITE_PARITY: dict[str, str] = {
     "submit_quality_action_plan_effectiveness_review": "pac_submit_effectiveness_review",
     "approve_quality_action_plan_effectiveness_review": "pac_approve_effectiveness_review",
     "reject_quality_action_plan_effectiveness_review": "pac_reject_effectiveness_review",
+    "promote_quality_action_plan_solution_pattern": "pac_promote_solution_pattern",
+    "dispatch_quality_action_plan_notifications": "pac_dispatch_notifications",
     "upsert_quality_action_plan_rnc_8d": "pac_upsert_rnc_8d",
     "export_quality_action_plan_rnc_8d": "pac_export_rnc_8d",
     "list_quality_action_plan_evidences": "pac_list_plan_evidences",

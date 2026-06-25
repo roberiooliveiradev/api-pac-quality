@@ -207,7 +207,9 @@ class PostgresQualityIntelligenceRepository(PluginBaseRepository):
             return None
 
         if plan.get("effectiveness_status") not in {"effective", "partially_effective"}:
-            return None
+            raise ValueError(
+                "Promova apenas planos com eficácia effective ou partially_effective."
+            )
 
         actions = self.fetch_all(
             """
@@ -221,7 +223,7 @@ class PostgresQualityIntelligenceRepository(PluginBaseRepository):
         )
         recommended = [a["description"] for a in actions if a.get("description")]
         if not recommended:
-            return None
+            raise ValueError("O plano precisa de ao menos uma ação concluída para virar padrão.")
 
         title = plan.get("title") or f"Padrão derivado de {plan.get('code')}"
         effectiveness_rate = 1.0 if plan.get("effectiveness_status") == "effective" else 0.6

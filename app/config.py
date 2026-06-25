@@ -38,5 +38,20 @@ class Settings:
         default="/app/data/pac-quality-evidences",
     )
 
+    CORE_API_BASE_URL: str | None = _get_env("CORE_API_BASE_URL", default="http://core-api:8000")
+    CORE_API_INTEGRATIONS_SERVICE_TOKEN: str | None = _get_env(
+        "CORE_API_INTEGRATIONS_SERVICE_TOKEN"
+    )
+    PAC_QUALITY_NOTIFICATIONS_ENABLED: bool = (
+        _get_env("PAC_QUALITY_NOTIFICATIONS_ENABLED", default="true").lower() == "true"
+    )
+    PAC_QUALITY_ACTION_DUE_DAYS_AHEAD: int = int(
+        _get_env("PAC_QUALITY_ACTION_DUE_DAYS_AHEAD", default="2") or "2"
+    )
+    PAC_QUALITY_STALL_DAYS: int = int(
+        _get_env("PAC_QUALITY_STALL_DAYS", default="5") or "5"
+    )
+    PAC_QUALITY_COORDINATOR_USER_IDS: str | None = _get_env("PAC_QUALITY_COORDINATOR_USER_IDS")
+
 
 settings = Settings()

@@ -10,6 +10,7 @@ from delpi_auth.authorization import require_any_permission
 from delpi_auth.request_context import get_current_user
 
 from app.application.security.pac_quality_permissions import (
+    QUALITY_ACTION_PLANS_ADMIN_DISPATCH_PERMISSIONS,
     QUALITY_ACTION_PLANS_CLOSE_PERMISSIONS,
     QUALITY_ACTION_PLANS_READ_PERMISSIONS,
     QUALITY_ACTION_PLANS_VALIDATE_EFFECTIVENESS_PERMISSIONS,
@@ -23,6 +24,7 @@ from app.composition.quality_action_plans_composer import (
     build_approve_effectiveness_review_use_case,
     build_create_plan_actions_use_case,
     build_create_quality_action_plan_use_case,
+    build_dispatch_pac_quality_notifications_use_case,
     build_get_plan_detail_use_case,
     build_get_quality_action_plan_use_case,
     build_list_quality_action_plans_use_case,
@@ -36,6 +38,9 @@ from app.composition.quality_action_plans_composer import (
     build_update_quality_action_plan_use_case,
     build_upsert_five_whys_use_case,
     build_upsert_ishikawa_use_case,
+)
+from app.composition.quality_intelligence_composer import (
+    build_promote_solution_pattern_from_plan_use_case,
 )
 from app.application.use_cases.quality_action_plans_use_cases import (
     CreateQualityActionPlanRequest,
@@ -348,6 +353,35 @@ def list_action_plans(
         )
 
 
+@router.post(
+    "/notifications/dispatch",
+    operation_id="pac_dispatch_notifications",
+)
+@require_any_permission(QUALITY_ACTION_PLANS_ADMIN_DISPATCH_PERMISSIONS)
+def dispatch_quality_action_plan_notifications(dry_run: bool = Query(default=False)):
+    try:
+        result = build_dispatch_pac_quality_notifications_use_case().execute(dry_run=dry_run)
+        return success_response(
+            {
+                "enabled": result.enabled,
+                "dry_run": result.dry_run,
+                "candidates": result.candidates,
+                "sent": result.sent,
+                "skipped_duplicate": result.skipped_duplicate,
+                "skipped_no_recipient": result.skipped_no_recipient,
+                "failed": result.failed,
+            },
+            message="Notificações PAC processadas.",
+        )
+    except PluginsRepositoryError:
+        logger.exception("Erro ao despachar notificações PAC.")
+        return error_response(
+            "Erro ao despachar notificações PAC.",
+            status_code=500,
+            code="PAC_REPOSITORY_ERROR",
+        )
+
+
 @router.get("/{plan_id}", operation_id="pac_get_action_plan")
 @require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def get_action_plan(plan_id: str, detail: bool = Query(default=True)):
@@ -366,6 +400,28 @@ def get_action_plan(plan_id: str, detail: bool = Query(default=True)):
         logger.exception("Erro de persistência ao buscar plano PAC %s.", plan_id)
         return error_response(
             "Erro ao consultar plano de ação.",
+            status_code=500,
+            code="PAC_REPOSITORY_ERROR",
+        )
+
+
+@router.post(
+    "/{plan_id}/promote-solution-pattern",
+    operation_id="pac_promote_solution_pattern",
+)
+@require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
+def promote_solution_pattern(plan_id: str):
+    try:
+        pattern = build_promote_solution_pattern_from_plan_use_case().execute(plan_id)
+        if pattern is None:
+            return not_found_response("Plano de ação não encontrado.")
+        return success_response(pattern, message="Padrão de solução registrado.")
+    except ValueError as exc:
+        return error_response(str(exc), status_code=400)
+    except PluginsRepositoryError:
+        logger.exception("Erro ao promover padrão do plano %s.", plan_id)
+        return error_response(
+            "Erro ao promover padrão de solução.",
             status_code=500,
             code="PAC_REPOSITORY_ERROR",
         )

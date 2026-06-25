@@ -239,3 +239,7 @@ class UpsertSolutionPatternFromPlanUseCase:
 
     def execute(self, plan_id: str) -> dict[str, Any] | None:
         return self._repository.upsert_solution_pattern_from_plan(plan_id)
+
+
+class PromoteSolutionPatternFromPlanUseCase(UpsertSolutionPatternFromPlanUseCase):
+    """Alias explícito para paridade com api-delpi (rota promote-solution-pattern)."""

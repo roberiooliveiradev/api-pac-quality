@@ -153,6 +153,22 @@ class QualityActionPlanRepositoryPort:
         auto_commit: bool = True,
     ) -> None: ...
 
+    def list_actions_due_within_days(self, *, days_ahead: int = 2) -> list[dict[str, Any]]: ...
+
+    def list_stalled_critical_plans(self, *, stall_days: int = 5) -> list[dict[str, Any]]: ...
+
+    def notification_already_sent(self, notification_key: str) -> bool: ...
+
+    def record_notification_dispatch(
+        self,
+        *,
+        notification_key: str,
+        event_type: str,
+        recipient_user_id: str | None,
+        entity_type: str | None,
+        entity_id: str | None,
+    ) -> None: ...
+
     def list_history(self, plan_id: str, *, limit: int = 100) -> list[dict[str, Any]]: ...
 
     def get_dashboard_summary(

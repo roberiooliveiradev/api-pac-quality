@@ -17,6 +17,9 @@ from app.application.use_cases.quality_action_plan_analysis_use_cases import (
     UpsertFiveWhysUseCase,
     UpsertIshikawaUseCase,
 )
+from app.application.use_cases.dispatch_pac_quality_notifications_use_case import (
+    DispatchPacQualityNotificationsUseCase,
+)
 from app.composition.quality_intelligence_composer import (
     build_sync_case_similarity_index_use_case,
     build_upsert_solution_pattern_from_plan_use_case,
@@ -102,3 +105,7 @@ def build_reject_effectiveness_review_use_case() -> RejectEffectivenessReviewUse
 
 def build_reopen_quality_action_plan_use_case() -> ReopenQualityActionPlanUseCase:
     return ReopenQualityActionPlanUseCase(build_quality_action_plan_repository())
+
+
+def build_dispatch_pac_quality_notifications_use_case() -> DispatchPacQualityNotificationsUseCase:
+    return DispatchPacQualityNotificationsUseCase(build_quality_action_plan_repository())
