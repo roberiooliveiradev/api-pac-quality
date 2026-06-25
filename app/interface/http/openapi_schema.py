@@ -31,6 +31,10 @@ def build_openapi_schema(app):
     if public_base_url:
         schema["servers"] = [{"url": public_base_url, "description": "API PAC Qualidade"}]
 
+    from app.interface.http.openapi_delpi_extension_injector import inject_delpi_extensions
+
+    inject_delpi_extensions(schema)
+
     health_path = schema.get("paths", {}).get("/health")
     if isinstance(health_path, dict):
         for operation in health_path.values():

@@ -62,7 +62,7 @@ class SuggestActionsBody(BaseModel):
     symptom_tags: list[str] | None = None
 
 
-@router.post("/similar-cases")
+@router.post("/similar-cases", operation_id="pac_search_similar_cases")
 @require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def search_similar_cases(body: SimilarCasesBody = Body(...)):
     try:
@@ -92,7 +92,7 @@ def search_similar_cases(body: SimilarCasesBody = Body(...)):
         )
 
 
-@router.post("/solution-patterns/search")
+@router.post("/solution-patterns/search", operation_id="pac_search_solution_patterns")
 @require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def search_solution_patterns(body: SolutionPatternSearchBody = Body(...)):
     try:
@@ -115,7 +115,7 @@ def search_solution_patterns(body: SolutionPatternSearchBody = Body(...)):
         )
 
 
-@router.post("/suggest-actions")
+@router.post("/suggest-actions", operation_id="pac_suggest_actions")
 @require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def suggest_actions(body: SuggestActionsBody = Body(...)):
     try:

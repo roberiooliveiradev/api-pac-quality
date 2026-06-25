@@ -149,7 +149,7 @@ def _current_user_id() -> str:
     return str(getattr(user, "id", "unknown"))
 
 
-@router.post("")
+@router.post("", operation_id="pac_create_action_plan")
 @require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def create_action_plan(body: CreateActionPlanBody = Body(...)):
     try:
@@ -195,7 +195,7 @@ def create_action_plan(body: CreateActionPlanBody = Body(...)):
         return error_response("Erro interno ao criar plano de ação.", status_code=500)
 
 
-@router.get("")
+@router.get("", operation_id="pac_list_action_plans")
 @require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def list_action_plans(
     status: str | None = Query(default=None),
@@ -231,7 +231,7 @@ def list_action_plans(
         )
 
 
-@router.get("/{plan_id}")
+@router.get("/{plan_id}", operation_id="pac_get_action_plan")
 @require_any_permission(QUALITY_ACTION_PLANS_READ_PERMISSIONS)
 def get_action_plan(plan_id: str, detail: bool = Query(default=True)):
     try:
@@ -254,7 +254,7 @@ def get_action_plan(plan_id: str, detail: bool = Query(default=True)):
         )
 
 
-@router.put("/{plan_id}/ishikawa")
+@router.put("/{plan_id}/ishikawa", operation_id="pac_upsert_ishikawa")
 @require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def upsert_ishikawa(plan_id: str, body: IshikawaBody = Body(...)):
     try:
@@ -271,7 +271,7 @@ def upsert_ishikawa(plan_id: str, body: IshikawaBody = Body(...)):
         return error_response("Erro ao registrar Ishikawa.", status_code=500, code="PAC_REPOSITORY_ERROR")
 
 
-@router.put("/{plan_id}/five-whys")
+@router.put("/{plan_id}/five-whys", operation_id="pac_upsert_five_whys")
 @require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def upsert_five_whys(plan_id: str, body: FiveWhysBody = Body(...)):
     try:
@@ -290,7 +290,7 @@ def upsert_five_whys(plan_id: str, body: FiveWhysBody = Body(...)):
         return error_response("Erro ao registrar 5 Porquês.", status_code=500, code="PAC_REPOSITORY_ERROR")
 
 
-@router.post("/{plan_id}/actions")
+@router.post("/{plan_id}/actions", operation_id="pac_create_plan_actions")
 @require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def create_plan_actions(plan_id: str, body: CreateActionsBody = Body(...)):
     try:
@@ -313,7 +313,7 @@ def create_plan_actions(plan_id: str, body: CreateActionsBody = Body(...)):
         return error_response("Erro ao registrar ações.", status_code=500, code="PAC_REPOSITORY_ERROR")
 
 
-@router.patch("/{plan_id}/actions/{action_id}")
+@router.patch("/{plan_id}/actions/{action_id}", operation_id="pac_update_plan_action")
 @require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def update_plan_action(plan_id: str, action_id: str, body: UpdateActionBody = Body(...)):
     try:
@@ -334,7 +334,7 @@ def update_plan_action(plan_id: str, action_id: str, body: UpdateActionBody = Bo
         return error_response("Erro ao atualizar ação.", status_code=500, code="PAC_REPOSITORY_ERROR")
 
 
-@router.post("/{plan_id}/effectiveness-review")
+@router.post("/{plan_id}/effectiveness-review", operation_id="pac_record_effectiveness_review")
 @require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def record_effectiveness_review(plan_id: str, body: EffectivenessReviewBody = Body(...)):
     try:
@@ -356,7 +356,7 @@ def record_effectiveness_review(plan_id: str, body: EffectivenessReviewBody = Bo
         return error_response("Erro ao registrar eficácia.", status_code=500, code="PAC_REPOSITORY_ERROR")
 
 
-@router.patch("/{plan_id}/status")
+@router.patch("/{plan_id}/status", operation_id="pac_update_action_plan_status")
 @require_any_permission(QUALITY_ACTION_PLANS_WRITE_PERMISSIONS)
 def update_action_plan_status(plan_id: str, body: UpdateActionPlanStatusBody = Body(...)):
     try:
