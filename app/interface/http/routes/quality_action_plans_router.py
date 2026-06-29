@@ -14,6 +14,11 @@ from app.domain.services.ishikawa_causes_service import (
 )
 
 from app.interface.http.middleware.pac_request_context import get_pac_authenticated_user_id
+from app.interface.http.delegation.pac_delpi_route_delegate import (
+    delegate_binary,
+    delegate_json,
+    delegate_multipart,
+)
 from app.application.services.pac_evidence_storage import (
     PacEvidenceStorage,
     PacEvidenceStorageError,
@@ -278,6 +283,14 @@ def _current_user_id() -> str:
 
 @router.post("", operation_id="pac_create_action_plan")
 def create_action_plan(body: CreateActionPlanBody = Body(...)):
+    delegated = delegate_json(
+        method="POST",
+        path_suffix="",
+        pac_operation_id="pac_create_action_plan",
+        json_body=body.model_dump(exclude_unset=True),
+    )
+    if delegated is not None:
+        return delegated
     try:
         use_case = build_create_quality_action_plan_use_case()
         plan = use_case.execute(
@@ -338,6 +351,25 @@ def list_action_plans(
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
 ):
+    delegated = delegate_json(
+        method="GET",
+        path_suffix="",
+        pac_operation_id="pac_list_action_plans",
+        query={
+            "status": status,
+            "severity": severity,
+            "product_code": product_code,
+            "customer_name": customer_name,
+            "owner_user_id": owner_user_id,
+            "branch_code": branch_code,
+            "nonconformity_scope": nonconformity_scope,
+            "code": code,
+            "page": page,
+            "page_size": page_size,
+        },
+    )
+    if delegated is not None:
+        return delegated
     try:
         use_case = build_list_quality_action_plans_use_case()
         result = use_case.execute(
@@ -364,6 +396,14 @@ def list_action_plans(
 
 @router.get("/{plan_id}", operation_id="pac_get_action_plan")
 def get_action_plan(plan_id: str, detail: bool = Query(default=True)):
+    delegated = delegate_json(
+        method="GET",
+        path_suffix=f"/{plan_id}",
+        pac_operation_id="pac_get_action_plan",
+        query={"detail": detail},
+    )
+    if delegated is not None:
+        return delegated
     try:
         if detail:
             use_case = build_get_plan_detail_use_case()
@@ -386,6 +426,14 @@ def get_action_plan(plan_id: str, detail: bool = Query(default=True)):
 
 @router.put("/{plan_id}/ishikawa", operation_id="pac_upsert_ishikawa")
 def upsert_ishikawa(plan_id: str, body: IshikawaBody = Body(...)):
+    delegated = delegate_json(
+        method="PUT",
+        path_suffix=f"/{plan_id}/ishikawa",
+        pac_operation_id="pac_upsert_ishikawa",
+        json_body=body.model_dump(exclude_unset=True),
+    )
+    if delegated is not None:
+        return delegated
     try:
         result = build_upsert_ishikawa_use_case().execute(
             plan_id,
@@ -402,6 +450,14 @@ def upsert_ishikawa(plan_id: str, body: IshikawaBody = Body(...)):
 
 @router.put("/{plan_id}/five-whys", operation_id="pac_upsert_five_whys")
 def upsert_five_whys(plan_id: str, body: FiveWhysBody = Body(...)):
+    delegated = delegate_json(
+        method="PUT",
+        path_suffix=f"/{plan_id}/five-whys",
+        pac_operation_id="pac_upsert_five_whys",
+        json_body=body.model_dump(exclude_unset=True),
+    )
+    if delegated is not None:
+        return delegated
     try:
         result = build_upsert_five_whys_use_case().execute(
             plan_id,
@@ -420,6 +476,14 @@ def upsert_five_whys(plan_id: str, body: FiveWhysBody = Body(...)):
 
 @router.post("/{plan_id}/actions", operation_id="pac_create_plan_actions")
 def create_plan_actions(plan_id: str, body: CreateActionsBody = Body(...)):
+    delegated = delegate_json(
+        method="POST",
+        path_suffix=f"/{plan_id}/actions",
+        pac_operation_id="pac_create_plan_actions",
+        json_body=body.model_dump(exclude_unset=True),
+    )
+    if delegated is not None:
+        return delegated
     try:
         actions = [
             CreateActionItemRequest(**item.model_dump())
@@ -442,6 +506,14 @@ def create_plan_actions(plan_id: str, body: CreateActionsBody = Body(...)):
 
 @router.patch("/{plan_id}/actions/{action_id}", operation_id="pac_update_plan_action")
 def update_plan_action(plan_id: str, action_id: str, body: UpdateActionBody = Body(...)):
+    delegated = delegate_json(
+        method="PATCH",
+        path_suffix=f"/{plan_id}/actions/{action_id}",
+        pac_operation_id="pac_update_plan_action",
+        json_body=body.model_dump(exclude_unset=True),
+    )
+    if delegated is not None:
+        return delegated
     try:
         fields = body.model_dump(exclude_unset=True)
         result = build_update_plan_action_use_case().execute(
@@ -462,6 +534,13 @@ def update_plan_action(plan_id: str, action_id: str, body: UpdateActionBody = Bo
 
 @router.delete("/{plan_id}/actions/{action_id}", operation_id="pac_delete_plan_action")
 def delete_plan_action(plan_id: str, action_id: str):
+    delegated = delegate_json(
+        method="DELETE",
+        path_suffix=f"/{plan_id}/actions/{action_id}",
+        pac_operation_id="pac_delete_plan_action",
+    )
+    if delegated is not None:
+        return delegated
     try:
         result = build_delete_plan_action_use_case().execute(
             plan_id,
@@ -478,6 +557,14 @@ def delete_plan_action(plan_id: str, action_id: str):
 
 @router.post("/{plan_id}/effectiveness-review", operation_id="pac_record_effectiveness_review")
 def record_effectiveness_review(plan_id: str, body: EffectivenessReviewBody = Body(...)):
+    delegated = delegate_json(
+        method="POST",
+        path_suffix=f"/{plan_id}/effectiveness-review",
+        pac_operation_id="pac_record_effectiveness_review",
+        json_body=body.model_dump(exclude_unset=True),
+    )
+    if delegated is not None:
+        return delegated
     try:
         result = build_record_effectiveness_review_use_case().execute(
             plan_id,
@@ -502,6 +589,14 @@ def record_effectiveness_review(plan_id: str, body: EffectivenessReviewBody = Bo
     operation_id="pac_submit_effectiveness_review",
 )
 def submit_effectiveness_review(plan_id: str, body: SubmitEffectivenessReviewBody = Body(...)):
+    delegated = delegate_json(
+        method="POST",
+        path_suffix=f"/{plan_id}/effectiveness-review/submit",
+        pac_operation_id="pac_submit_effectiveness_review",
+        json_body=body.model_dump(exclude_unset=True),
+    )
+    if delegated is not None:
+        return delegated
     try:
         result = build_submit_effectiveness_review_use_case().execute(
             plan_id,
@@ -523,6 +618,14 @@ def submit_effectiveness_review(plan_id: str, body: SubmitEffectivenessReviewBod
 
 @router.patch("/{plan_id}", operation_id="pac_update_action_plan")
 def update_action_plan(plan_id: str, body: UpdateActionPlanBody = Body(...)):
+    delegated = delegate_json(
+        method="PATCH",
+        path_suffix=f"/{plan_id}",
+        pac_operation_id="pac_update_action_plan",
+        json_body=body.model_dump(exclude_unset=True),
+    )
+    if delegated is not None:
+        return delegated
     try:
         fields = body.model_dump(exclude_unset=True)
         if not fields:
@@ -547,6 +650,14 @@ def update_action_plan(plan_id: str, body: UpdateActionPlanBody = Body(...)):
 
 @router.patch("/{plan_id}/status", operation_id="pac_update_action_plan_status")
 def update_action_plan_status(plan_id: str, body: UpdateActionPlanStatusBody = Body(...)):
+    delegated = delegate_json(
+        method="PATCH",
+        path_suffix=f"/{plan_id}/status",
+        pac_operation_id="pac_update_action_plan_status",
+        json_body=body.model_dump(exclude_unset=True),
+    )
+    if delegated is not None:
+        return delegated
     try:
         use_case = build_update_quality_action_plan_status_use_case()
         plan = use_case.execute(
@@ -571,6 +682,14 @@ def update_action_plan_status(plan_id: str, body: UpdateActionPlanStatusBody = B
 
 @router.post("/{plan_id}/reopen", operation_id="pac_reopen_action_plan")
 def reopen_action_plan(plan_id: str, body: ReopenActionPlanBody = Body(...)):
+    delegated = delegate_json(
+        method="POST",
+        path_suffix=f"/{plan_id}/reopen",
+        pac_operation_id="pac_reopen_action_plan",
+        json_body=body.model_dump(exclude_unset=True),
+    )
+    if delegated is not None:
+        return delegated
     try:
         plan = build_reopen_quality_action_plan_use_case().execute(
             plan_id,
@@ -590,6 +709,14 @@ def reopen_action_plan(plan_id: str, body: ReopenActionPlanBody = Body(...)):
 
 @router.put("/{plan_id}/rnc-8d", operation_id="pac_upsert_rnc_8d")
 def upsert_rnc_8d_report(plan_id: str, body: Rnc8dReportBody = Body(...)):
+    delegated = delegate_json(
+        method="PUT",
+        path_suffix=f"/{plan_id}/rnc-8d",
+        pac_operation_id="pac_upsert_rnc_8d",
+        json_body=body.model_dump(exclude_unset=True),
+    )
+    if delegated is not None:
+        return delegated
     try:
         repo = build_quality_action_plan_repository()
         result = repo.upsert_rnc_8d_report(
@@ -620,6 +747,13 @@ def upsert_rnc_8d_report(plan_id: str, body: Rnc8dReportBody = Body(...)):
 
 @router.get("/{plan_id}/export/rnc-8d", operation_id="pac_export_rnc_8d")
 def export_rnc_8d_spreadsheet(plan_id: str):
+    delegated = delegate_binary(
+        method="GET",
+        path_suffix=f"/{plan_id}/export/rnc-8d",
+        pac_operation_id="pac_export_rnc_8d",
+    )
+    if delegated is not None:
+        return delegated
     try:
         repo = build_quality_action_plan_repository()
         detail = repo.get_plan_detail(plan_id)
@@ -649,6 +783,13 @@ def export_rnc_8d_spreadsheet(plan_id: str):
 
 @router.get("/{plan_id}/evidences", operation_id="pac_list_plan_evidences")
 def list_plan_evidences(plan_id: str):
+    delegated = delegate_json(
+        method="GET",
+        path_suffix=f"/{plan_id}/evidences",
+        pac_operation_id="pac_list_plan_evidences",
+    )
+    if delegated is not None:
+        return delegated
     try:
         repo = build_quality_action_plan_repository()
         if not repo.get_plan_by_id(plan_id):
@@ -678,8 +819,28 @@ async def upload_plan_evidence(
     action_id: str | None = Form(default=None),
     file: UploadFile = File(...),
 ):
+    content = await file.read()
+    form_data: dict[str, str] = {
+        "evidence_type": evidence_type,
+        "section": section,
+        "knowledge_visible": str(knowledge_visible).lower(),
+    }
+    if description:
+        form_data["description"] = description
+    if action_id:
+        form_data["action_id"] = action_id
+    delegated = delegate_multipart(
+        path_suffix=f"/{plan_id}/evidences",
+        pac_operation_id="pac_attach_plan_evidence",
+        form_data=form_data,
+        file_field="file",
+        file_name=file.filename or "evidence.bin",
+        file_content=content,
+        file_content_type=file.content_type,
+    )
+    if delegated is not None:
+        return delegated
     try:
-        content = await file.read()
         storage = PacEvidenceStorage()
         storage.validate_upload(mime_type=file.content_type, size_bytes=len(content))
         stored_name = storage.save(
@@ -720,6 +881,13 @@ async def upload_plan_evidence(
 
 @router.get("/{plan_id}/evidences/{evidence_id}/file", operation_id="pac_download_plan_evidence")
 def download_plan_evidence(plan_id: str, evidence_id: str):
+    delegated = delegate_binary(
+        method="GET",
+        path_suffix=f"/{plan_id}/evidences/{evidence_id}/file",
+        pac_operation_id="pac_download_plan_evidence",
+    )
+    if delegated is not None:
+        return delegated
     try:
         repo = build_quality_action_plan_repository()
         evidence = repo.get_evidence(plan_id, evidence_id)
@@ -744,6 +912,13 @@ def download_plan_evidence(plan_id: str, evidence_id: str):
 
 @router.delete("/{plan_id}/evidences/{evidence_id}", operation_id="pac_delete_plan_evidence")
 def delete_plan_evidence(plan_id: str, evidence_id: str):
+    delegated = delegate_json(
+        method="DELETE",
+        path_suffix=f"/{plan_id}/evidences/{evidence_id}",
+        pac_operation_id="pac_delete_plan_evidence",
+    )
+    if delegated is not None:
+        return delegated
     try:
         repo = build_quality_action_plan_repository()
         evidence = repo.delete_evidence(plan_id, evidence_id)

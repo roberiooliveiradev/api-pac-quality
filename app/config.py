@@ -69,5 +69,14 @@ class Settings:
     PAC_EVIDENCE_OCR_LANG: str = _get_env("PAC_EVIDENCE_OCR_LANG", default="por+eng")
     PAC_EVIDENCE_OCR_MAX_CHARS: int = int(_get_env("PAC_EVIDENCE_OCR_MAX_CHARS", default="4000") or "4000")
 
+    API_DELPI_BASE_URL: str | None = _get_env("API_DELPI_BASE_URL")
+    API_DELPI_INTERNAL_SERVICE_TOKEN: str | None = _get_env("API_DELPI_INTERNAL_SERVICE_TOKEN")
+    API_DELPI_TIMEOUT_SECONDS: float = float(
+        _get_env("API_DELPI_TIMEOUT_SECONDS", default="60") or "60"
+    )
+    PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI: bool = (
+        _get_env("PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI", default="false").lower() == "true"
+    )
+
 
 settings = Settings()
