@@ -15,6 +15,10 @@ from app.interface.http.openapi_schema import build_openapi_schema
 from app.interface.http.middleware.pac_auth_middleware import pac_auth_middleware
 from app.interface.http.routes.quality_intelligence_router import router as intelligence_router
 from app.interface.http.routes.quality_action_plans_router import router as action_plans_router
+from app.application.services.pac_api_delpi_delegation_service import (
+    get_pac_api_delpi_delegation_service,
+)
+from app.infrastructure.gateways.core_api_directory_gateway import CoreApiDirectoryGateway
 from app.infrastructure.providers.database.plugins_postgres_connection import check_plugins_connection
 
 logger = logging.getLogger(__name__)
@@ -63,11 +67,18 @@ app.include_router(action_plans_router)
 @app.get("/health", include_in_schema=False)
 def health():
     plugins_ok = check_plugins_connection()
-    status = "ok" if plugins_ok else "degraded"
+    delegation = get_pac_api_delpi_delegation_service()
+    delegation_status = "enabled" if delegation.enabled() else "disabled"
+    if settings.PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI and not delegation.enabled():
+        delegation_status = "misconfigured"
+    core_directory = CoreApiDirectoryGateway().configured()
+    status = "ok" if plugins_ok or delegation.enabled() else "degraded"
     return {
         "status": status,
         "service": "api-pac-quality",
         "plugins_database": "ok" if plugins_ok else "unavailable",
+        "api_delpi_delegation": delegation_status,
+        "core_api_directory": "configured" if core_directory else "not_configured",
     }
 
 

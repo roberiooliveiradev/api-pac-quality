@@ -1,4 +1,4 @@
-# OpenAPI api-pac-quality — 24 operações (fluxo analista GPT)
+# OpenAPI api-pac-quality — 26 operações (fluxo analista GPT)
 
 ## Contexto
 
@@ -8,7 +8,7 @@ O **ChatGPT Custom GPT** aceita no máximo **30 operações** por action set. A 
 
 Em vez de manter um schema filtrado (`/openapi.chatgpt.json`) com allowlist JSON editável:
 
-1. A **`api-pac-quality`** publica **somente** o fluxo do **analista** em `GET /openapi.json` — **24 operações**.
+1. A **`api-pac-quality`** publica **somente** o fluxo do **analista** em `GET /openapi.json` — **26 operações**.
 2. Funcionalidades de **coordenação, auditoria, cron e grafo avançado** ficam **apenas no plugin Minha DELPI** (`api-delpi`), com RBAC por usuário — mais seguro para o agente GPT com chave compartilhada.
 3. `GET /health` permanece na API mas **fora do OpenAPI** (`include_in_schema=False`) para não consumir cota do ChatGPT.
 
@@ -18,11 +18,12 @@ Em vez de manter um schema filtrado (`/openapi.chatgpt.json`) com allowlist JSON
 - **Sem** `delpi_auth`, JWT Keycloak nem RBAC por rota — o agente GPT compartilha uma chave de serviço.
 - Permissões granulares (`quality-action-plans.*`) aplicam-se ao **plugin** na api-delpi. Detalhes: [autenticacao-api-pac.md](autenticacao-api-pac.md).
 
-## Operações expostas ao GPT (24)
+## Operações expostas ao GPT (26)
 
 | Grupo | operationId |
 |-------|-------------|
 | Inteligência | `pac_search_similar_cases`, `pac_assess_recurrence_on_opening`, `pac_search_solution_patterns`, `pac_suggest_actions`, `pac_suggest_evidence_tags`, `pac_suggest_evidence_tags_from_image` |
+| Diretório | `pac_search_assignable_users` |
 | Planos — leitura | `pac_list_action_plans`, `pac_get_action_plan`, `pac_list_plan_evidences`, `pac_download_plan_evidence`, `pac_export_rnc_8d` |
 | Planos — escrita | `pac_create_action_plan`, `pac_update_action_plan`, `pac_update_action_plan_status`, `pac_reopen_action_plan` |
 | Análise | `pac_upsert_ishikawa`, `pac_upsert_five_whys` |

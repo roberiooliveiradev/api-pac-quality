@@ -55,6 +55,10 @@ from app.domain.services.rnc_8d_excel_export_service import (
     build_rnc_8d_workbook,
     collect_image_annexes_for_export,
 )
+from app.infrastructure.gateways.core_api_directory_gateway import (
+    CoreApiDirectoryGateway,
+    CoreApiDirectoryGatewayError,
+)
 from app.infrastructure.persistence.plugins.plugin_base_repository import PluginsRepositoryError
 
 logger = logging.getLogger(__name__)
@@ -279,6 +283,21 @@ class ReopenActionPlanBody(BaseModel):
 
 def _current_user_id() -> str:
     return get_pac_authenticated_user_id()
+
+
+@router.get("/assignable-users", operation_id="pac_search_assignable_users")
+def search_assignable_users(
+    q: str = Query(..., min_length=2, description="Nome ou e-mail (mín. 2 caracteres)."),
+    limit: int = Query(default=10, ge=1, le=20),
+):
+    try:
+        items = CoreApiDirectoryGateway().search_assignable_users(query=q, limit=limit)
+        return success_response({"items": items})
+    except CoreApiDirectoryGatewayError as exc:
+        return error_response(str(exc), status_code=503, code="CORE_API_UNAVAILABLE")
+    except Exception:
+        logger.exception("Erro ao buscar usuários atribuíveis PAC.")
+        return error_response("Erro ao buscar usuários.", status_code=500)
 
 
 @router.post("", operation_id="pac_create_action_plan")

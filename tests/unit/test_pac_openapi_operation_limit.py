@@ -43,6 +43,6 @@ def test_openapi_exposes_only_analyst_operations():
     published = _iter_openapi_operation_ids(schema)
 
     assert published == ANALYST_PAC_OPERATION_IDS
-    assert len(published) == 24
+    assert len(published) == 26
     assert len(published) <= CHATGPT_MAX_OPENAPI_OPERATIONS
     assert "/health" not in schema.get("paths", {})

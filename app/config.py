@@ -38,7 +38,11 @@ class Settings:
         default="/app/data/pac-quality-evidences",
     )
 
-    CORE_API_BASE_URL: str | None = _get_env("CORE_API_BASE_URL", default="http://core-api:8000")
+    CORE_API_BASE_URL: str | None = _get_env(
+        "CORE_API_BASE_URL",
+        "CORE_API_URL",
+        default="http://core-api:8000",
+    )
     CORE_API_INTEGRATIONS_SERVICE_TOKEN: str | None = _get_env(
         "CORE_API_INTEGRATIONS_SERVICE_TOKEN"
     )

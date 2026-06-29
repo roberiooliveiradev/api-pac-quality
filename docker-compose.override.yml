@@ -1,9 +1,16 @@
-# Rede compartilhada com delpi-central (postgres-plugins, keycloak, core-api).
+# Rede compartilhada com delpi-central (postgres-plugins, keycloak, core-api, api-delpi).
 services:
   api-pac-quality:
     networks:
       - pac-network
       - delpi-network
+    environment:
+      CORE_API_BASE_URL: http://delpi-core-api:8000
+      API_DELPI_BASE_URL: http://delpi-api-delpi:8000
+      PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI: "true"
+      # Definir no .env (não commitar):
+      # API_DELPI_INTERNAL_SERVICE_TOKEN=
+      # CORE_API_INTEGRATIONS_SERVICE_TOKEN=
 
 networks:
   delpi-network:

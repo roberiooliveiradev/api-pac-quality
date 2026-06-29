@@ -80,6 +80,7 @@ Erros de indisponibilidade da api-delpi: HTTP 503, `error.code = API_DELPI_UNAVA
 ## Não delegado (permanece na api-pac)
 
 - Auth middleware GPT
+- `pac_search_assignable_users` → core-api `GET /integrations/directory/users` (app `quality-action-plans`)
 - `pac_search_similar_cases`, `pac_search_solution_patterns`, `pac_suggest_actions`
 - Health, OpenAPI público
 - Operações só do plugin: aprovar/rejeitar eficácia, dashboard, minha fila, audit log, etc.

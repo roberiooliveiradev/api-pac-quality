@@ -35,6 +35,7 @@ Anexe este arquivo em **Conhecimento** no builder do Custom GPT, junto com `chat
 2. `pac_upsert_ishikawa` — hipóteses por 6M; notas de pendência.
 3. `pac_upsert_five_whys` — `occurrence_whys` e `detection_whys`; `root_cause` como hipótese; `confidence_level`: `low` | `medium` | `high`.
 4. `pac_create_plan_actions` — contenção, corretivas, preventivas, verificação, padronização, treinamento; `responsible_name`, `department`, prazo, `cause_track` (`occurrence` | `detection`) quando couber.
+   - **Opcional — Minha fila:** se o responsável for usuário DELPI, chamar `pac_search_assignable_users?q=nome` e gravar `responsible_user_id` (UUID retornado) **além** de `responsible_name`. Só nome livre → não entra na fila pessoal do plugin.
 5. `pac_update_action_plan_status` — avançar status conforme estágio.
 6. `pac_attach_plan_evidence` — **se** o analista enviou PDF, e-mail, foto ou planilha: anexar com `evidence_type` adequado (`pdf`, `email`, `image`, …).
 7. `pac_upsert_rnc_8d` — só se template 8D do cliente for o fluxo acordado.

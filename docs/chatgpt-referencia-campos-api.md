@@ -27,6 +27,17 @@ Upload no builder (**Conhecimento**), junto com **`chatgpt-conhecimento-regras-g
 - Obrigatório: `01` ou `02`
 - Usar em buscas e recorrência
 
+## Responsável da ação (`responsible_name` / `responsible_user_id`)
+
+| Campo | Quando usar |
+|-------|-------------|
+| `responsible_name` | Sempre que houver responsável (texto livre ou nome do usuário Delpi). |
+| `responsible_user_id` | Opcional. UUID de usuário Delpi com acesso ao app PAC — obtido via `pac_search_assignable_users?q=…` (mín. 2 caracteres). |
+| Só nome, sem UUID | Válido; a ação **não** aparece na Minha fila do plugin. |
+| Nome + UUID | A ação entra na **Minha fila** do usuário vinculado. |
+
+`pac_update_plan_action` também aceita `responsible_user_id` (ou `null` para desvincular).
+
 ## Código do plano (`code`)
 
 - `pac_get_action_plan`: path aceita **UUID** ou código **`PAC-2026-XXXX`**
@@ -78,10 +89,10 @@ Severidade: low, medium, high, critical
 - Glossário completo: **`chatgpt-conhecimento-regras-gravacao.md`** § 4.
 - Nomes técnicos só nas chamadas à API.
 
-## Actions disponíveis (25)
+## Actions disponíveis (26)
 
 Inteligência: pac_search_similar_cases, pac_assess_recurrence_on_opening, pac_search_solution_patterns, pac_suggest_actions, pac_suggest_evidence_tags, pac_suggest_evidence_tags_from_image
 
-Planos: pac_create/list/get/update_action_plan, pac_update_action_plan_status, pac_reopen_action_plan, pac_upsert_ishikawa, pac_upsert_five_whys, pac_create/update_plan_action, pac_upsert/export_rnc_8d, pac_list/attach/delete/download_plan_evidence, pac_submit/record_effectiveness_review
+Planos: pac_create/list/get/update_action_plan, pac_update_action_plan_status, pac_reopen_action_plan, pac_upsert_ishikawa, pac_upsert_five_whys, pac_create/update_plan_action, pac_upsert/export_rnc_8d, pac_list/attach/delete/download_plan_evidence, pac_submit/record_effectiveness_review, **pac_search_assignable_users**
 
 Coordenação/admin **não** estão na API PAC.
