@@ -1,0 +1,11 @@
+# Rede compartilhada com delpi-central (postgres-plugins, keycloak, core-api).
+services:
+  api-pac-quality:
+    networks:
+      - pac-network
+      - delpi-network
+
+networks:
+  delpi-network:
+    external: true
+    name: infra_delpi-network

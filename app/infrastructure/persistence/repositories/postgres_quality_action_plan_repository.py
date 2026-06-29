@@ -56,8 +56,12 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 code,
                 title,
                 customer_name,
+                customer_code,
+                customer_store,
                 customer_contact,
                 nonconformity_scope,
+                customer_template,
+                client_nc_registry,
                 source_type,
                 source_reference,
                 product_code,
@@ -78,8 +82,8 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 failure_mode,
                 recurrence_key
             ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
             RETURNING id, code, status
             """,
@@ -87,8 +91,12 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 code,
                 fields["title"],
                 fields.get("customer_name"),
+                fields.get("customer_code"),
+                fields.get("customer_store"),
                 fields.get("customer_contact"),
                 fields.get("nonconformity_scope", "external"),
+                fields.get("customer_template", "generic"),
+                fields.get("client_nc_registry"),
                 fields.get("source_type"),
                 fields.get("source_reference"),
                 fields.get("product_code"),
@@ -300,6 +308,8 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
         allowed = {
             "title",
             "customer_name",
+            "customer_code",
+            "customer_store",
             "customer_contact",
             "nonconformity_scope",
             "source_type",

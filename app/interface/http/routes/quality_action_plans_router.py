@@ -4,7 +4,9 @@ import logging
 
 from fastapi import APIRouter, Body, File, Form, Query, UploadFile
 from fastapi.responses import FileResponse, Response
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+from app.domain.services.pac_quality_datetime_service import validate_optional_iso_datetime
 
 from app.domain.services.ishikawa_causes_service import (
     ISHIKAWA_CATEGORY_FIELDS,
@@ -55,9 +57,26 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/quality/action-plans", tags=["PAC Qualidade — planos de ação"])
 
 
-class CreateActionPlanBody(BaseModel):
+class _PlanTimestampValidationMixin(BaseModel):
+    detected_at: str | None = None
+    reported_at: str | None = None
+
+    @field_validator("detected_at", "reported_at", mode="before")
+    @classmethod
+    def _validate_plan_timestamps(cls, value: object, info) -> str | None:
+        field_name = str(getattr(info, "field_name", "data/hora"))
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise ValueError(f"{field_name} deve ser texto em formato ISO 8601.")
+        return validate_optional_iso_datetime(value, field_name=field_name)
+
+
+class CreateActionPlanBody(_PlanTimestampValidationMixin):
     title: str = Field(..., min_length=2, max_length=500)
     customer_name: str | None = Field(default=None, max_length=300)
+    customer_code: str | None = Field(default=None, max_length=20)
+    customer_store: str | None = Field(default=None, max_length=10)
     customer_contact: str | None = Field(default=None, max_length=300)
     source_type: str | None = Field(
         default=None,
@@ -68,8 +87,6 @@ class CreateActionPlanBody(BaseModel):
     product_description: str | None = Field(default=None, max_length=500)
     batch_number: str | None = Field(default=None, max_length=100)
     reported_problem: str | None = None
-    detected_at: str | None = None
-    reported_at: str | None = None
     severity: str = Field(default="medium", pattern="^(low|medium|high|critical)$")
     status: str = Field(default="triage", pattern="^(draft|triage)$")
     owner_user_id: str | None = Field(default=None, max_length=100)
@@ -91,9 +108,11 @@ class CreateActionPlanBody(BaseModel):
     client_nc_registry: str | None = Field(default=None, max_length=100)
 
 
-class UpdateActionPlanBody(BaseModel):
+class UpdateActionPlanBody(_PlanTimestampValidationMixin):
     title: str | None = Field(default=None, min_length=2, max_length=500)
     customer_name: str | None = Field(default=None, max_length=300)
+    customer_code: str | None = Field(default=None, max_length=20)
+    customer_store: str | None = Field(default=None, max_length=10)
     customer_contact: str | None = Field(default=None, max_length=300)
     source_type: str | None = Field(
         default=None,
@@ -104,8 +123,6 @@ class UpdateActionPlanBody(BaseModel):
     product_description: str | None = Field(default=None, max_length=500)
     batch_number: str | None = Field(default=None, max_length=100)
     reported_problem: str | None = None
-    detected_at: str | None = None
-    reported_at: str | None = None
     severity: str | None = Field(default=None, pattern="^(low|medium|high|critical)$")
     owner_user_id: str | None = Field(default=None, max_length=100)
     branch_code: str | None = Field(default=None, pattern="^(01|02)$")
@@ -268,6 +285,8 @@ def create_action_plan(body: CreateActionPlanBody = Body(...)):
                 title=body.title,
                 created_by_user_id=_current_user_id(),
                 customer_name=body.customer_name,
+                customer_code=body.customer_code,
+                customer_store=body.customer_store,
                 customer_contact=body.customer_contact,
                 source_type=body.source_type,
                 source_reference=body.source_reference,
@@ -288,21 +307,10 @@ def create_action_plan(body: CreateActionPlanBody = Body(...)):
                 root_cause_category=body.root_cause_category,
                 failure_mode=body.failure_mode,
                 recurrence_key=body.recurrence_key,
+                customer_template=body.customer_template,
+                client_nc_registry=body.client_nc_registry,
             )
         )
-        if body.customer_template or body.client_nc_registry:
-            repo = build_quality_action_plan_repository()
-            repo.update_plan(
-                str(plan["id"]),
-                {
-                    "customer_template": body.customer_template,
-                    "client_nc_registry": body.client_nc_registry,
-                    "updated_by_user_id": _current_user_id(),
-                },
-            )
-            refreshed = build_get_quality_action_plan_use_case().execute(str(plan["id"]))
-            if refreshed:
-                plan = refreshed
         return success_response(
             plan,
             message="Plano de ação criado com sucesso.",

@@ -4,6 +4,7 @@ import logging
 import os
 
 from fastapi import FastAPI, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -83,5 +84,5 @@ async def validation_exception_handler(_request: Request, exc: RequestValidation
         "Payload inválido.",
         status_code=422,
         code="VALIDATION_ERROR",
-        meta={"details": exc.errors()},
+        meta={"details": jsonable_encoder(exc.errors())},
     )

@@ -18,6 +18,8 @@ class CreateQualityActionPlanRequest:
     title: str
     created_by_user_id: str
     customer_name: str | None = None
+    customer_code: str | None = None
+    customer_store: str | None = None
     customer_contact: str | None = None
     source_type: str | None = None
     source_reference: str | None = None
@@ -38,6 +40,8 @@ class CreateQualityActionPlanRequest:
     root_cause_category: str | None = None
     failure_mode: str | None = None
     recurrence_key: str | None = None
+    customer_template: str | None = None
+    client_nc_registry: str | None = None
 
 
 class CreateQualityActionPlanUseCase:
@@ -61,12 +65,19 @@ class CreateQualityActionPlanUseCase:
             failure_mode=request.failure_mode,
             explicit=request.recurrence_key,
         )
+        customer_template = request.customer_template or "generic"
+        if customer_template not in {"generic", "rnc_8d"}:
+            raise ValueError("customer_template inválido.")
+        if nonconformity_scope == "internal" and customer_template != "generic":
+            raise ValueError("Plano interno não pode usar template rnc_8d.")
 
         plan = self._repository.create_plan(
             {
                 "title": request.title.strip(),
                 "created_by_user_id": request.created_by_user_id,
                 "customer_name": request.customer_name,
+                "customer_code": request.customer_code,
+                "customer_store": request.customer_store,
                 "customer_contact": request.customer_contact,
                 "nonconformity_scope": nonconformity_scope,
                 "source_type": request.source_type,
@@ -87,6 +98,8 @@ class CreateQualityActionPlanUseCase:
                 "root_cause_category": request.root_cause_category,
                 "failure_mode": request.failure_mode,
                 "recurrence_key": recurrence_key,
+                "customer_template": customer_template,
+                "client_nc_registry": request.client_nc_registry,
             }
         )
         if self._intelligence_sync and plan.get("id"):
@@ -170,6 +183,8 @@ class UpdateQualityActionPlanStatusUseCase:
 class UpdateQualityActionPlanRequest:
     title: str | None = None
     customer_name: str | None = None
+    customer_code: str | None = None
+    customer_store: str | None = None
     customer_contact: str | None = None
     source_type: str | None = None
     source_reference: str | None = None

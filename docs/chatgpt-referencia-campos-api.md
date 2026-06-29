@@ -2,6 +2,12 @@
 
 Upload opcional no builder (**Conhecimento**), junto com os roteiros `.docx`. Complementa o system prompt compacto (`chatgpt-instrucoes-system-prompt.txt`).
 
+## Datas (`detected_at`, `reported_at`)
+
+- Formato **ISO 8601** apenas (ex.: `2026-06-24T10:00:00-03:00`)
+- **Não** enviar texto livre (departamento, descrição, «produção do cliente», etc.) nesses campos — a API rejeita com erro de validação
+- Se a data não for conhecida, **omitir** o campo
+
 ## Escopo NC (`nonconformity_scope`)
 
 - Obrigatório no create: `internal` ou `external`
