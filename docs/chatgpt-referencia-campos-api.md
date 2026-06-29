@@ -27,6 +27,12 @@ Upload no builder (**Conhecimento**), junto com **`chatgpt-conhecimento-regras-g
 - Obrigatório: `01` ou `02`
 - Usar em buscas e recorrência
 
+## Código do plano (`code`)
+
+- `pac_get_action_plan`: path aceita **UUID** ou código **`PAC-2026-XXXX`**
+- `pac_list_action_plans`: query opcional `code` (match exato)
+- Preferir código quando o analista citar `PAC-2026-0029`; use o `id` retornado nas escritas se necessário
+
 ## Recorrência (`recurrence_key`)
 
 - **Não** enviar chave inventada pelo agente.

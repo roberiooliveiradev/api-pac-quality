@@ -113,7 +113,13 @@ Use este caso como lembrete na próxima abertura de NC externa com PDF.
 
 ---
 
-## 7. Referências no repositório
+## 7. Referências de plano (`pac_get_action_plan` / `pac_list_action_plans`)
+
+- `pac_get_action_plan` aceita **UUID** ou **código** (`PAC-2026-0029`) no path.
+- `pac_list_action_plans` aceita query `code=PAC-2026-0029` para localizar um plano antes do detalhe.
+- Referência inválida ou inexistente → **404** (não erro 500).
+
+## 8. Referências no repositório
 
 - Campos e multipart: `chatgpt-referencia-campos-api.md`
 - Setup do GPT: `chatgpt-especialista-qualidade.md`

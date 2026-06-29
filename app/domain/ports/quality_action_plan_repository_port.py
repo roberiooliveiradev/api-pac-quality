@@ -71,6 +71,7 @@ class QualityActionPlanRepositoryPort:
         owner_user_id: str | None = None,
         branch_code: str | None = None,
         nonconformity_scope: str | None = None,
+        code: str | None = None,
         page: int = 1,
         page_size: int = 50,
     ) -> dict[str, Any]: ...

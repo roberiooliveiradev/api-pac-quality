@@ -129,6 +129,7 @@ class ListQualityActionPlansUseCase:
         owner_user_id: str | None = None,
         branch_code: str | None = None,
         nonconformity_scope: str | None = None,
+        code: str | None = None,
         page: int = 1,
         page_size: int = 50,
     ) -> dict[str, Any]:
@@ -140,6 +141,7 @@ class ListQualityActionPlansUseCase:
             owner_user_id=owner_user_id,
             branch_code=branch_code,
             nonconformity_scope=nonconformity_scope,
+            code=code,
             page=page,
             page_size=page_size,
         )

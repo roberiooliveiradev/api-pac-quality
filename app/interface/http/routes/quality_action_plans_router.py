@@ -334,6 +334,7 @@ def list_action_plans(
     owner_user_id: str | None = Query(default=None),
     branch_code: str | None = Query(default=None, pattern="^(01|02)$"),
     nonconformity_scope: str | None = Query(default=None, pattern="^(internal|external)$"),
+    code: str | None = Query(default=None, description="Código do plano (ex.: PAC-2026-0029)."),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
 ):
@@ -347,6 +348,7 @@ def list_action_plans(
             owner_user_id=owner_user_id,
             branch_code=branch_code,
             nonconformity_scope=nonconformity_scope,
+            code=code,
             page=page,
             page_size=page_size,
         )
