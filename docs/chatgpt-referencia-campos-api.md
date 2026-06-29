@@ -54,7 +54,13 @@ draft → triage → containment → root_cause_analysis → action_plan_defined
 
 Severidade: low, medium, high, critical
 
-## Actions disponíveis (24)
+## Linguagem com o analista
+
+- Na conversa: **não** expor `branch_code`, `nonconformity_scope`, snake_case, enums em inglês nem `operationId`.
+- Traduzir rótulos e valores (ver glossário em `chatgpt-instrucoes-system-prompt.txt` § Linguagem com o analista).
+- Nomes técnicos só nas chamadas à API.
+
+## Actions disponíveis (25)
 
 Inteligência: pac_search_similar_cases, pac_assess_recurrence_on_opening, pac_search_solution_patterns, pac_suggest_actions, pac_suggest_evidence_tags, pac_suggest_evidence_tags_from_image
 

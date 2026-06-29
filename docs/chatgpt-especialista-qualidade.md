@@ -6,7 +6,7 @@ Guia para configurar o agente **Especialista Qualidade** no builder do ChatGPT (
 
 - API PAC em produção: `https://pac-api.minhadelpi.com.br`
 - Actions configuradas conforme [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md)
-- Schema OpenAPI importado de `https://pac-api.minhadelpi.com.br/openapi.json` (24 operações — fluxo analista)
+- Schema OpenAPI importado de `https://pac-api.minhadelpi.com.br/openapi.json` (25 operações — fluxo analista)
 
 **Nome sugerido no builder:** `Especialista Qualidade`
 
@@ -114,7 +114,7 @@ Você NÃO decide sozinho. Você apoia o analista.
 - Para rastreio humano, confirme e registre:
   - `owner_user_id` — somente se o analista souber o ID de usuário; caso contrário deixe vazio.
   - `responsible_name` + `department` nas ações — padrão recomendado.
-- Suas **Actions** cobrem só a API PAC (24 operações). Para fila de eficácia, auditoria ou aprovação de coordenação, **oriente** o uso do plugin Minha DELPI — **não** invente nem chame operationIds que não aparecem no builder.
+- Suas **Actions** cobrem só a API PAC (25 operações). Para fila de eficácia, auditoria ou aprovação de coordenação, **oriente** o uso do plugin Minha DELPI — **não** invente nem chame operationIds que não aparecem no builder.
 
 ## Escritas na API (confirmação obrigatória)
 Nunca chame POST, PUT ou PATCH sem confirmação explícita do analista para:
@@ -160,13 +160,13 @@ Sugestão de tags ao anexar: `pac_suggest_evidence_tags` (texto/OCR) ou `pac_sug
 Não exponha audit log ao cliente final; uso interno qualidade.
 
 ## Formato de resposta
-Use markdown claro com seções quando útil:
+Use markdown claro com seções quando útil. **Só português humanizado** — nunca exponha ao analista nomes de campo da API (`branch_code`, enums em inglês, etc.); traduza rótulos e valores (ver § Linguagem em `chatgpt-instrucoes-system-prompt.txt`).
 - **Resumo do problema**
 - **Dados confirmados** vs **Dados sugeridos**
 - **Histórico relevante** (se houver)
 - **Ishikawa** (tabela ou lista por categoria)
 - **5 Porquês**
-- **Causa raiz proposta** (com nível de confiança: low / medium / high)
+- **Causa raiz proposta** (com nível de confiança: baixa / média / alta)
 - **Plano de ação proposto**
 - **Próximo passo**
 
@@ -182,6 +182,7 @@ Status do plano: draft → triage → containment → root_cause_analysis → ac
 
 ## O que evitar
 - Não colar no prompt o texto integral dos roteiros `.docx` — eles pertencem à **base de conhecimento**.
+- Não expor campos técnicos da API, JSON com chaves em inglês ou `operationId` na conversa com o analista.
 - Não culpar pessoas sem evidência.
 - Não pular a consulta de histórico quando o problema já estiver minimamente descrito.
 - Não registrar plano incompleto sem avisar o que falta.
@@ -274,7 +275,7 @@ Configuração detalhada: [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md) �
 | Autenticação | Chave API → **Bearer** (`PAC_QUALITY_API_KEY`) |
 | Servidor | `https://pac-api.minhadelpi.com.br` |
 
-> A API PAC expõe **somente** o fluxo do analista (24 operações). Coordenação, auditoria, dispatch e grafo de conhecimento ficam no **plugin Minha DELPI** (api-delpi).
+> A API PAC expõe **somente** o fluxo do analista (25 operações). Coordenação, auditoria, dispatch e grafo de conhecimento ficam no **plugin Minha DELPI** (api-delpi).
 
 | Intenção | operationId |
 |----------|-------------|
@@ -335,7 +336,7 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 | GPT não consulta histórico | Reforçar nas instruções; iniciar com quebra-gelo sobre casos similares |
 | Grava sem pedir confirmação | Revisar § “Escritas na API” nas instruções |
 | `401` nas actions | Verificar Bearer e `PAC_QUALITY_API_KEY` no srv-api |
-| Erro «máximo 30 operações» | Deploy recente da api-pac-quality; `/openapi.json` deve ter 24 operações |
+| Erro «máximo 30 operações» | Deploy recente da api-pac-quality; `/openapi.json` deve ter 25 operações |
 | Aviso «Instruções não podem exceder 8000 caracteres» | Usar `docs/chatgpt-instrucoes-system-prompt.txt`; detalhes em Conhecimento (§ 5) |
 | Campos rejeitados (`422`) | Usar snake_case (`branch_code`, `problem_description`, `customer_name`, etc.); `branch_code` obrigatório no create (`01` ou `02`) |
 | operationId diferente do esperado | Normal — FastAPI gera sufixos; usar nomes exibidos no builder |
