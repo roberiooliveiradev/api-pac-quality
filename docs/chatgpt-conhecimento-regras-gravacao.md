@@ -38,7 +38,7 @@ Anexe este arquivo em **Conhecimento** no builder do Custom GPT, junto com `chat
    - **Opcional — Minha fila:** se o responsável for usuário DELPI, chamar `pac_search_assignable_users?q=nome` e gravar `responsible_user_id` (UUID retornado) **além** de `responsible_name`. Só nome livre → não entra na fila pessoal do plugin.
 5. `pac_update_action_plan_status` — avançar status conforme estágio.
 6. `pac_attach_plan_evidence` — **se** o analista enviou PDF, e-mail, foto ou planilha: anexar com `evidence_type` adequado (`pdf`, `email`, `image`, …).
-7. `pac_upsert_rnc_8d` — só se template 8D do cliente for o fluxo acordado.
+7. `pac_upsert_rnc_8d` — só se template 8D do cliente for o fluxo acordado. Em `team_members[]`, opcional `member_user_id` (UUID via `pac_search_assignable_users`) além de `member_name` — habilita vínculo Delpi na equipe e herança de responsável nas ações.
 
 ---
 

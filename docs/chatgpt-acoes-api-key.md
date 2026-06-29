@@ -46,7 +46,7 @@ No builder do GPT → **Configurar** → **Ações** → **Criar nova ação** (
 1. **Importar schema** — **Importar de URL:**
    `https://pac-api.minhadelpi.com.br/openapi.json`
 
-   A API PAC publica **24 operações** (fluxo analista). Limite ChatGPT: 30. Coordenação e admin ficam no plugin Minha DELPI.
+   A API PAC publica **26 operações** (fluxo analista). Limite ChatGPT: 30. Coordenação e admin ficam no plugin Minha DELPI.
 2. Confirme o servidor:
    ```json
    "url": "https://pac-api.minhadelpi.com.br"
@@ -159,7 +159,7 @@ A api-pac-quality **não** usa JWT Keycloak — apenas `PAC_QUALITY_API_KEY`. RB
 | `401 Unauthorized` | Token errado ou `PAC_QUALITY_API_KEY` ausente no `.env` |
 | `Could not resolve` / host errado | Servidor no schema deve ser `pac-api.minhadelpi.com.br` |
 | GPT não chama a API | Verificar se ações estão habilitadas e schema importado sem erro |
-| Erro «máximo 30 operações» | API PAC desatualizada — deploy com 24 operações em `/openapi.json` |
+| Erro «máximo 30 operações» | API PAC desatualizada — deploy com **26 operações** em `/openapi.json` |
 | `422` | Body incompleto — ver campos obrigatórios no schema |
 
 ---

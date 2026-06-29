@@ -22,6 +22,16 @@ No **srv-api**, a porta **80** já é do `delpi-gateway` (stack DELPI). A API PA
 
 Não é necessário registro DNS tipo `A` apontando IP público quando se usa tunnel — o Cloudflare cria o CNAME automaticamente.
 
+### Desenvolvimento local (túnel quick)
+
+Para testar o Custom GPT contra sua máquina:
+
+```bash
+cloudflared tunnel --url http://localhost:8082
+```
+
+O comando imprime uma URL `https://….trycloudflare.com` — use no builder do GPT. Essa URL **expira** quando o `cloudflared` encerra. Não confunda com `pac-api.minhadelpi.com.br` (tunnel permanente no srv-api).
+
 ---
 
 ## Pré-requisitos (servidor)
@@ -44,7 +54,7 @@ Antes de configurar o Cloudflare:
    curl -s http://localhost:8082/health
    ```
 
-   Esperado: `"status":"ok"` e `"plugins_database":"ok"`.
+   Esperado: `"status":"ok"`, `"api_delpi_delegation":"enabled"` e `"core_api_directory":"configured"` (com delegação e Core API no `.env`).
 
 3. Porta livre (se mudar de 8082):
 
@@ -131,17 +141,19 @@ Resposta `/health` esperada:
 {
   "status": "ok",
   "service": "api-pac-quality",
-  "plugins_database": "ok"
+  "plugins_database": "ok",
+  "api_delpi_delegation": "enabled",
+  "core_api_directory": "configured"
 }
 ```
 
 ### Teste autenticado (opcional)
 
-Com JWT de usuário que tenha `quality-action-plans.read`:
+Com `PAC_QUALITY_API_KEY` (mesmo valor do `.env` e do Custom GPT):
 
 ```bash
-curl -s -H "Authorization: Bearer $TOKEN" \
-  "https://pac-api.minhadelpi.com.br/quality/action-plans?page_size=1"
+curl -s -H "Authorization: Bearer $PAC_QUALITY_API_KEY" \
+  "https://pac-api.minhadelpi.com.br/quality/action-plans/assignable-users?q=ana&limit=5"
 ```
 
 ---
@@ -154,6 +166,12 @@ Confirme no `~/projetos/api-pac-quality/.env`:
 PUBLIC_BASE_URL=https://pac-api.minhadelpi.com.br
 NGINX_HTTP_PORT=8082
 API_PAC_ROOT_PATH=
+PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI=true
+API_DELPI_BASE_URL=http://delpi-api-delpi:8000
+API_DELPI_INTERNAL_SERVICE_TOKEN=<delpi-central/infra/.env>
+CORE_API_BASE_URL=http://delpi-core-api:8000
+CORE_API_INTEGRATIONS_SERVICE_TOKEN=<delpi-central/infra/.env>
+PAC_QUALITY_API_KEY=<openssl rand -hex 32>
 ```
 
 Se alterar `NGINX_HTTP_PORT`, atualize também a URL no tunnel (`localhost:PORT`).
@@ -228,18 +246,20 @@ Nesse caso, o origin precisa escutar na porta que o Cloudflare alcança (80/443)
 | `522` / timeout | Tunnel não aponta para `8082` ou stack parada | `docker compose ps` + conferir Public Hostname |
 | `502` | nginx up, API down | `docker compose logs api-pac-quality` |
 | `plugins_database: unavailable` | Rede Docker / credenciais Postgres | `docker-compose.override.yml` + `PLUGINS_DB_*` |
-| `401` nas rotas | JWT ausente ou inválido | Testar com token Keycloak válido |
-| `403` nas rotas | RBAC | Registrar manifesto + permissões no Core API |
+| `401` nas rotas | `PAC_QUALITY_API_KEY` ausente ou errada | Bearer ou `X-Api-Key` no curl/GPT |
+| `503` em assignable-users | Core API não configurada | `CORE_API_BASE_URL` + `CORE_API_INTEGRATIONS_SERVICE_TOKEN` |
+| `api_delpi_delegation: misconfigured` | Token ou URL api-delpi | Copiar `API_DELPI_INTERNAL_SERVICE_TOKEN` do infra |
 | Health OK local, falha no HTTPS | Tunnel/DNS ainda não propagou | Aguardar 2–5 min; conferir hostname no Zero Trust |
 
 ---
 
 ## Checklist completo
 
-- [ ] Migrations `quality-action-plans` aplicadas (`V001`–`V003`)
-- [ ] `.env` preenchido (`.env.srv-api.example`)
+- [ ] Migrations `quality-action-plans` aplicadas (`V001`–`V019`)
+- [ ] `.env` preenchido (delegação + Core API + `PAC_QUALITY_API_KEY`)
 - [ ] `docker-compose.override.yml` na rede `infra_delpi-network`
-- [ ] `curl http://localhost:8082/health` → OK
+- [ ] `curl http://localhost:8082/health` → OK (`api_delpi_delegation`, `core_api_directory`)
+- [ ] `bash scripts/smoke_pac_delpi_delegation.sh` (opcional)
 - [ ] Public Hostname `pac-api.minhadelpi.com.br` → `http://localhost:8082` no tunnel
 - [ ] `curl https://pac-api.minhadelpi.com.br/health` → OK
 - [ ] Provider `api-pac-quality` no agente com `baseUrl` do subdomínio

@@ -9,8 +9,8 @@ Consultas consolidadas e **CRUD do plugin MFE** são expostos pela **api-delpi**
 | Camada | Repositório | Responsabilidade |
 |--------|-------------|------------------|
 | **Plugin MFE + api-delpi** | `delpi-central` | CRUD e leitura via JWT (`quality-action-plans` caller) |
-| **API transacional GPT** | `api-pac-quality` (este repo) | 24 rotas analista; auth **`PAC_QUALITY_API_KEY`** apenas |
-| **Migrations + PostgreSQL** | `delpi-central/api-delpi/migrations/plugins/quality-action-plans/` | Schema `quality.*` (V001–V007) |
+| **API transacional GPT** | `api-pac-quality` (este repo) | 26 operações analista; auth **`PAC_QUALITY_API_KEY`**; CRUD delegável → api-delpi |
+| **Migrations + PostgreSQL** | `delpi-central/api-delpi/migrations/plugins/quality-action-plans/` | Schema `quality.*` (V001–V019) |
 | **Agente ChatGPT** | Custom GPT + Actions | OpenAPI desta API em `pac-api.minhadelpi.com.br` |
 | **Agente Minha DELPI** (roadmap) | `minha-delpi-ai-api` | Provider OpenAPI sync |
 
@@ -94,9 +94,10 @@ curl -s http://localhost:8082/health
 | **ChatGPT Actions (API Key)** | [docs/chatgpt-acoes-api-key.md](docs/chatgpt-acoes-api-key.md) |
 | **Autenticação (API key only)** | [docs/autenticacao-api-pac.md](docs/autenticacao-api-pac.md) |
 | **GPT Especialista Qualidade** | [docs/chatgpt-especialista-qualidade.md](docs/chatgpt-especialista-qualidade.md) (roteiros Ishikawa/5 Porquês: `docs/*.docx` → Conhecimento no builder) |
-| OpenAPI agente GPT | `GET /openapi.json` — 24 operações (fluxo analista, ≤30 ChatGPT) |
+| **Contrato delegação S2S** | [docs/contrato-http-api-pac-api-delpi.md](docs/contrato-http-api-pac-api-delpi.md) |
+| OpenAPI agente GPT | `GET /openapi.json` — **26 operações** (fluxo analista, ≤30 ChatGPT) |
 
-Documentação: [docs/openapi-analista-24-operacoes.md](docs/openapi-analista-24-operacoes.md)
+Documentação: [docs/openapi-analista-24-operacoes.md](docs/openapi-analista-24-operacoes.md) (título histórico; conteúdo = 26 ops)
 | `.env` produção | [.env.srv-api.example](.env.srv-api.example) |
 
 Build context: raiz `projetos/` (Dockerfile em `api-pac-quality/Dockerfile`).
@@ -129,7 +130,10 @@ Códigos: `quality-action-plans.read`, `quality-action-plans.write`, `quality-ac
 | `POST` | `/quality/action-plans/{id}/effectiveness-review` | Verificação de eficácia |
 | `PUT` | `/quality/action-plans/{id}/rnc-8d` | Relatório 8D |
 | `GET` | `/quality/action-plans/{id}/export/rnc-8d` | Export Excel (com imagens na aba Anexos) |
+| `GET` | `/quality/action-plans/assignable-users` | Usuários Delpi atribuíveis (`pac_search_assignable_users`) |
 | `GET/POST/DELETE` | `/quality/action-plans/{id}/evidences` | Evidências (`action_id` opcional no upload) |
+
+Com `PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI=true`, as rotas de escrita/listagem transacional são **delegadas** à api-delpi (mesmo contrato HTTP). Ver [docs/contrato-http-api-pac-api-delpi.md](docs/contrato-http-api-pac-api-delpi.md).
 
 ### Leitura e CRUD — plugin (api-delpi)
 
@@ -140,6 +144,8 @@ Implementado em `delpi-central/api-delpi`. O MFE **não** chama esta API diretam
 | `GET` | `/quality/action-plans/dashboard` | Cards executivos |
 | `GET` | `/quality/action-plans` | Listagem |
 | `GET` | `/quality/action-plans/overdue` | Planos com ações atrasadas |
+| `GET` | `/quality/action-plans/my-queue` | Fila pessoal (JWT) |
+| `GET` | `/quality/action-plans/assignable-users` | Usuários atribuíveis (proxy Core API) |
 | `GET` | `/quality/action-plans/{id}` | Detalhe completo |
 | `PATCH` | `/quality/action-plans/{id}` | Atualizar identificação |
 | `POST` | `/quality/action-plans` | Criar plano |
@@ -185,4 +191,4 @@ Migration: `V003__create_pac_knowledge_layer.sql` (tabelas + `pg_trgm`).
 | `docs/12-roadmap-e-evolucao/quality-action-plans/HOMOLOGACAO.md` | delpi-central | Roteiro de homologação |
 | `playbook_pac_qualidade_delpi.md` | api-pac-quality | Especificação funcional v0.1 |
 
-**Próxima onda (Onda 1):** homologar H1–H3 na **api-delpi** + plugin; deploy api-pac em produção para o GPT.
+**Próxima onda:** homologar H1–H3 na **api-delpi** + plugin; manter api-pac em produção com delegação S2S e `pac_search_assignable_users` para o GPT.

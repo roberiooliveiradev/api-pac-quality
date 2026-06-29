@@ -65,7 +65,7 @@ Guias: [chatgpt-especialista-qualidade.md](chatgpt-especialista-qualidade.md) ·
 O gate falha se:
 
 - houver mais de **30** operações no OpenAPI;
-- o conjunto publicado ≠ **24** `ANALYST_PAC_OPERATION_IDS`;
+- o conjunto publicado ≠ **26** `ANALYST_PAC_OPERATION_IDS`;
 - `/health` aparecer no schema;
 - operações plugin-only voltarem ao OpenAPI PAC.
 
@@ -88,5 +88,5 @@ Validar:
 ```bash
 curl -s https://pac-api.minhadelpi.com.br/openapi.json | python3 -c "
 import json,sys; ops=[o.get('operationId') for p in json.load(sys.stdin).get('paths',{}).values() for o in p.values() if isinstance(o,dict)]; print(len(ops), 'operações')"
-# Esperado: 24 operações
+# Esperado: 26 operações
 ```

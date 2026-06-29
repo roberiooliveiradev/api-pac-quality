@@ -38,6 +38,18 @@ Upload no builder (**Conhecimento**), junto com **`chatgpt-conhecimento-regras-g
 
 `pac_update_plan_action` também aceita `responsible_user_id` (ou `null` para desvincular).
 
+## Equipe de análise 8D (`team_members` em `pac_upsert_rnc_8d`)
+
+| Campo | Quando usar |
+|-------|-------------|
+| `member_name` | Obrigatório por membro (texto). |
+| `member_user_id` | Opcional. UUID Delpi via `pac_search_assignable_users?q=…` — habilita Minha fila e notificações para o membro. |
+| `is_leader` | Líder da equipe (bool). |
+| `department` | Área/função (texto). |
+| `sort_order` | Ordem de exibição (int). |
+
+No plugin MFE, ações novas podem **herdar** `responsible_user_id` do membro vinculado. Planos internos (sem 8D) ainda permitem vínculo Delpi direto no modal da ação.
+
 ## Código do plano (`code`)
 
 - `pac_get_action_plan`: path aceita **UUID** ou código **`PAC-2026-XXXX`**

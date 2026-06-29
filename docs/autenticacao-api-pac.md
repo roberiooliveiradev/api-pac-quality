@@ -9,7 +9,9 @@ A **api-pac-quality** é uma API **standalone** para o **Custom GPT** (ChatGPT A
 | **api-pac-quality** (este repo) | `PAC_QUALITY_API_KEY` — chave de serviço única |
 | **api-delpi** + plugin MFE | JWT Keycloak + RBAC (`quality-action-plans.*`) |
 
-Isso reduz superfície de ataque: o agente GPT não herda permissões de usuário nem depende do Core API / Keycloak em runtime.
+Isso reduz superfície de ataque: o agente GPT não herda permissões de usuário nem JWT Keycloak.
+
+**Exceção em runtime:** `pac_search_assignable_users` chama a Core API com `CORE_API_INTEGRATIONS_SERVICE_TOKEN` (S2S). CRUD transacional pode ser **delegado** à api-delpi (`PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI`). Ver [contrato-http-api-pac-api-delpi.md](contrato-http-api-pac-api-delpi.md).
 
 ## Como autenticar
 
@@ -59,7 +61,7 @@ Módulos:
 | `app/interface/http/middleware/pac_public_paths.py` | Paths públicos |
 | `app/interface/http/middleware/pac_request_context.py` | Ator `pac-gpt-agent` em context var |
 
-`created_by_user_id` / `updated_by` nas escritas usam `pac-gpt-agent`. Rastreio humano do analista fica em `responsible_name` / `department` nas ações (instruções do GPT).
+`created_by_user_id` / `updated_by` nas escritas usam `pac-gpt-agent` (ou ator propagado via headers `X-Delpi-Actor-*` na api-delpi quando delegado). Vínculo humano para fila: `responsible_user_id` nas ações e `member_user_id` na equipe 8D — obter UUID com `pac_search_assignable_users`.
 
 ## RBAC e plugin
 
@@ -91,5 +93,5 @@ Guias: [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md) · [chatgpt-especial
 
 ## Ver também
 
-- [openapi-analista-24-operacoes.md](openapi-analista-24-operacoes.md) — limite de 24 operações no OpenAPI
+- [openapi-analista-24-operacoes.md](openapi-analista-24-operacoes.md) — **26 operações** no OpenAPI publicado
 - [DEPLOYMENT.md](DEPLOYMENT.md) — deploy no srv-api
