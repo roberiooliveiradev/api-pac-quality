@@ -1,6 +1,12 @@
 # Referência PAC — campos, evidências e API (Conhecimento GPT)
 
-Upload opcional no builder (**Conhecimento**), junto com os roteiros `.docx`. Complementa o system prompt compacto (`chatgpt-instrucoes-system-prompt.txt`).
+Upload no builder (**Conhecimento**), junto com **`chatgpt-conhecimento-regras-gravacao.md`** (checklist de gravação + glossário) e os roteiros `.docx`. O system prompt compacto fica em `chatgpt-instrucoes-system-prompt.txt` (≤8.000 caracteres nas Instruções).
+
+## Registro NC do cliente (`client_nc_registry`)
+
+- NC **externa**: gravar o **número/registro da NC do cliente** (ex.: `217436500`).
+- **Não** deixar esse número só em `source_reference` — `client_nc_registry` é o campo canônico para export 8D/PDF.
+- `source_reference` complementa (ex.: título do PDF, e-mail).
 
 ## Datas (`detected_at`, `reported_at`)
 
@@ -19,7 +25,13 @@ Upload opcional no builder (**Conhecimento**), junto com os roteiros `.docx`. Co
 ## Filial (`branch_code`)
 
 - Obrigatório: `01` ou `02`
-- Usar em buscas e recorrência; API pode montar `recurrence_key`
+- Usar em buscas e recorrência
+
+## Recorrência (`recurrence_key`)
+
+- **Não** enviar chave inventada pelo agente.
+- Omitir o campo no create — a API compõe: `filial:01|produto:…|falha:…`
+- Detalhes e erros frequentes: `chatgpt-conhecimento-regras-gravacao.md` § 1 e § 5.
 
 ## Extração de relatos
 
@@ -57,7 +69,7 @@ Severidade: low, medium, high, critical
 ## Linguagem com o analista
 
 - Na conversa: **não** expor `branch_code`, `nonconformity_scope`, snake_case, enums em inglês nem `operationId`.
-- Traduzir rótulos e valores (ver glossário em `chatgpt-instrucoes-system-prompt.txt` § Linguagem com o analista).
+- Glossário completo: **`chatgpt-conhecimento-regras-gravacao.md`** § 4.
 - Nomes técnicos só nas chamadas à API.
 
 ## Actions disponíveis (25)

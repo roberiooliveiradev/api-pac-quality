@@ -32,15 +32,16 @@ O ChatGPT limita o campo **Instruções** a **8.000 caracteres**. O prompt expan
 
 Arquivo pronto para copiar/colar:
 
-**[`docs/chatgpt-instrucoes-system-prompt.txt`](chatgpt-instrucoes-system-prompt.txt)** (~2.900 caracteres)
+**[`docs/chatgpt-instrucoes-system-prompt.txt`](chatgpt-instrucoes-system-prompt.txt)** (~3.300 caracteres — limite do builder: 8.000)
 
 1. Abra o arquivo → selecione tudo → cole em **Instruções**
 2. Não inclua os roteiros `.docx` nem a tabela longa de evidências aqui
 
 ### Referência expandida (não colar no prompt)
 
-Detalhes de campos, evidências e status — upload em **Conhecimento**:
+Detalhes de campos, evidências e status — upload em **Conhecimento** (não colar em Instruções):
 
+- [`chatgpt-conhecimento-regras-gravacao.md`](chatgpt-conhecimento-regras-gravacao.md) — checklist de gravação, glossário PT-BR, erros frequentes
 - [`chatgpt-referencia-campos-api.md`](chatgpt-referencia-campos-api.md)
 - `Entrevista Ishikawa.docx` + `Entrevista Complementar dos Porquês Sucessivos.docx` (§ 5)
 
@@ -236,12 +237,13 @@ Faça upload dos arquivos do repositório `api-pac-quality/docs/`:
 |---------|-------------|----------|
 | [`Entrevista Ishikawa.docx`](Entrevista%20Ishikawa.docx) | **Etapa 8** do fluxo — antes dos Porquês | Entrevista para levantar e classificar causas no diagrama Ishikawa (6M): fato vs hipótese, causas prováveis/pendentes/descartadas; **não** conclui causa raiz |
 | [`Entrevista Complementar dos Porquês Sucessivos.docx`](Entrevista%20Complementar%20dos%20Porqu%C3%AAns%20Sucessivos.docx) | **Etapa 9** — após Ishikawa | Continuação: aprofundar causas prováveis com porquês sucessivos (ocorrência, não detecção, causa sistêmica); reutiliza o que já foi levantado |
-| [`chatgpt-referencia-campos-api.md`](chatgpt-referencia-campos-api.md) | Consulta durante o chat | Campos PAC, tabela de evidências multipart, eficácia, status — **não** colar no prompt |
+| [`chatgpt-conhecimento-regras-gravacao.md`](chatgpt-conhecimento-regras-gravacao.md) | Antes de gravar na API | Checklist de campos, glossário humanizado, `client_nc_registry`, `recurrence_key`, anexo PDF |
+| [`chatgpt-referencia-campos-api.md`](chatgpt-referencia-campos-api.md) | Consulta durante o chat | Campos PAC, tabela de evidências multipart, eficácia, status |
 
 **Como configurar no ChatGPT**
 
 1. Builder → **Especialista Qualidade** → **Instruções** → colar `chatgpt-instrucoes-system-prompt.txt` (limite 8.000 caracteres)
-2. **Conhecimento** → carregar os dois `.docx` + opcionalmente `chatgpt-referencia-campos-api.md`
+2. **Conhecimento** → carregar os dois `.docx` + `chatgpt-conhecimento-regras-gravacao.md` + `chatgpt-referencia-campos-api.md`
 3. **Não** cole roteiros nem tabelas longas em Instruções
 
 **Como o agente deve usá-los**
@@ -319,7 +321,7 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 - [ ] Nome: **Especialista Qualidade**
 - [ ] Descrição colada (§ 1)
 - [ ] Instruções: colar `chatgpt-instrucoes-system-prompt.txt` (verificar **≤8.000** caracteres no builder)
-- [ ] Conhecimento: `Entrevista Ishikawa.docx` + `Entrevista Complementar…docx` + opcional `chatgpt-referencia-campos-api.md`
+- [ ] Conhecimento: `Entrevista Ishikawa.docx` + `Entrevista Complementar…docx` + `chatgpt-conhecimento-regras-gravacao.md` + `chatgpt-referencia-campos-api.md`
 - [ ] Quebra-gelos (§ 3)
 - [ ] Actions: schema de `/openapi.json` + Bearer — **reimportar após deploy**
 - [ ] Teste `/health` no preview → `plugins_database: ok`
