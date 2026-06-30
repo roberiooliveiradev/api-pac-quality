@@ -30,10 +30,35 @@ def test_delegation_misconfigured_without_gateway(monkeypatch: pytest.MonkeyPatc
     gateway.request_json.assert_not_called()
 
 
-def test_delegation_forward_binary_uses_request_binary(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_delegation_forward_binary_returns_json_error_from_api_delpi(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     gateway = MagicMock()
     gateway.configured = True
-    gateway.request_binary.return_value = (
+    gateway.request_json.return_value = (
+        404,
+        {},
+        {"success": False, "message": "Arquivo não encontrado.", "data": None},
+    )
+    service = PacApiDelpiDelegationService(gateway=gateway)
+    response = service.forward_binary(
+        method="GET",
+        path_suffix="/plan/evidences/e1/file",
+        pac_operation_id="pac_download_plan_evidence",
+    )
+    assert response is not None
+    assert response.status_code == 404
+    body = response.body.decode()
+    assert "Arquivo não encontrado" in body
+    assert "API_DELPI_UNAVAILABLE" not in body
+
+
+def test_delegation_forward_binary_uses_request_json_for_bytes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    gateway = MagicMock()
+    gateway.configured = True
+    gateway.request_json.return_value = (
         200,
         {"content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
         b"file-bytes",
@@ -47,8 +72,7 @@ def test_delegation_forward_binary_uses_request_binary(monkeypatch: pytest.Monke
     assert response is not None
     assert response.status_code == 200
     assert response.body == b"file-bytes"
-    gateway.request_binary.assert_called_once()
-    gateway.request_json.assert_not_called()
+    gateway.request_json.assert_called_once()
 
 
 def test_delegation_rewrites_operation_id(monkeypatch: pytest.MonkeyPatch) -> None:
