@@ -1,7 +1,7 @@
 """Cenários de eval anonimizados — agente PAC (Onda 5.4).
 
 Uso: validação estrutural em CI; execução manual contra GPT com checklist em
-docs/extracao-estruturada-pdf-email.md.
+docs/agente-gpt-import/conhecimento/extracao-estruturada-pdf-email.md.
 """
 
 from __future__ import annotations

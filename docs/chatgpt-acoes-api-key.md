@@ -88,6 +88,8 @@ Prompt completo (descrição, instruções, quebra-gelos e checklist): **[chatgp
 Resumo das regras obrigatórias:
 
 - Não inventar causa raiz; confirmar com o analista antes de gravar.
+- **Sempre** apresentar causa raiz provável e **nível de confiança %** após Ishikawa/5 Porquês (requisito liderança jun/2026).
+- Se confiança &lt; 70%, listar o que falta levantar para aumentar a confiabilidade.
 - Usar `search_similar_cases` antes de concluir causa.
 - Escritas (`POST`/`PUT`/`PATCH`) só após confirmação explícita do usuário.
 - Diferenciar fato, hipótese e sugestão.

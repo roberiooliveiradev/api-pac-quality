@@ -1,6 +1,6 @@
 # Referência PAC — campos, evidências e API (Conhecimento GPT)
 
-Upload no builder (**Conhecimento**), junto com **`chatgpt-conhecimento-regras-gravacao.md`** (checklist de gravação + glossário) e os roteiros `.docx`. O system prompt compacto fica em `chatgpt-instrucoes-system-prompt.txt` (≤8.000 caracteres nas Instruções).
+Upload em **Conhecimento** (`docs/agente-gpt-import/conhecimento/`), junto com `chatgpt-conhecimento-regras-gravacao.md`, `extracao-estruturada-pdf-email.md`, `entrevista-ishikawa.md` e `entrevista-cinco-porques.md`. System prompt: `../instrucoes/chatgpt-instrucoes-system-prompt.txt` (colar em **Instruções**).
 
 ## Registro NC do cliente (`client_nc_registry`)
 
@@ -49,6 +49,17 @@ Upload no builder (**Conhecimento**), junto com **`chatgpt-conhecimento-regras-g
 | `sort_order` | Ordem de exibição (int). |
 
 No plugin MFE, ações novas podem **herdar** `responsible_user_id` do membro vinculado. Planos internos (sem 8D) ainda permitem vínculo Delpi direto no modal da ação.
+
+## 5 Porquês e causa raiz (`pac_upsert_five_whys`)
+
+| Campo | Uso |
+|-------|-----|
+| `occurrence_whys` | Lista ordenada — por que o defeito aconteceu |
+| `detection_whys` | Lista ordenada — por que não foi detectado antes |
+| `root_cause` | Texto da **causa raiz provável** (hipótese até confirmação) |
+| `confidence_level` | `low` \| `medium` \| `high` — alinhar à faixa % da conversa (ver `chatgpt-conhecimento-regras-gravacao.md` §5) |
+
+Na conversa com o analista, **sempre** exibir também **Nível de confiança: XX%** e lacunas se &lt; 70%.
 
 ## Código do plano (`code`)
 

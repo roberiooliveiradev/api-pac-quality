@@ -93,7 +93,8 @@ curl -s http://localhost:8082/health
 | **Subdomínio Cloudflare** | [docs/cloudflare-subdominio-pac-api.md](docs/cloudflare-subdominio-pac-api.md) |
 | **ChatGPT Actions (API Key)** | [docs/chatgpt-acoes-api-key.md](docs/chatgpt-acoes-api-key.md) |
 | **Autenticação (API key only)** | [docs/autenticacao-api-pac.md](docs/autenticacao-api-pac.md) |
-| **GPT Especialista Qualidade** | [docs/chatgpt-especialista-qualidade.md](docs/chatgpt-especialista-qualidade.md) (roteiros Ishikawa/5 Porquês: `docs/*.docx` → Conhecimento no builder) |
+| **GPT Especialista Qualidade** | [docs/chatgpt-especialista-qualidade.md](docs/chatgpt-especialista-qualidade.md) — setup humano |
+| **Importação no builder GPT** | [docs/agente-gpt-import/README.md](docs/agente-gpt-import/README.md) (`instrucoes/` + `conhecimento/`) |
 | **Contrato delegação S2S** | [docs/contrato-http-api-pac-api-delpi.md](docs/contrato-http-api-pac-api-delpi.md) |
 | OpenAPI agente GPT | `GET /openapi.json` — **26 operações** (fluxo analista, ≤30 ChatGPT) |
 

@@ -11,7 +11,8 @@ Consumida pelo **agente GPT** da Minha DELPI via provider OpenAPI (`api-pac-qual
 | [contrato-http-api-pac-api-delpi.md](contrato-http-api-pac-api-delpi.md) | Delegação CRUD → api-delpi (S2S) |
 | [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md) | **ChatGPT Custom GPT** — chave API Bearer |
 | [autenticacao-api-pac.md](autenticacao-api-pac.md) | **Autenticação** — só `PAC_QUALITY_API_KEY` (sem delpi_auth) |
-| [chatgpt-especialista-qualidade.md](chatgpt-especialista-qualidade.md) | **Prompt, descrição e quebra-gelos** do agente |
+| [chatgpt-especialista-qualidade.md](chatgpt-especialista-qualidade.md) | **Setup humano** do agente (descrição, quebra-gelos, checklist) |
+| [agente-gpt-import/README.md](agente-gpt-import/README.md) | **Arquivos para importar** no Custom GPT (`instrucoes/` + `conhecimento/`) |
 | `GET /openapi.json` | Contrato OpenAPI do agente GPT (**26 operações** — fluxo analista) |
 
 Ver [openapi-analista-24-operacoes.md](openapi-analista-24-operacoes.md).

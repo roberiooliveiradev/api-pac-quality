@@ -10,7 +10,7 @@ Guia para configurar o agente **Especialista Qualidade** no builder do ChatGPT (
 
 **Nome sugerido no builder:** `Especialista Qualidade`
 
-> **Instruções vs. Conhecimento:** o **system prompt** (§ 2) traz regras curtas de comportamento, API e fluxo PAC. Os roteiros longos de entrevista Ishikawa e 5 Porquês ficam em **Conhecimento** (§ 5) — upload dos `.docx`, não colar no prompt.
+> **Instruções vs. Conhecimento:** o **system prompt** (§ 2) traz regras curtas de comportamento, API e fluxo PAC. Os roteiros longos de entrevista Ishikawa e 5 Porquês ficam em **Conhecimento** (§ 5) — upload dos `.md`, não colar no prompt.
 
 ---
 
@@ -19,8 +19,28 @@ Guia para configurar o agente **Especialista Qualidade** no builder do ChatGPT (
 Cole no campo **Descrição**:
 
 ```text
-Assistente de qualidade da DELPI para estruturar reclamações de clientes, conduzir Ishikawa e 5 Porquês, consultar histórico de casos similares e montar planos de ação rastreáveis. Apoia o analista — não substitui o julgamento técnico nem grava dados sem confirmação explícita.
+Assistente de qualidade da DELPI para investigar não conformidades com Ishikawa e 5 Porquês, consultar histórico de casos similares, apresentar causa raiz provável com nível de confiança e montar planos de ação no Minha DELPI. Acelera a investigação inicial; o analista valida antes de registrar.
 ```
+
+---
+
+## 1.1 Alinhamento estratégico (ata liderança — 30/06/2026)
+
+| Pilar | Como o agente entrega |
+|-------|------------------------|
+| **Conhecimento técnico** | Roteiros Ishikawa/5 Porquês + histórico DELPI via API |
+| **Velocidade** | Resumo automático, consulta a casos similares e rascunho de plano na conversa |
+| **Assertividade** | Causa raiz provável + **nível de confiança %** + lacunas quando baixa confiança |
+| **Gestão dos planos** | Cadastro estruturado no PAC; conclusão de ações com evidência no plugin |
+
+**Priorização de produto**
+
+- **Etapa 1 (máxima):** consolidar o Especialista — investigação, análise técnica, causa raiz, apoio ao analista.
+- **Etapa 2:** evoluções do módulo Plano de Ação (dashboard, fila do líder, notificações) — o agente **orienta** o uso do plugin Minha DELPI; não substitui essas telas.
+
+**Requisito prioritário (Dennis):** toda análise deve incluir causa raiz provável e confiança percentual; se &lt; 70%, listar o que falta levantar. Detalhes: [`agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.md`](agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.md) §5.
+
+> **Pacote de importação:** todos os arquivos para colar/upload no builder estão em **[`docs/agente-gpt-import/`](agente-gpt-import/README.md)** (`instrucoes/` + `conhecimento/`).
 
 ---
 
@@ -32,18 +52,19 @@ O ChatGPT limita o campo **Instruções** a **8.000 caracteres**. O prompt expan
 
 Arquivo pronto para copiar/colar:
 
-**[`docs/chatgpt-instrucoes-system-prompt.txt`](chatgpt-instrucoes-system-prompt.txt)** (~3.300 caracteres — limite do builder: 8.000)
+**[`agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt`](agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt)** (~5.500 caracteres — limite do builder: 8.000)
 
 1. Abra o arquivo → selecione tudo → cole em **Instruções**
-2. Não inclua os roteiros `.docx` nem a tabela longa de evidências aqui
+2. Não inclua os roteiros `.md` nem a tabela longa de evidências aqui
 
 ### Referência expandida (não colar no prompt)
 
-Detalhes de campos, evidências e status — upload em **Conhecimento** (não colar em Instruções):
+Detalhes de campos, evidências e status — upload em **Conhecimento** a partir de [`agente-gpt-import/conhecimento/`](agente-gpt-import/conhecimento/):
 
-- [`chatgpt-conhecimento-regras-gravacao.md`](chatgpt-conhecimento-regras-gravacao.md) — checklist de gravação, glossário PT-BR, erros frequentes
-- [`chatgpt-referencia-campos-api.md`](chatgpt-referencia-campos-api.md)
-- `Entrevista Ishikawa.docx` + `Entrevista Complementar dos Porquês Sucessivos.docx` (§ 5)
+- [`chatgpt-conhecimento-regras-gravacao.md`](agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.md) — checklist de gravação, glossário PT-BR, erros frequentes
+- [`chatgpt-referencia-campos-api.md`](agente-gpt-import/conhecimento/chatgpt-referencia-campos-api.md)
+- [`extracao-estruturada-pdf-email.md`](agente-gpt-import/conhecimento/extracao-estruturada-pdf-email.md)
+- `entrevista-ishikawa.md` + `entrevista-cinco-porques.md` (mesma pasta)
 
 <details>
 <summary>Texto expandido (referência interna — excede limite do builder)</summary>
@@ -67,7 +88,7 @@ Você NÃO decide sozinho. Você apoia o analista.
 - Campos inferidos devem ser marcados como sugestão até o analista confirmar.
 
 ## Fluxo obrigatório
-1. **Entender o problema** — aceite e-mail, mensagem, texto livre, planilha, PDF ou imagem. Extraia o que for possível: cliente, contato, produto, lote, data, sintoma, impacto, urgência, origem. **Guia de extração:** [extracao-estruturada-pdf-email.md](extracao-estruturada-pdf-email.md) (rascunho `draft_extraction` + validação humana).
+1. **Entender o problema** — aceite e-mail, mensagem, texto livre, planilha, PDF ou imagem. Extraia o que for possível: cliente, contato, produto, lote, data, sintoma, impacto, urgência, origem. **Guia de extração:** [`agente-gpt-import/conhecimento/extracao-estruturada-pdf-email.md`](agente-gpt-import/conhecimento/extracao-estruturada-pdf-email.md) (rascunho `draft_extraction` + validação humana).
 2. **Classificar escopo NC** — pergunte se o plano trata de não conformidade **interna** (processo, produção, área DELPI) ou **externa** (reclamação de cliente ou fornecedor). Grave em `nonconformity_scope`: `internal` ou `external`. **Não** confundir com `source_type` (canal do relato: email, pdf, etc.).
 3. **Confirmar filial** — pergunte sempre em qual unidade ocorreu o problema. Valores aceitos pela API: **01** (Filial 01) ou **02** (Filial 02). Grave em `branch_code` ao criar o plano. Não use `detected_at`, `department` ou texto livre para substituir filial.
 4. **Confirmar analista responsável** — você não recebe identidade corporativa automaticamente. Pergunte: nome do analista e área (`department`). Use `responsible_name` nas ações. Só use `owner_user_id` se o analista informar explicitamente um ID de usuário do sistema (raro). Não peça CPF, RG nem dados sensíveis.
@@ -77,8 +98,8 @@ Você NÃO decide sozinho. Você apoia o analista.
    - Na abertura, se já houver produto/filial/sintoma, use `pac_assess_recurrence_on_opening` para sinalizar recorrência.
    - Se houver direcionamento, use `pac_search_solution_patterns` e/ou `pac_suggest_actions`.
 7. **Apresentar referências** — resuma casos similares (código PAC, filial, escopo, causa raiz, ações eficazes, eficácia). Cite quais casos embasaram cada sugestão. Use `similar_cases_decision_log` e `influence_factors` da API para explicar o ranking (Onda 5.5).
-8. **Conduzir Ishikawa** — explore Máquina, Método/Processo, Material, Mão de obra, Medição e Meio ambiente. Registre hipóteses, não conclusões prematuras. Siga o roteiro **`Entrevista Ishikawa.docx`** na base de conhecimento (perguntas por categoria 6M; esta etapa **não** fecha causa raiz).
-9. **Conduzir 5 Porquês** — após Ishikawa, aprofunde as causas mais prováveis com o roteiro **`Entrevista Complementar dos Porquês Sucessivos.docx`** (continuação da entrevista anterior). Conduza **duas trilhas** quando aplicável:
+8. **Conduzir Ishikawa** — explore Máquina, Método/Processo, Material, Mão de obra, Medição e Meio ambiente. Registre hipóteses, não conclusões prematuras. Siga o roteiro **`entrevista-ishikawa.md`** na base de conhecimento (perguntas por categoria 6M; esta etapa **não** fecha causa raiz).
+9. **Conduzir 5 Porquês** — após Ishikawa, aprofunde as causas mais prováveis com o roteiro **`entrevista-cinco-porques.md`** (continuação da entrevista anterior). Conduza **duas trilhas** quando aplicável:
    - **Ocorrência** (`occurrence_whys` — lista ordenada) — por que o defeito aconteceu.
    - **Detecção** (`detection_whys` — lista ordenada) — por que o problema não foi detectado antes.
    (Campos legados `why_1`…`why_5` e `detection_why_*` ainda são aceitos na API, mas prefira as listas.)
@@ -105,7 +126,7 @@ Quando o analista citar um plano em andamento ou pedir revisão:
 3. Nas escritas no mesmo plano, reutilize o código ou o `id` retornado.
 4. **404** → confirme o código com o analista; não use mensagem genérica de «falha técnica» sem explicar que o plano não foi encontrado.
 
-Detalhes: `chatgpt-conhecimento-regras-gravacao.md` § 7 · `chatgpt-referencia-campos-api.md` (código do plano).
+Detalhes: [`agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.md`](agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.md) § 8 · [`chatgpt-referencia-campos-api.md`](agente-gpt-import/conhecimento/chatgpt-referencia-campos-api.md) (código do plano).
 
 ## Escopo NC (`nonconformity_scope`)
 - **Obrigatório** ao criar plano: `internal` ou `external`.
@@ -178,7 +199,8 @@ Use markdown claro com seções quando útil. **Só português humanizado** — 
 - **Histórico relevante** (se houver)
 - **Ishikawa** (tabela ou lista por categoria)
 - **5 Porquês**
-- **Causa raiz proposta** (com nível de confiança: baixa / média / alta)
+- **Causa raiz proposta** (com nível de confiança: **XX%** — baixa / média / alta; ver §5 do Conhecimento)
+- **O que falta levantar** (obrigatório se confiança &lt; 70%)
 - **Plano de ação proposto**
 - **Próximo passo**
 
@@ -193,7 +215,7 @@ Status do plano: draft → triage → containment → root_cause_analysis → ac
 - Em português do Brasil.
 
 ## O que evitar
-- Não colar no prompt o texto integral dos roteiros `.docx` — eles pertencem à **base de conhecimento**.
+- Não colar no prompt o texto integral dos roteiros `.md` — eles pertencem à **base de conhecimento**.
 - Não expor campos técnicos da API, JSON com chaves em inglês ou `operationId` na conversa com o analista.
 - Não culpar pessoas sem evidência.
 - Não pular a consulta de histórico quando o problema já estiver minimamente descrito.
@@ -221,7 +243,8 @@ Sugestões para o campo **Quebra-gelos** (até 4–5 entradas):
 | 3 | Em qual filial (01 ou 02) ocorreu o problema de qualidade? |
 | 4 | Cliente reportou defeito no produto — me ajude a estruturar a análise. |
 | 5 | Existem casos parecidos no histórico da DELPI para este sintoma? |
-| 6 | Tenho um plano em andamento — me ajude a revisar ações e próximos passos. |
+| 6 | Quero revisar a causa raiz e o nível de confiança de uma análise em andamento. |
+| 7 | Tenho um plano em andamento — me ajude a revisar ações e próximos passos. |
 
 ---
 
@@ -236,32 +259,31 @@ Se o workspace permitir “nenhum modelo recomendado”, os usuários podem esco
 
 ---
 
-## 5. Conhecimento (upload recomendado)
+## 5. Conhecimento (upload)
 
-O histórico operacional vem da **API** (actions). Os roteiros de entrevista vêm da **base de conhecimento** do Custom GPT (campo **Conhecimento** / **Knowledge** no builder).
+Índice e lista de arquivos: **[`agente-gpt-import/README.md`](agente-gpt-import/README.md)**.
 
-### Roteiros de entrevista (prioridade)
-
-Faça upload dos arquivos do repositório `api-pac-quality/docs/`:
+Faça upload de **todos** os arquivos em [`agente-gpt-import/conhecimento/`](agente-gpt-import/conhecimento/):
 
 | Arquivo | Quando usar | Conteúdo |
 |---------|-------------|----------|
-| [`Entrevista Ishikawa.docx`](Entrevista%20Ishikawa.docx) | **Etapa 8** do fluxo — antes dos Porquês | Entrevista para levantar e classificar causas no diagrama Ishikawa (6M): fato vs hipótese, causas prováveis/pendentes/descartadas; **não** conclui causa raiz |
-| [`Entrevista Complementar dos Porquês Sucessivos.docx`](Entrevista%20Complementar%20dos%20Porqu%C3%AAns%20Sucessivos.docx) | **Etapa 9** — após Ishikawa | Continuação: aprofundar causas prováveis com porquês sucessivos (ocorrência, não detecção, causa sistêmica); reutiliza o que já foi levantado |
-| [`chatgpt-conhecimento-regras-gravacao.md`](chatgpt-conhecimento-regras-gravacao.md) | Antes de gravar na API | Checklist de campos, glossário humanizado, `client_nc_registry`, `recurrence_key`, anexo PDF |
-| [`chatgpt-referencia-campos-api.md`](chatgpt-referencia-campos-api.md) | Consulta durante o chat | Campos PAC, tabela de evidências multipart, eficácia, status |
+| [`entrevista-ishikawa.md`](agente-gpt-import/conhecimento/entrevista-ishikawa.md) | Etapa Ishikawa | Roteiro 6M — fato vs hipótese; **não** fecha causa raiz |
+| [`entrevista-cinco-porques.md`](agente-gpt-import/conhecimento/entrevista-cinco-porques.md) | Após Ishikawa | 5 Porquês — ocorrência, detecção, causa sistêmica |
+| [`chatgpt-conhecimento-regras-gravacao.md`](agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.md) | Antes de gravar | Checklist, **causa raiz + confiança %** (§5), glossário |
+| [`chatgpt-referencia-campos-api.md`](agente-gpt-import/conhecimento/chatgpt-referencia-campos-api.md) | Durante o chat | Campos PAC, evidências, eficácia |
+| [`extracao-estruturada-pdf-email.md`](agente-gpt-import/conhecimento/extracao-estruturada-pdf-email.md) | PDF/e-mail | Rascunho antes do create |
 
 **Como configurar no ChatGPT**
 
-1. Builder → **Especialista Qualidade** → **Instruções** → colar `chatgpt-instrucoes-system-prompt.txt` (limite 8.000 caracteres)
-2. **Conhecimento** → carregar os dois `.docx` + `chatgpt-conhecimento-regras-gravacao.md` + `chatgpt-referencia-campos-api.md`
+1. **Instruções** → colar [`agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt`](agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt)
+2. **Conhecimento** → upload de **toda** a pasta `conhecimento/` (5 arquivos)
 3. **Não** cole roteiros nem tabelas longas em Instruções
 
 **Como o agente deve usá-los**
 
 - Consultar a base ao conduzir Ishikawa e 5 Porquês (perguntas progressivas, uma de cada vez)
 - Aplicar o tom de entrevistador técnico descrito nos documentos
-- Gravar na API (`pac_upsert_ishikawa`, `pac_upsert_five_whys`) só após confirmação do analista — os `.docx` orientam a **conversa**, não substituem as Actions
+- Gravar na API (`pac_upsert_ishikawa`, `pac_upsert_five_whys`) só após confirmação do analista — os roteiros `.md` orientam a **conversa**, não substituem as Actions
 
 ### Outros uploads (opcional)
 
@@ -331,12 +353,12 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 
 - [ ] Nome: **Especialista Qualidade**
 - [ ] Descrição colada (§ 1)
-- [ ] Instruções: colar `chatgpt-instrucoes-system-prompt.txt` (verificar **≤8.000** caracteres no builder)
-- [ ] Conhecimento: `Entrevista Ishikawa.docx` + `Entrevista Complementar…docx` + `chatgpt-conhecimento-regras-gravacao.md` + `chatgpt-referencia-campos-api.md`
+- [ ] Instruções: colar [`agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt`](agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt) (≤8.000 caracteres)
+- [ ] Conhecimento: upload completo de [`agente-gpt-import/conhecimento/`](agente-gpt-import/conhecimento/) (5 arquivos)
 - [ ] Quebra-gelos (§ 3)
 - [ ] Actions: schema de `/openapi.json` + Bearer — **reimportar após deploy**
 - [ ] Teste `/health` no preview → `api_delpi_delegation: configured`; `plugins_database: ok` (inteligência local); `core_api_directory: configured` se usar assignable users
-- [ ] Teste conversa: relato de problema → consulta histórico → proposta sem gravar
+- [ ] Teste conversa: relato → histórico → **causa raiz + % confiança** → proposta sem gravar
 - [ ] Teste escrita: criar plano só após confirmação explícita
 - [ ] Evals CI: `pytest tests/unit/test_pac_agent_eval_cases.py -q` (20 cenários anonimizados)
 
@@ -346,11 +368,12 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 
 | Problema | Solução |
 |----------|---------|
+| GPT não mostra % de confiança ou lacunas | Recolar `agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt`; reenviar Conhecimento §5 |
 | GPT não consulta histórico | Reforçar nas instruções; iniciar com quebra-gelo sobre casos similares |
 | Grava sem pedir confirmação | Revisar § “Escritas na API” nas instruções |
 | `401` nas actions | Verificar Bearer e `PAC_QUALITY_API_KEY` no srv-api |
 | Erro «máximo 30 operações» | Deploy recente da api-pac-quality; `/openapi.json` deve ter **26 operações** |
-| Aviso «Instruções não podem exceder 8000 caracteres» | Usar `docs/chatgpt-instrucoes-system-prompt.txt`; detalhes em Conhecimento (§ 5) |
+| Aviso «Instruções não podem exceder 8000 caracteres» | Usar `agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt`; detalhes em Conhecimento §5 |
 | Campos rejeitados (`422`) | Usar snake_case (`branch_code`, `problem_description`, `customer_name`, etc.); `branch_code` obrigatório no create (`01` ou `02`) |
 | Plano não encontrado por código PAC | Usar `pac_get_action_plan` com `PAC-YYYY-NNNN` ou `?code=`; 404 = confirmar código com analista |
 | `503` API_DELPI_MISCONFIGURED | Configurar `API_DELPI_BASE_URL` e token no srv-api — não é erro do analista |

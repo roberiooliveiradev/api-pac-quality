@@ -1,6 +1,6 @@
 # PAC — regras de gravação e glossário (Conhecimento GPT)
 
-Anexe este arquivo em **Conhecimento** no builder do Custom GPT, junto com `chatgpt-referencia-campos-api.md` e os roteiros `.docx`. O **system prompt** (`chatgpt-instrucoes-system-prompt.txt`) fica compacto (limite 8.000 caracteres nas Instruções); **detalhes operacionais ficam aqui**.
+Pasta de importação: `docs/agente-gpt-import/conhecimento/`. Anexe este arquivo em **Conhecimento** no builder, junto com `chatgpt-referencia-campos-api.md`, `extracao-estruturada-pdf-email.md`, `entrevista-ishikawa.md` e `entrevista-cinco-porques.md`. O **system prompt** fica em `../instrucoes/chatgpt-instrucoes-system-prompt.txt` (colar em **Instruções**, ≤8.000 caracteres).
 
 ---
 
@@ -80,11 +80,74 @@ Use **só português humanizado** em perguntas, resumos e confirmações.
 | `training` | Treinamento |
 | `cause_track` occurrence | Trilha de ocorrência (por que aconteceu) |
 | `cause_track` detection | Trilha de detecção (por que não foi detectado antes) |
-| `confidence_level` low/medium/high | Confiança baixa / média / alta na causa raiz |
+| `confidence_level` low/medium/high | Confiança na causa raiz — exibir também como **%** na conversa (ver §5) |
 
 ---
 
-## 5. Erros frequentes (evitar)
+## 5. Causa raiz provável e nível de confiança (requisito prioritário — liderança jun/2026)
+
+Após Ishikawa e 5 Porquês, **sempre** apresentar ao analista — antes de propor o plano definitivo:
+
+### Bloco obrigatório na conversa
+
+```markdown
+### Causa raiz provável
+[Uma frase objetiva. Se ainda hipótese: «Hipótese principal: …»]
+
+### Nível de confiança
+**XX%** — [justificativa em 1–2 frases: histórico, evidências, profundidade dos Porquês]
+
+### O que falta levantar
+[Somente se confiança < 70% — lista numerada de lacunas]
+```
+
+### Faixas percentuais (conversa ↔ API)
+
+| Confiança na conversa | `confidence_level` em `pac_upsert_five_whys` | Quando usar |
+|----------------------|-----------------------------------------------|-------------|
+| 30% – 55% | `low` | Poucas evidências; hipóteses Ishikawa não validadas; sem casos similares alinhados |
+| 56% – 79% | `medium` | Alguma evidência ou histórico parcial; analista confirmou parte da cadeia de Porquês |
+| 80% – 95% | `high` | Evidências consistentes, histórico alinhado, analista validou causa; **nunca 100%** sem confirmação explícita |
+
+### Como estimar o percentual (orientação)
+
+Some mentalmente fatores — não é fórmula rígida, mas deve ser **explicável**:
+
+| Fator | Aumenta confiança | Reduz confiança |
+|-------|-------------------|-----------------|
+| Casos similares na DELPI com mesma causa | +15 a +25% | Nenhum histórico consultado |
+| Evidência física (foto, PDF, amostra descrita) | +10 a +20% | Só relato verbal vago |
+| Ishikawa com hipótese testada/descartada | +10% | Só lista de suspeitas |
+| Cadeia de 5 Porquês até causa sistêmica | +15% | Parou no sintoma |
+| Analista confirmou a causa | +20% | Causa inferida sem validação |
+| Recorrência conhecida (`pac_assess_recurrence_on_opening`) | +10% | Primeira ocorrência sem padrão |
+
+### Se confiança &lt; 70%
+
+Liste **objetivamente** o que o analista deve levantar, por exemplo:
+
+- Confirmar lote, data e linha de produção
+- Solicitar amostra física ou foto do defeito
+- Verificar registro de processo / ordem de produção
+- Entrevistar operador ou inspetor da etapa
+- Conferir especificação do cliente vs. desenho interno
+- Anexar PDF da NC do cliente (`pac_attach_plan_evidence`)
+
+**Não** proponer encerramento da investigação como se a causa estivesse fechada.
+
+### Gravação na API
+
+- `pac_upsert_five_whys`: `root_cause` = texto da causa provável; `confidence_level` = faixa da tabela.
+- `root_cause_category` no plano: só após analista confirmar categoria 6M (máquina, método, material…).
+- Se confiança `low`, registre em notas do Ishikawa as pendências de investigação.
+
+### Banco de conhecimento
+
+Cada PAC alimenta futuras análises: casos semelhantes, padrões de solução, ações eficazes, recorrências, rejeições de eficácia. Ao citar histórico, informe **código PAC**, resultado de eficácia e o que foi reutilizado na sugestão atual.
+
+---
+
+## 6. Erros frequentes (evitar)
 
 | Erro | Correção |
 |------|----------|
@@ -98,10 +161,12 @@ Use **só português humanizado** em perguntas, resumos e confirmações.
 | PDF citado sem anexo | Orientar `pac_attach_plan_evidence` ou registro manual no plugin |
 | Expor `branch_code`, enums em inglês no chat | Traduzir sempre (§ 4) |
 | Código PAC citado sem chamar a API | Usar `pac_get_action_plan` ou `?code=` — não inventar falha técnica |
+| Análise sem causa raiz provável ou sem % de confiança | Incluir bloco obrigatório §5 antes do plano de ação |
+| Confiança alta sem evidência ou confirmação | Reduzir % e listar lacunas em «O que falta levantar» |
 
 ---
 
-## 6. Caso real — lições (PAC-2026-0029)
+## 7. Caso real — lições (PAC-2026-0029)
 
 Registro via GPT com boa análise (Ishikawa, 5 Porquês, 9 ações), mas lacunas de cadastro:
 
@@ -115,7 +180,7 @@ Use este caso como lembrete na próxima abertura de NC externa com PDF.
 
 ---
 
-## 7. Referências de plano (`pac_get_action_plan` / `pac_list_action_plans`)
+## 8. Referências de plano (`pac_get_action_plan` / `pac_list_action_plans`)
 
 A **api-delpi** é fonte de verdade do CRUD; a API PAC repassa path e query inalterados (delegação S2S). A resolução de código → UUID ocorre na api-delpi.
 
@@ -146,8 +211,8 @@ Todas as rotas com `{plan_id}` no path aceitam código PAC ou UUID.
 
 **Não** responder ao analista com mensagem genérica do tipo «Tive falha ao abrir o detalhe pelo código» sem ter chamado a API ou sem explicar 404 de forma clara.
 
-## 8. Documentação complementar (repositório)
+## 9. Documentação complementar (repositório)
 
-- Campos e multipart: `chatgpt-referencia-campos-api.md`
-- Setup do GPT: `chatgpt-especialista-qualidade.md`
-- Extração de PDF/e-mail: `extracao-estruturada-pdf-email.md`
+- Campos e multipart: `chatgpt-referencia-campos-api.md` (mesma pasta)
+- Extração PDF/e-mail: `extracao-estruturada-pdf-email.md` (mesma pasta)
+- Setup do GPT (humano): `../../chatgpt-especialista-qualidade.md`
