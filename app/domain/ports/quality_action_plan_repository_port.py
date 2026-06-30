@@ -41,6 +41,7 @@ PLAN_SELECT = """
            p.effectiveness_proposed_status,
            p.effectiveness_submitted_at,
            p.effectiveness_submitted_by,
+           p.effectiveness_submitted_by_name,
            p.effectiveness_reviewed_at,
            p.effectiveness_reviewed_by,
            p.effectiveness_rejection_reason,
@@ -129,7 +130,9 @@ class QualityActionPlanRepositoryPort:
     ) -> dict[str, Any] | None: ...
 
     def submit_effectiveness_review(
-        self, plan_id: str, fields: dict[str, Any], *, updated_by: str
+        self, plan_id: str, fields: dict[str, Any], *, updated_by: str,
+        updated_by_name: str | None = None,
+        updated_by_email: str | None = None,
     ) -> dict[str, Any] | None: ...
 
     def approve_effectiveness_review(

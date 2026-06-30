@@ -796,6 +796,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                    effectiveness_proposed_status = NULL,
                    effectiveness_submitted_at = NULL,
                    effectiveness_submitted_by = NULL,
+                   effectiveness_submitted_by_name = NULL,
                    effectiveness_reviewed_at = NOW(),
                    effectiveness_reviewed_by = %s,
                    effectiveness_rejection_reason = NULL,
@@ -833,7 +834,9 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
         return self.get_plan_by_id(plan_id)
 
     def submit_effectiveness_review(
-        self, plan_id: str, fields: dict[str, Any], *, updated_by: str
+        self, plan_id: str, fields: dict[str, Any], *, updated_by: str,
+        updated_by_name: str | None = None,
+        updated_by_email: str | None = None,
     ) -> dict[str, Any] | None:
         plan_id = self._coerce_plan_id(plan_id)
         if not plan_id:
@@ -853,6 +856,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                    effectiveness_notes = %s,
                    effectiveness_submitted_at = NOW(),
                    effectiveness_submitted_by = %s,
+                   effectiveness_submitted_by_name = %s,
                    effectiveness_reviewed_at = NULL,
                    effectiveness_reviewed_by = NULL,
                    effectiveness_rejection_reason = NULL,
@@ -863,6 +867,7 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
                 fields["effectiveness_status"],
                 fields.get("notes"),
                 updated_by,
+                updated_by_name,
                 plan_id,
             ),
             auto_commit=False,
