@@ -498,12 +498,39 @@ async def upload_plan_evidence(
     )
 
 
-@router.get("/{plan_id}/evidences/{evidence_id}/file", operation_id="pac_download_plan_evidence")
+@router.get(
+    "/{plan_id}/evidences/{evidence_id}/file",
+    operation_id="pac_download_plan_evidence",
+    responses={
+        200: {
+            "description": "Arquivo binário da evidência",
+            "content": {
+                "application/octet-stream": {"schema": {"type": "string", "format": "binary"}},
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                    "schema": {"type": "string", "format": "binary"}
+                },
+                "application/pdf": {"schema": {"type": "string", "format": "binary"}},
+            },
+        }
+    },
+)
 def download_plan_evidence(plan_id: str, evidence_id: str):
     return delegate_binary(
         method="GET",
         path_suffix=f"/{plan_id}/evidences/{evidence_id}/file",
         pac_operation_id="pac_download_plan_evidence",
+    )
+
+
+@router.get(
+    "/{plan_id}/evidences/{evidence_id}/content",
+    operation_id="pac_get_plan_evidence_content",
+)
+def get_plan_evidence_content(plan_id: str, evidence_id: str):
+    return delegate_json(
+        method="GET",
+        path_suffix=f"/{plan_id}/evidences/{evidence_id}/content",
+        pac_operation_id="pac_get_plan_evidence_content",
     )
 
 

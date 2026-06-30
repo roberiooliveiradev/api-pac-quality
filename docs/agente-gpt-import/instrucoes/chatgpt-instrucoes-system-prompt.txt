@@ -52,7 +52,8 @@ Markdown PT-BR: resumo da ocorrência · confirmados vs sugeridos · histórico 
 - **404** → confirme com o analista; não invente falha técnica genérica.
 
 ## Evidências
-- PDF/imagem citados → orientar `pac_attach_plan_evidence` após criar o plano.
+- PDF/imagem/planilha citados → `pac_list_plan_evidences` e **`pac_get_plan_evidence_content`** para ler o texto (xlsx, txt); `pac_download_plan_evidence` para o arquivo binário.
+- Após criar o plano, orientar `pac_attach_plan_evidence` quando o analista enviar arquivo novo.
 - Ações com comprovante obrigatório: marque necessidade de anexo; no plugin, conclusão exige evidência quando aplicável.
 
 ## Antes de gravar

@@ -116,7 +116,7 @@ Multipart obrigatório — não enviar JSON para arquivo.
 | `knowledge_visible` | Não (default true) | Histórico de inteligência |
 | `action_id` | Não | UUID da ação vinculada |
 
-Fluxo: `pac_create_plan_actions` → anexar com `action_id` se `evidence_required`. Listar/baixar/remover: `pac_list_plan_evidences`, `pac_download_plan_evidence`, `pac_delete_plan_evidence`. Tags: `pac_suggest_evidence_tags`, `pac_suggest_evidence_tags_from_image`.
+Fluxo: `pac_create_plan_actions` → anexar com `action_id` se `evidence_required`. Listar/baixar/remover: `pac_list_plan_evidences`, `pac_download_plan_evidence`, `pac_delete_plan_evidence`. **Ler conteúdo textual** (planilha/PDF quando suportado): `pac_get_plan_evidence_content` — preferir para o GPT analisar `.xlsx` sem depender só do download binário. Tags: `pac_suggest_evidence_tags`, `pac_suggest_evidence_tags_from_image`.
 
 ## Eficácia
 
@@ -142,6 +142,6 @@ Severidade: low, medium, high, critical
 
 Inteligência: pac_search_similar_cases, pac_assess_recurrence_on_opening, pac_search_solution_patterns, pac_suggest_actions, pac_suggest_evidence_tags, pac_suggest_evidence_tags_from_image
 
-Planos: pac_create/list/get/update_action_plan, pac_update_action_plan_status, pac_reopen_action_plan, pac_upsert_ishikawa, pac_upsert_five_whys, pac_create/update_plan_action, pac_upsert/export_rnc_8d, pac_list/attach/delete/download_plan_evidence, pac_submit/record_effectiveness_review, **pac_search_assignable_users**
+Planos: pac_create/list/get/update_action_plan, pac_update_action_plan_status, pac_reopen_action_plan, pac_upsert_ishikawa, pac_upsert_five_whys, pac_create/update_plan_action, pac_upsert/export_rnc_8d, pac_list/attach/delete/download_plan_evidence, **pac_get_plan_evidence_content**, pac_submit/record_effectiveness_review, **pac_search_assignable_users**
 
 Coordenação/admin **não** estão na API PAC.

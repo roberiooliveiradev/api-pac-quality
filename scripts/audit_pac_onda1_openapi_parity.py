@@ -18,6 +18,7 @@ ONDA1_PAC_OPERATION_IDS = (
     "pac_export_rnc_8d",
     "pac_list_plan_evidences",
     "pac_attach_plan_evidence",
+    "pac_get_plan_evidence_content",
     "pac_delete_plan_evidence",
     "pac_download_plan_evidence",
     "pac_upsert_ishikawa",
@@ -35,6 +36,7 @@ ONDA1_PAC_PATHS = (
     "/quality/action-plans/{plan_id}/evidences",
     "/quality/action-plans/{plan_id}/evidences/{evidence_id}",
     "/quality/action-plans/{plan_id}/evidences/{evidence_id}/file",
+    "/quality/action-plans/{plan_id}/evidences/{evidence_id}/content",
 )
 
 

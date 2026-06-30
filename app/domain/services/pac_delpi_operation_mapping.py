@@ -22,6 +22,7 @@ DELPI_TO_PAC_OPERATION_ID: dict[str, str] = {
     "submit_quality_action_plan_effectiveness_review": "pac_submit_effectiveness_review",
     "upsert_quality_action_plan_rnc_8d": "pac_upsert_rnc_8d",
     "attach_quality_action_plan_evidence": "pac_attach_plan_evidence",
+    "get_quality_action_plan_evidence_content": "pac_get_plan_evidence_content",
     "delete_quality_action_plan_evidence": "pac_delete_plan_evidence",
     # Inteligência com paridade de path (opcional na delegação).
     "assess_quality_action_plan_recurrence_on_opening": "pac_assess_recurrence_on_opening",

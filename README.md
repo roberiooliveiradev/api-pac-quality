@@ -97,7 +97,7 @@ curl -s http://localhost:8082/health
 | **Importação no builder GPT** | [docs/agente-gpt-import/README.md](docs/agente-gpt-import/README.md) (`instrucoes/` + `conhecimento/`) |
 | **Contrato delegação S2S** | [docs/contrato-http-api-pac-api-delpi.md](docs/contrato-http-api-pac-api-delpi.md) |
 | **Playbook API contexto operacional (proposta)** | [docs/playbook-api-contexto-operacional-gpt.md](docs/playbook-api-contexto-operacional-gpt.md) — BFF leitura api-delpi para o GPT |
-| OpenAPI agente GPT | `GET /openapi.json` — **26 operações** (fluxo analista, ≤30 ChatGPT) |
+| OpenAPI agente GPT | `GET /openapi.json` — **28 operações** (fluxo analista, ≤30 ChatGPT) |
 
 Documentação: [docs/openapi-analista-24-operacoes.md](docs/openapi-analista-24-operacoes.md) (título histórico; conteúdo = 26 ops)
 | `.env` produção | [.env.srv-api.example](.env.srv-api.example) |

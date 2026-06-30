@@ -121,7 +121,7 @@ class PacApiDelpiDelegationService:
         if not self.enabled():
             return self._misconfigured_response()
         try:
-            status, headers, payload = self._gateway.request_json(
+            status, headers, payload = self._gateway.request_binary(
                 method,
                 self._path(path_suffix),
                 query=query,

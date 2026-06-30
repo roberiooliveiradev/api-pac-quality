@@ -70,6 +70,7 @@ Erros de indisponibilidade da api-delpi: HTTP 503, `error.code = API_DELPI_UNAVA
 | GET | `.../evidences` | `list_quality_action_plan_evidences` | `pac_list_plan_evidences` |
 | GET | `.../export/rnc-8d` | `export_quality_action_plan_rnc_8d` | `pac_export_rnc_8d` |
 | GET | `.../evidences/{ev_id}/file` | — (binário) | `pac_download_plan_evidence` |
+| GET | `.../evidences/{ev_id}/content` | `get_quality_action_plan_evidence_content` | `pac_get_plan_evidence_content` |
 
 ### Escrita (analista)
 
