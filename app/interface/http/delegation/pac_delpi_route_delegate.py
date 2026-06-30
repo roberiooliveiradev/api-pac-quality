@@ -16,7 +16,7 @@ def delegate_json(
     pac_operation_id: str,
     query: dict[str, Any] | None = None,
     json_body: Any = None,
-) -> JSONResponse | None:
+) -> JSONResponse:
     return get_pac_api_delpi_delegation_service().forward_json(
         method=method,
         path_suffix=path_suffix,
@@ -32,7 +32,7 @@ def delegate_binary(
     path_suffix: str,
     pac_operation_id: str,
     query: dict[str, Any] | None = None,
-) -> Response | JSONResponse | None:
+) -> Response | JSONResponse:
     return get_pac_api_delpi_delegation_service().forward_binary(
         method=method,
         path_suffix=path_suffix,
@@ -50,7 +50,7 @@ def delegate_multipart(
     file_name: str,
     file_content: bytes,
     file_content_type: str | None,
-) -> JSONResponse | None:
+) -> JSONResponse:
     return get_pac_api_delpi_delegation_service().forward_multipart(
         path_suffix=path_suffix,
         pac_operation_id=pac_operation_id,

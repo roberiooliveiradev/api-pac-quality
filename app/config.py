@@ -33,11 +33,6 @@ class Settings:
     PLUGINS_DB_CONNECT_TIMEOUT: str = _get_env("PLUGINS_DB_CONNECT_TIMEOUT", default="5")
     PLUGINS_DB_SSLMODE: str = _get_env("PLUGINS_DB_SSLMODE", default="prefer")
 
-    PAC_EVIDENCE_UPLOAD_DIR: str = _get_env(
-        "PAC_EVIDENCE_UPLOAD_DIR",
-        default="/app/data/pac-quality-evidences",
-    )
-
     CORE_API_BASE_URL: str | None = _get_env(
         "CORE_API_BASE_URL",
         "CORE_API_URL",
@@ -77,9 +72,6 @@ class Settings:
     API_DELPI_INTERNAL_SERVICE_TOKEN: str | None = _get_env("API_DELPI_INTERNAL_SERVICE_TOKEN")
     API_DELPI_TIMEOUT_SECONDS: float = float(
         _get_env("API_DELPI_TIMEOUT_SECONDS", default="60") or "60"
-    )
-    PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI: bool = (
-        _get_env("PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI", default="false").lower() == "true"
     )
 
 

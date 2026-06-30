@@ -9,7 +9,7 @@ Consultas consolidadas e **CRUD do plugin MFE** são expostos pela **api-delpi**
 | Camada | Repositório | Responsabilidade |
 |--------|-------------|------------------|
 | **Plugin MFE + api-delpi** | `delpi-central` | CRUD e leitura via JWT (`quality-action-plans` caller) |
-| **API transacional GPT** | `api-pac-quality` (este repo) | 26 operações analista; auth **`PAC_QUALITY_API_KEY`**; CRUD delegável → api-delpi |
+| **API transacional GPT** | `api-pac-quality` (este repo) | BFF: auth `PAC_QUALITY_API_KEY` + proxy CRUD → api-delpi; inteligência local |
 | **Migrations + PostgreSQL** | `delpi-central/api-delpi/migrations/plugins/quality-action-plans/` | Schema `quality.*` (V001–V019) |
 | **Agente ChatGPT** | Custom GPT + Actions | OpenAPI desta API em `pac-api.minhadelpi.com.br` |
 | **Agente Minha DELPI** (roadmap) | `minha-delpi-ai-api` | Provider OpenAPI sync |
@@ -133,7 +133,7 @@ Códigos: `quality-action-plans.read`, `quality-action-plans.write`, `quality-ac
 | `GET` | `/quality/action-plans/assignable-users` | Usuários Delpi atribuíveis (`pac_search_assignable_users`) |
 | `GET/POST/DELETE` | `/quality/action-plans/{id}/evidences` | Evidências (`action_id` opcional no upload) |
 
-Com `PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI=true`, as rotas de escrita/listagem transacional são **delegadas** à api-delpi (mesmo contrato HTTP). Ver [docs/contrato-http-api-pac-api-delpi.md](docs/contrato-http-api-pac-api-delpi.md).
+As rotas transacionais do GPT são **sempre delegadas** à api-delpi (contrato HTTP + `operationId` reescrito para `pac_*`). Ver [docs/contrato-http-api-pac-api-delpi.md](docs/contrato-http-api-pac-api-delpi.md).
 
 ### Leitura e CRUD — plugin (api-delpi)
 

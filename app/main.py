@@ -68,11 +68,9 @@ app.include_router(action_plans_router)
 def health():
     plugins_ok = check_plugins_connection()
     delegation = get_pac_api_delpi_delegation_service()
-    delegation_status = "enabled" if delegation.enabled() else "disabled"
-    if settings.PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI and not delegation.enabled():
-        delegation_status = "misconfigured"
+    delegation_status = "configured" if delegation.enabled() else "misconfigured"
     core_directory = CoreApiDirectoryGateway().configured()
-    status = "ok" if plugins_ok or delegation.enabled() else "degraded"
+    status = "ok" if delegation.enabled() and plugins_ok else "degraded"
     return {
         "status": status,
         "service": "api-pac-quality",

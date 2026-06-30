@@ -15,9 +15,7 @@ services:
       - pac-network
       - delpi-network
     environment:
-      # Delegação CRUD → api-delpi (mesma rede Docker do delpi-central)
       API_DELPI_BASE_URL: http://delpi-api-delpi:8000
-      PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI: "true"
       CORE_API_BASE_URL: http://delpi-core-api:8000
       # API_DELPI_INTERNAL_SERVICE_TOKEN e CORE_API_INTEGRATIONS_SERVICE_TOKEN: copiar do infra/.env
 

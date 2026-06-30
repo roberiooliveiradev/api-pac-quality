@@ -5,7 +5,7 @@ from typing import Any
 from app.domain.services.quality_intelligence.case_similarity_embedding_service import (
     CaseSimilarityEmbeddingService,
 )
-from app.domain.ports.quality_action_plan_repository_port import serialize_row
+from app.infrastructure.persistence.row_serialization import serialize_row
 from app.infrastructure.persistence.plugins.plugin_base_repository import (
     PluginBaseRepository,
     PluginsRepositoryError,

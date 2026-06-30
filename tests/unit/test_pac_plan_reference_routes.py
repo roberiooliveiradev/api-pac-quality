@@ -1,4 +1,4 @@
-"""GET plano — referência por UUID ou código PAC."""
+"""GET plano — referência por UUID ou código PAC (delegação api-delpi)."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 
 
@@ -18,35 +19,42 @@ def plans_client() -> TestClient:
     return TestClient(app)
 
 
-@patch("app.interface.http.routes.quality_action_plans_router.build_get_plan_detail_use_case")
+@patch("app.interface.http.routes.quality_action_plans_router.delegate_json")
 def test_get_action_plan_by_code_returns_detail(
-    mock_build: MagicMock,
+    mock_delegate: MagicMock,
     plans_client: TestClient,
 ) -> None:
-    mock_use_case = MagicMock()
-    mock_use_case.execute.return_value = {
-        "plan": {"id": "uuid-1", "code": "PAC-2026-0029", "title": "Teste"},
-        "ishikawa": None,
-        "five_whys": None,
-        "actions": [],
-    }
-    mock_build.return_value = mock_use_case
+    mock_delegate.return_value = JSONResponse(
+        status_code=200,
+        content={
+            "success": True,
+            "message": "ok",
+            "data": {
+                "plan": {"id": "uuid-1", "code": "PAC-2026-0029", "title": "Teste"},
+                "ishikawa": None,
+                "five_whys": None,
+                "actions": [],
+            },
+        },
+    )
 
     response = plans_client.get("/quality/action-plans/PAC-2026-0029")
     assert response.status_code == 200
     body = response.json()
     assert body["success"] is True
-    mock_use_case.execute.assert_called_once_with("PAC-2026-0029")
+    mock_delegate.assert_called_once()
+    assert mock_delegate.call_args.kwargs["path_suffix"] == "/PAC-2026-0029"
 
 
-@patch("app.interface.http.routes.quality_action_plans_router.build_get_plan_detail_use_case")
+@patch("app.interface.http.routes.quality_action_plans_router.delegate_json")
 def test_get_action_plan_not_found_returns_404(
-    mock_build: MagicMock,
+    mock_delegate: MagicMock,
     plans_client: TestClient,
 ) -> None:
-    mock_use_case = MagicMock()
-    mock_use_case.execute.return_value = None
-    mock_build.return_value = mock_use_case
+    mock_delegate.return_value = JSONResponse(
+        status_code=404,
+        content={"success": False, "message": "Plano de ação não encontrado."},
+    )
 
     response = plans_client.get("/quality/action-plans/PAC-2026-9999")
     assert response.status_code == 404
@@ -54,19 +62,23 @@ def test_get_action_plan_not_found_returns_404(
     assert body["success"] is False
 
 
-@patch("app.interface.http.routes.quality_action_plans_router.build_list_quality_action_plans_use_case")
+@patch("app.interface.http.routes.quality_action_plans_router.delegate_json")
 def test_list_action_plans_accepts_code_filter(
-    mock_build: MagicMock,
+    mock_delegate: MagicMock,
     plans_client: TestClient,
 ) -> None:
-    mock_use_case = MagicMock()
-    mock_use_case.execute.return_value = {
-        "items": [{"id": "uuid-1", "code": "PAC-2026-0029"}],
-        "pagination": {"page": 1, "page_size": 50, "total": 1, "total_pages": 1},
-    }
-    mock_build.return_value = mock_use_case
+    mock_delegate.return_value = JSONResponse(
+        status_code=200,
+        content={
+            "success": True,
+            "data": {
+                "items": [{"id": "uuid-1", "code": "PAC-2026-0029"}],
+                "pagination": {"page": 1, "page_size": 50, "total": 1, "total_pages": 1},
+            },
+        },
+    )
 
     response = plans_client.get("/quality/action-plans", params={"code": "PAC-2026-0029"})
     assert response.status_code == 200
-    mock_use_case.execute.assert_called_once()
-    assert mock_use_case.execute.call_args.kwargs["code"] == "PAC-2026-0029"
+    mock_delegate.assert_called_once()
+    assert mock_delegate.call_args.kwargs["query"]["code"] == "PAC-2026-0029"

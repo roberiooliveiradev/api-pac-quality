@@ -5,7 +5,6 @@ from typing import Any
 
 from fastapi.responses import JSONResponse, Response
 
-from app.config import settings
 from app.domain.services.pac_delpi_operation_mapping import (
     DELPI_TO_PAC_OPERATION_ID,
     PAC_TRANSACTIONAL_PREFIX,
@@ -23,9 +22,21 @@ class PacApiDelpiDelegationService:
         self._gateway = gateway or ApiDelpiQualityGateway()
 
     def enabled(self) -> bool:
-        if not settings.PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI:
-            return False
         return self._gateway.configured
+
+    def _misconfigured_response(self) -> JSONResponse:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "success": False,
+                "message": (
+                    "Delegação para api-delpi não configurada. "
+                    "Defina API_DELPI_BASE_URL e API_DELPI_INTERNAL_SERVICE_TOKEN."
+                ),
+                "data": None,
+                "error": {"code": "API_DELPI_MISCONFIGURED", "recoverable": False},
+            },
+        )
 
     def _rewrite_meta(self, payload: dict[str, Any], pac_operation_id: str) -> dict[str, Any]:
         if not isinstance(payload, dict):
@@ -66,9 +77,9 @@ class PacApiDelpiDelegationService:
         pac_operation_id: str,
         query: dict[str, Any] | None = None,
         json_body: Any = None,
-    ) -> JSONResponse | None:
+    ) -> JSONResponse:
         if not self.enabled():
-            return None
+            return self._misconfigured_response()
         try:
             status, _headers, payload = self._gateway.request_json(
                 method,
@@ -106,9 +117,9 @@ class PacApiDelpiDelegationService:
         path_suffix: str,
         pac_operation_id: str,
         query: dict[str, Any] | None = None,
-    ) -> Response | JSONResponse | None:
+    ) -> Response | JSONResponse:
         if not self.enabled():
-            return None
+            return self._misconfigured_response()
         try:
             status, headers, payload = self._gateway.request_json(
                 method,
@@ -149,9 +160,9 @@ class PacApiDelpiDelegationService:
         file_name: str,
         file_content: bytes,
         file_content_type: str | None,
-    ) -> JSONResponse | None:
+    ) -> JSONResponse:
         if not self.enabled():
-            return None
+            return self._misconfigured_response()
         try:
             status, _headers, payload = self._gateway.request_multipart(
                 self._path(path_suffix),

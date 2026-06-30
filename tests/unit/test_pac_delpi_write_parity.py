@@ -25,10 +25,10 @@ WRITE_PARITY: dict[str, str] = {
     "list_quality_action_plan_evidences": "pac_list_plan_evidences",
     "attach_quality_action_plan_evidence": "pac_attach_plan_evidence",
     "delete_quality_action_plan_evidence": "pac_delete_plan_evidence",
+    "delete_quality_action_plan": "pac_delete_action_plan",
 }
 
 PLUGIN_ONLY_WRITE_PARITY: dict[str, str] = {
-    "delete_quality_action_plan": "pac_delete_action_plan",
     "approve_quality_action_plan_effectiveness_review": "pac_approve_effectiveness_review",
     "reject_quality_action_plan_effectiveness_review": "pac_reject_effectiveness_review",
     "promote_quality_action_plan_solution_pattern": "pac_promote_solution_pattern",

@@ -24,6 +24,7 @@ ANALYST_PAC_OPERATION_IDS: frozenset[str] = frozenset(
         "pac_list_action_plans",
         "pac_get_action_plan",
         "pac_update_action_plan",
+        "pac_delete_action_plan",
         "pac_update_action_plan_status",
         "pac_reopen_action_plan",
         "pac_submit_effectiveness_review",
