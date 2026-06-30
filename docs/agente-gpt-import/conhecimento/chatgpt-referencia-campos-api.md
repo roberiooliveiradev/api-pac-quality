@@ -61,6 +61,24 @@ No plugin MFE, ações novas podem **herdar** `responsible_user_id` do membro vi
 
 Na conversa com o analista, **sempre** exibir também **Nível de confiança: XX%** e lacunas se &lt; 70%.
 
+## Ações do plano (`pac_create_plan_actions`)
+
+| Campo | Uso |
+|-------|-----|
+| `action_type` | `containment`, `corrective`, `preventive`, `verification`, `standardization`, `training` |
+| `cause_track` | `occurrence` ou `detection` — **obrigatório em toda corretiva** vinculada a um bloco dos Porquês |
+
+### Corretivas mínimas por trilha dos Porquês
+
+Regra obrigatória ao **propor** e **gravar** o plano (detalhes em `chatgpt-conhecimento-regras-gravacao.md` §5):
+
+| Se existir em `pac_upsert_five_whys` | Então no plano |
+|--------------------------------------|----------------|
+| ≥1 resposta em `occurrence_whys` | ≥1 ação `corrective` com `cause_track: occurrence` |
+| ≥1 resposta em `detection_whys` | ≥1 ação `corrective` com `cause_track: detection` |
+
+Contenção e preventivas **não** contam para essa cobertura. Cada corretiva deve atacar a causa raiz ou o porquê consolidado da respectiva trilha.
+
 ## Código do plano (`code`)
 
 Persistência e resolução na **api-delpi**; a API PAC delega path/query sem alterar.

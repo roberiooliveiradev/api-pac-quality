@@ -35,6 +35,11 @@ Pasta de importação: `docs/agente-gpt-import/conhecimento/`. Anexe este arquiv
 2. `pac_upsert_ishikawa` — hipóteses por 6M; notas de pendência.
 3. `pac_upsert_five_whys` — `occurrence_whys` e `detection_whys`; `root_cause` como hipótese; `confidence_level`: `low` | `medium` | `high`.
 4. `pac_create_plan_actions` — contenção, corretivas, preventivas, verificação, padronização, treinamento; `responsible_name`, `department`, prazo, `cause_track` (`occurrence` | `detection`) quando couber.
+   - **Cobertura obrigatória (corretivas × 5 Porquês):** se um bloco dos Porquês tiver **pelo menos um nível** respondido, o plano proposto deve ter **no mínimo 1 ação corretiva** (`action_type: corrective`) com `cause_track` da mesma trilha:
+     - `occurrence_whys` com resposta → ≥1 corretiva com `cause_track: occurrence` (por que aconteceu).
+     - `detection_whys` com resposta → ≥1 corretiva com `cause_track: detection` (por que não foi detectado antes).
+     - Se **ambos** os blocos existirem, **ambos** precisam de ao menos uma corretiva vinculada — não basta ações só na trilha de ocorrência.
+     - Contenção, preventivas, verificação e padronização **não substituem** essa corretiva mínima por trilha.
    - **Opcional — Minha fila:** se o responsável for usuário DELPI, chamar `pac_search_assignable_users?q=nome` e gravar `responsible_user_id` (UUID retornado) **além** de `responsible_name`. Só nome livre → não entra na fila pessoal do plugin.
 5. `pac_update_action_plan_status` — avançar status conforme estágio.
 6. `pac_attach_plan_evidence` — **se** o analista enviou PDF, e-mail, foto ou planilha: anexar com `evidence_type` adequado (`pdf`, `email`, `image`, …).
@@ -141,6 +146,17 @@ Liste **objetivamente** o que o analista deve levantar, por exemplo:
 - `root_cause_category` no plano: só após analista confirmar categoria 6M (máquina, método, material…).
 - Se confiança `low`, registre em notas do Ishikawa as pendências de investigação.
 
+### Ações corretivas por trilha dos Porquês (obrigatório no plano proposto)
+
+Antes de pedir confirmação para gravar, valide a **cobertura mínima**:
+
+| Bloco em `pac_upsert_five_whys` | Condição | Mínimo no plano (`pac_create_plan_actions`) |
+|--------------------------------|----------|---------------------------------------------|
+| `occurrence_whys` | ≥1 nível com resposta substantiva | ≥1 ação `corrective` com `cause_track: occurrence` |
+| `detection_whys` | ≥1 nível com resposta substantiva | ≥1 ação `corrective` com `cause_track: detection` |
+
+Na conversa, apresente as corretivas **agrupadas por trilha** (ocorrência / detecção) e deixe explícito qual porquê ou causa raiz cada ação endereça. Se faltar corretiva em alguma trilha preenchida, **não** proponha o plano como completo — complete ou explique a lacuna ao analista.
+
 ### Banco de conhecimento
 
 Cada PAC alimenta futuras análises: casos semelhantes, padrões de solução, ações eficazes, recorrências, rejeições de eficácia. Ao citar histórico, informe **código PAC**, resultado de eficácia e o que foi reutilizado na sugestão atual.
@@ -163,6 +179,7 @@ Cada PAC alimenta futuras análises: casos semelhantes, padrões de solução, a
 | Código PAC citado sem chamar a API | Usar `pac_get_action_plan` ou `?code=` — não inventar falha técnica |
 | Análise sem causa raiz provável ou sem % de confiança | Incluir bloco obrigatório §5 antes do plano de ação |
 | Confiança alta sem evidência ou confirmação | Reduzir % e listar lacunas em «O que falta levantar» |
+| Porquês de ocorrência e/ou detecção preenchidos sem corretiva na mesma trilha | Incluir ≥1 `corrective` com `cause_track: occurrence` e/ou `detection` conforme §5 — ver tabela «Ações corretivas por trilha» |
 
 ---
 

@@ -722,6 +722,13 @@ Ao finalizar esta etapa, o agente deve informar que a próxima etapa recomendada
 
 Com as causas raiz identificadas, a próxima etapa é estruturar ações de contenção, correção, ação corretiva, ação preventiva e verificação de eficácia, garantindo que cada ação esteja vinculada diretamente a uma causa.
 
+**Regra de cobertura (ao propor o plano):** para cada bloco dos Porquês com pelo menos um nível respondido, deve haver **no mínimo uma ação corretiva** na mesma trilha:
+
+- Bloco de **ocorrência** (`occurrence_whys`) → ≥1 corretiva para «por que aconteceu».
+- Bloco de **detecção** (`detection_whys`) → ≥1 corretiva para «por que não foi detectado antes».
+
+Se ambos os blocos existirem, **ambos** precisam de corretiva — não basta tratar só a ocorrência.
+
 Não gere plano de ação nesta etapa, a menos que o fluxo do sistema peça explicitamente.
 
 ## 22. Regras finais desta etapa
