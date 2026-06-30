@@ -9,16 +9,29 @@ Delegação **server-to-server (S2S)** das operações transacionais do analista
 | **api-pac-quality** | Auth GPT (`PAC_QUALITY_API_KEY`), OpenAPI `pac_*`, inteligência local (similaridade, sugestões) |
 | **api-delpi** | Persistência, regras de negócio, auditoria, RBAC interno (bypass S2S) |
 
-## Ativação
+## Ativação (obrigatório)
+
+A api-pac **não** persiste CRUD transacional localmente — toda rota `pac_*` de plano delega à api-delpi. Sem URL e token S2S, as Actions retornam **503** (`API_DELPI_MISCONFIGURED`).
 
 ```env
-PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI=true
-API_DELPI_BASE_URL=http://api-delpi:8000
+API_DELPI_BASE_URL=http://delpi-api-delpi:8000
 API_DELPI_INTERNAL_SERVICE_TOKEN=<mesmo token do delpi-central>
 API_DELPI_TIMEOUT_SECONDS=60
 ```
 
-Com a flag `false` (padrão) ou sem URL/token, a api-pac usa o repositório Postgres local (comportamento legado).
+> A flag legada `PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI` foi removida; delegação é sempre ativa quando o gateway está configurado.
+
+## Referência de plano (`{plan_id}`)
+
+A api-delpi resolve **UUID** ou código **`PAC-YYYY-NNNN`** em todas as rotas com `{plan_id}` no path. A api-pac repassa o segmento inalterado (ex.: `GET /quality/action-plans/PAC-2026-0029`).
+
+| Query / path | Comportamento |
+|--------------|---------------|
+| `GET /quality/action-plans/{plan_id}` | Detalhe por UUID ou código |
+| `GET /quality/action-plans?code=PAC-2026-0029` | Listagem com filtro exato no campo `code` |
+| `PATCH /quality/action-plans/PAC-2026-0029/...` | Escritas com código no path |
+
+Implementação canônica: `api-delpi` → `quality_action_plan_reference_service` + `_coerce_plan_id` no repositório de leitura/escrita.
 
 ## Autenticação S2S
 
@@ -89,7 +102,7 @@ Erros de indisponibilidade da api-delpi: HTTP 503, `error.code = API_DELPI_UNAVA
 
 ```
 quality_action_plans_router
-  → pac_delpi_route_delegate (se flag ativa)
+  → pac_delpi_route_delegate (sempre)
   → PacApiDelpiDelegationService
   → ApiDelpiQualityGateway (httpx)
   → api-delpi /quality/action-plans/*
@@ -99,9 +112,10 @@ quality_action_plans_router
 
 1. Subir delpi-central com `API_DELPI_INTERNAL_SERVICE_TOKEN` definido.
 2. api-pac na rede `infra_delpi-network` com override srv-api.
-3. `PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI=true`
-4. Criar plano via GPT (api-pac) e conferir registro no plugin (api-delpi).
-5. `pytest tests/unit/test_pac_delpi_*_parity.py tests/unit/test_pac_api_delpi_delegation.py`
+3. `API_DELPI_BASE_URL` + token no `.env` da api-pac.
+4. `GET /quality/action-plans/PAC-2026-XXXX` via api-pac retorna detalhe (código resolvido na api-delpi).
+5. Criar plano via GPT (api-pac) e conferir registro no plugin (api-delpi).
+6. `pytest tests/unit/test_pac_delpi_*_parity.py tests/unit/test_pac_api_delpi_delegation.py tests/unit/test_pac_plan_reference_routes.py`
 
 ## Referências
 

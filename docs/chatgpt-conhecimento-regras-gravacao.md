@@ -97,6 +97,7 @@ Use **só português humanizado** em perguntas, resumos e confirmações.
 | Plano gravado sem consultar histórico | Chamar `pac_search_similar_cases` antes de propor causa/ações |
 | PDF citado sem anexo | Orientar `pac_attach_plan_evidence` ou registro manual no plugin |
 | Expor `branch_code`, enums em inglês no chat | Traduzir sempre (§ 4) |
+| Código PAC citado sem chamar a API | Usar `pac_get_action_plan` ou `?code=` — não inventar falha técnica |
 
 ---
 
@@ -116,11 +117,36 @@ Use este caso como lembrete na próxima abertura de NC externa com PDF.
 
 ## 7. Referências de plano (`pac_get_action_plan` / `pac_list_action_plans`)
 
-- `pac_get_action_plan` aceita **UUID** ou **código** (`PAC-2026-0029`) no path.
-- `pac_list_action_plans` aceita query `code=PAC-2026-0029` para localizar um plano antes do detalhe.
-- Referência inválida ou inexistente → **404** (não erro 500).
+A **api-delpi** é fonte de verdade do CRUD; a API PAC repassa path e query inalterados (delegação S2S). A resolução de código → UUID ocorre na api-delpi.
 
-## 8. Referências no repositório
+### Formato aceito
+
+| Formato | Exemplo | Quando usar |
+|---------|---------|-------------|
+| Código PAC | `PAC-2026-0029` | Analista citou o código na conversa — **preferir** |
+| UUID | `f0e274de-cc4b-4b68-b9cb-881408f9374b` | Retornado no create/list; válido em qualquer `{plan_id}` |
+
+Padrão: `PAC-` + ano (4 dígitos) + `-` + sequência (4 dígitos). A API normaliza maiúsculas/minúsculas no código.
+
+### Fluxo recomendado
+
+1. Analista menciona «PAC-2026-0029» → `pac_get_action_plan` com path `/quality/action-plans/PAC-2026-0029`.
+2. Só o código, sem certeza → `pac_list_action_plans?code=PAC-2026-0029` (match exato) e depois o detalhe.
+3. Escritas no mesmo plano (`pac_upsert_ishikawa`, ações, evidências, status, 8D…): reutilize o **mesmo código** ou o `id` retornado no detalhe.
+
+Todas as rotas com `{plan_id}` no path aceitam código PAC ou UUID.
+
+### Erros — como reagir
+
+| Resposta | Significado | O que fazer |
+|----------|-------------|-------------|
+| **404** | Referência inválida ou plano inexistente | Confirmar código com o analista ou listar por cliente/produto |
+| **503** `API_DELPI_MISCONFIGURED` | Infra (delegação não configurada) | Informar indisponibilidade temporária; não gravar |
+| **422** | Path não é UUID nem código PAC válido | Corrigir para `PAC-YYYY-NNNN` ou UUID do plano |
+
+**Não** responder ao analista com mensagem genérica do tipo «Tive falha ao abrir o detalhe pelo código» sem ter chamado a API ou sem explicar 404 de forma clara.
+
+## 8. Documentação complementar (repositório)
 
 - Campos e multipart: `chatgpt-referencia-campos-api.md`
 - Setup do GPT: `chatgpt-especialista-qualidade.md`

@@ -10,7 +10,7 @@ health="$(curl -sf "${PAC_BASE_URL}/health")"
 echo "${health}" | python3 -m json.tool
 
 delegation="$(echo "${health}" | python3 -c "import sys,json; print(json.load(sys.stdin).get('api_delpi_delegation',''))")"
-if [[ "${delegation}" != "enabled" ]]; then
+if [[ "${delegation}" != "configured" ]]; then
   echo "WARN: api_delpi_delegation=${delegation} — configure API_DELPI_BASE_URL e API_DELPI_INTERNAL_SERVICE_TOKEN no .env"
   exit 0
 fi

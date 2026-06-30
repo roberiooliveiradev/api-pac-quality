@@ -11,7 +11,7 @@ A **api-pac-quality** é uma API **standalone** para o **Custom GPT** (ChatGPT A
 
 Isso reduz superfície de ataque: o agente GPT não herda permissões de usuário nem JWT Keycloak.
 
-**Exceção em runtime:** `pac_search_assignable_users` chama a Core API com `CORE_API_INTEGRATIONS_SERVICE_TOKEN` (S2S). CRUD transacional pode ser **delegado** à api-delpi (`PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI`). Ver [contrato-http-api-pac-api-delpi.md](contrato-http-api-pac-api-delpi.md).
+**Exceção em runtime:** `pac_search_assignable_users` chama a Core API com `CORE_API_INTEGRATIONS_SERVICE_TOKEN` (S2S). **CRUD transacional** delega sempre à api-delpi (`API_DELPI_BASE_URL` + `API_DELPI_INTERNAL_SERVICE_TOKEN`). Ver [contrato-http-api-pac-api-delpi.md](contrato-http-api-pac-api-delpi.md).
 
 ## Como autenticar
 

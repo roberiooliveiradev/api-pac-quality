@@ -54,7 +54,7 @@ Antes de configurar o Cloudflare:
    curl -s http://localhost:8082/health
    ```
 
-   Esperado: `"status":"ok"`, `"api_delpi_delegation":"enabled"` e `"core_api_directory":"configured"` (com delegação e Core API no `.env`).
+   Esperado: `"status":"ok"`, `"api_delpi_delegation":"configured"` e `"core_api_directory":"configured"` (com api-delpi e Core API no `.env`).
 
 3. Porta livre (se mudar de 8082):
 
@@ -142,7 +142,7 @@ Resposta `/health` esperada:
   "status": "ok",
   "service": "api-pac-quality",
   "plugins_database": "ok",
-  "api_delpi_delegation": "enabled",
+  "api_delpi_delegation": "configured",
   "core_api_directory": "configured"
 }
 ```
@@ -166,7 +166,6 @@ Confirme no `~/projetos/api-pac-quality/.env`:
 PUBLIC_BASE_URL=https://pac-api.minhadelpi.com.br
 NGINX_HTTP_PORT=8082
 API_PAC_ROOT_PATH=
-PAC_DELEGATE_TRANSACTIONAL_TO_API_DELPI=true
 API_DELPI_BASE_URL=http://delpi-api-delpi:8000
 API_DELPI_INTERNAL_SERVICE_TOKEN=<delpi-central/infra/.env>
 CORE_API_BASE_URL=http://delpi-core-api:8000

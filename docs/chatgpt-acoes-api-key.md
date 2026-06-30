@@ -104,8 +104,8 @@ Atualizado jun/2026 — paridade com api-delpi (escrita + leituras de governanç
 | Intenção | operationId | Método |
 |----------|-------------|--------|
 | Criar plano | `pac_create_action_plan` | POST |
-| Listar planos | `pac_list_action_plans` | GET |
-| Detalhe | `pac_get_action_plan` | GET |
+| Listar planos | `pac_list_action_plans` | GET — query opcional `code=PAC-2026-NNNN` |
+| Detalhe | `pac_get_action_plan` | GET — path aceita UUID ou código `PAC-YYYY-NNNN` |
 | Atualizar plano | `pac_update_action_plan` | PATCH |
 | Atualizar status | `pac_update_action_plan_status` | PATCH |
 | Reabrir plano | `pac_reopen_action_plan` | POST |

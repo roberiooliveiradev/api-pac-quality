@@ -52,9 +52,17 @@ No plugin MFE, ações novas podem **herdar** `responsible_user_id` do membro vi
 
 ## Código do plano (`code`)
 
-- `pac_get_action_plan`: path aceita **UUID** ou código **`PAC-2026-XXXX`**
-- `pac_list_action_plans`: query opcional `code` (match exato)
-- Preferir código quando o analista citar `PAC-2026-0029`; use o `id` retornado nas escritas se necessário
+Persistência e resolução na **api-delpi**; a API PAC delega path/query sem alterar.
+
+| Operação | Referência no path / query |
+|----------|----------------------------|
+| `pac_get_action_plan` | Path: **UUID** ou código **`PAC-2026-XXXX`** |
+| `pac_list_action_plans` | Query opcional `code` (match exato, normalizado para maiúsculas) |
+| Demais rotas `{plan_id}` (Ishikawa, ações, evidências, status, 8D, eficácia…) | Mesmo: código PAC ou UUID |
+
+**Fluxo:** quando o analista citar `PAC-2026-0029`, chame o detalhe com esse código; use o mesmo código ou o `id` retornado nas escritas seguintes. Se 404, confirme o código — não assuma erro técnico opaco.
+
+Padrão do código: `^PAC-\d{4}-\d{4}$` (ex.: `PAC-2026-0029`).
 
 ## Recorrência (`recurrence_key`)
 
