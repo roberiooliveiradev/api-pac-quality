@@ -38,6 +38,7 @@ ANALYST_PAC_OPERATION_IDS: frozenset[str] = frozenset(
         "pac_export_rnc_8d",
         "pac_list_plan_evidences",
         "pac_attach_plan_evidence",
+        "pac_update_plan_evidence",
         "pac_get_plan_evidence_content",
         "pac_delete_plan_evidence",
         "pac_download_plan_evidence",
@@ -66,6 +67,7 @@ ROUTE_CONTRACTS: dict[str, RouteContract] = {
     "pac_export_rnc_8d": RouteContract("quality_action_plan_rnc_8d", "scalar"),
     "pac_list_plan_evidences": RouteContract("quality_action_plan_evidence", "paged_list"),
     "pac_attach_plan_evidence": RouteContract("quality_action_plan_evidence", "scalar"),
+    "pac_update_plan_evidence": RouteContract("quality_action_plan_evidence", "scalar"),
     "pac_get_plan_evidence_content": RouteContract(
         "quality_action_plan_evidence",
         "composite_analysis",

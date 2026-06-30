@@ -89,6 +89,7 @@ Erros de indisponibilidade da api-delpi: HTTP 503, `error.code = API_DELPI_UNAVA
 | POST | `.../effectiveness-review/submit` | `submit_quality_action_plan_effectiveness_review` → `pac_submit_effectiveness_review` |
 | PUT | `/{id}/rnc-8d` | `upsert_quality_action_plan_rnc_8d` → `pac_upsert_rnc_8d` |
 | POST | `/{id}/evidences` | `attach_quality_action_plan_evidence` → `pac_attach_plan_evidence` (multipart) |
+| PATCH | `/{id}/evidences/{eid}` | `update_quality_action_plan_evidence` → `pac_update_plan_evidence` |
 | DELETE | `/{id}/evidences/{eid}` | `delete_quality_action_plan_evidence` → `pac_delete_plan_evidence` |
 
 ## Não delegado (permanece na api-pac)

@@ -29,7 +29,7 @@ Em vez de manter um schema filtrado (`/openapi.chatgpt.json`) com allowlist JSON
 | Análise | `pac_upsert_ishikawa`, `pac_upsert_five_whys` |
 | Ações | `pac_create_plan_actions`, `pac_update_plan_action`, `pac_delete_plan_action` |
 | 8D | `pac_upsert_rnc_8d` |
-| Evidências | `pac_attach_plan_evidence`, `pac_delete_plan_evidence` |
+| Evidências | `pac_attach_plan_evidence`, `pac_update_plan_evidence`, `pac_delete_plan_evidence` |
 | Eficácia (analista) | `pac_submit_effectiveness_review`, `pac_record_effectiveness_review` |
 
 Fonte única no código: `app/interface/http/route_contract_registry.py` → `ANALYST_PAC_OPERATION_IDS`.

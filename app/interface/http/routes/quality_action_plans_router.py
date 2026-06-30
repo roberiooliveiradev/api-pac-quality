@@ -168,6 +168,11 @@ class FiveWhysBody(BaseModel):
     detection_why_5: str | None = None
 
 
+class ActionResponsibleBody(BaseModel):
+    display_name: str = Field(..., min_length=1, max_length=200)
+    user_id: str | None = Field(default=None, max_length=100)
+
+
 class ActionItemBody(BaseModel):
     action_type: str = Field(
         ...,
@@ -176,6 +181,7 @@ class ActionItemBody(BaseModel):
     description: str = Field(..., min_length=3)
     responsible_user_id: str | None = None
     responsible_name: str | None = None
+    responsibles: list[ActionResponsibleBody] | None = None
     department: str | None = None
     due_date: str | None = None
     status: str = Field(default="pending", pattern="^(pending|in_progress|blocked)$")
@@ -195,6 +201,7 @@ class UpdateActionBody(BaseModel):
     description: str | None = Field(default=None, min_length=3)
     responsible_user_id: str | None = None
     responsible_name: str | None = None
+    responsibles: list[ActionResponsibleBody] | None = None
     department: str | None = None
     due_date: str | None = None
     status: str | None = Field(
@@ -203,6 +210,23 @@ class UpdateActionBody(BaseModel):
     )
     evidence_required: bool | None = None
     cause_track: str | None = Field(default=None, pattern="^(occurrence|detection)$")
+
+
+class UpdateEvidenceBody(BaseModel):
+    evidence_type: str | None = Field(
+        default=None,
+        pattern="^(email|message|spreadsheet|pdf|image|manual_text|system_reference|other)$",
+    )
+    section: str | None = Field(
+        default=None,
+        pattern=(
+            "^(general|nc_description|containment|root_cause|corrective|"
+            "effectiveness|preventive|documentation|attachments)$"
+        ),
+    )
+    description: str | None = None
+    action_id: str | None = None
+    knowledge_visible: bool | None = None
 
 
 class TeamMemberBody(BaseModel):
@@ -531,6 +555,23 @@ def get_plan_evidence_content(plan_id: str, evidence_id: str):
         method="GET",
         path_suffix=f"/{plan_id}/evidences/{evidence_id}/content",
         pac_operation_id="pac_get_plan_evidence_content",
+    )
+
+
+@router.patch(
+    "/{plan_id}/evidences/{evidence_id}",
+    operation_id="pac_update_plan_evidence",
+)
+def update_plan_evidence(
+    plan_id: str,
+    evidence_id: str,
+    body: UpdateEvidenceBody = Body(...),
+):
+    return delegate_json(
+        method="PATCH",
+        path_suffix=f"/{plan_id}/evidences/{evidence_id}",
+        pac_operation_id="pac_update_plan_evidence",
+        json_body=body.model_dump(exclude_unset=True),
     )
 
 

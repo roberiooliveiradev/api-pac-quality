@@ -24,6 +24,7 @@ WRITE_PARITY: dict[str, str] = {
     "export_quality_action_plan_rnc_8d": "pac_export_rnc_8d",
     "list_quality_action_plan_evidences": "pac_list_plan_evidences",
     "attach_quality_action_plan_evidence": "pac_attach_plan_evidence",
+    "update_quality_action_plan_evidence": "pac_update_plan_evidence",
     "delete_quality_action_plan_evidence": "pac_delete_plan_evidence",
     "delete_quality_action_plan": "pac_delete_action_plan",
 }

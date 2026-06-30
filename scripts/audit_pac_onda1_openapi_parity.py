@@ -18,6 +18,7 @@ ONDA1_PAC_OPERATION_IDS = (
     "pac_export_rnc_8d",
     "pac_list_plan_evidences",
     "pac_attach_plan_evidence",
+    "pac_update_plan_evidence",
     "pac_get_plan_evidence_content",
     "pac_delete_plan_evidence",
     "pac_download_plan_evidence",
