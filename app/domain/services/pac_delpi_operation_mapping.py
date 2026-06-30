@@ -7,6 +7,7 @@ DELPI_TO_PAC_OPERATION_ID: dict[str, str] = {
     "list_quality_action_plans": "pac_list_action_plans",
     "get_quality_action_plan_detail": "pac_get_action_plan",
     "list_quality_action_plan_evidences": "pac_list_plan_evidences",
+    "list_quality_action_plan_export_templates": "pac_list_export_templates",
     "export_quality_action_plan_rnc_8d": "pac_export_rnc_8d",
     "create_quality_action_plan": "pac_create_action_plan",
     "update_quality_action_plan": "pac_update_action_plan",

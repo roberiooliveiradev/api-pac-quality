@@ -80,6 +80,11 @@ class CreateActionPlanBody(_PlanTimestampValidationMixin):
         pattern="^(generic|rnc_8d)$",
     )
     client_nc_registry: str | None = Field(default=None, max_length=100)
+    export_template_key: str | None = Field(
+        default=None,
+        max_length=50,
+        description="Template Excel 8D preferido (ex.: weg_wfr20997, delpi_8d).",
+    )
 
 
 class UpdateActionPlanBody(_PlanTimestampValidationMixin):
@@ -112,6 +117,11 @@ class UpdateActionPlanBody(_PlanTimestampValidationMixin):
         pattern="^(generic|rnc_8d)$",
     )
     client_nc_registry: str | None = Field(default=None, max_length=100)
+    export_template_key: str | None = Field(
+        default=None,
+        max_length=50,
+        description="Template Excel 8D preferido (ex.: weg_wfr20997, delpi_8d).",
+    )
 
 
 class UpdateActionPlanStatusBody(BaseModel):
@@ -273,6 +283,15 @@ class ReopenActionPlanBody(BaseModel):
             "^(triage|containment|root_cause_analysis|action_plan_defined|"
             "in_progress|waiting_validation)$"
         ),
+    )
+
+
+@router.get("/export-templates", operation_id="pac_list_export_templates")
+def list_rnc_8d_export_templates():
+    return delegate_json(
+        method="GET",
+        path_suffix="/export-templates",
+        pac_operation_id="pac_list_export_templates",
     )
 
 
@@ -465,11 +484,18 @@ def upsert_rnc_8d_report(plan_id: str, body: Rnc8dReportBody = Body(...)):
 
 
 @router.get("/{plan_id}/export/rnc-8d", operation_id="pac_export_rnc_8d")
-def export_rnc_8d_spreadsheet(plan_id: str):
+def export_rnc_8d_spreadsheet(
+    plan_id: str,
+    template_key: str | None = Query(
+        default=None,
+        description="Template Excel 8D (weg_wfr20997, delpi_8d). Omitir para inferir pelo plano/cliente.",
+    ),
+):
     return delegate_binary(
         method="GET",
         path_suffix=f"/{plan_id}/export/rnc-8d",
         pac_operation_id="pac_export_rnc_8d",
+        query=_query_params(template_key=template_key),
     )
 
 

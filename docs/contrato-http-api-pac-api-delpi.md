@@ -68,7 +68,8 @@ Erros de indisponibilidade da api-delpi: HTTP 503, `error.code = API_DELPI_UNAVA
 | GET | `/quality/action-plans` | `list_quality_action_plans` | `pac_list_action_plans` |
 | GET | `/quality/action-plans/{id}` | `get_quality_action_plan_detail` | `pac_get_action_plan` |
 | GET | `.../evidences` | `list_quality_action_plan_evidences` | `pac_list_plan_evidences` |
-| GET | `.../export/rnc-8d` | `export_quality_action_plan_rnc_8d` | `pac_export_rnc_8d` |
+| GET | `/quality/action-plans/export-templates` | `list_quality_action_plan_export_templates` | `pac_list_export_templates` |
+| GET | `.../export/rnc-8d` | `export_quality_action_plan_rnc_8d` | `pac_export_rnc_8d` (`template_key` query opcional) |
 | GET | `.../evidences/{ev_id}/file` | — (binário) | `pac_download_plan_evidence` |
 | GET | `.../evidences/{ev_id}/content` | `get_quality_action_plan_evidence_content` | `pac_get_plan_evidence_content` |
 

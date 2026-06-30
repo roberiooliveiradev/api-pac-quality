@@ -9,6 +9,7 @@ READ_PARITY: dict[str, str] = {
     "list_quality_action_plans": "pac_list_action_plans",
     "get_quality_action_plan_detail": "pac_get_action_plan",
     "list_quality_action_plan_evidences": "pac_list_plan_evidences",
+    "list_quality_action_plan_export_templates": "pac_list_export_templates",
     "get_quality_action_plan_evidence_content": "pac_get_plan_evidence_content",
     "export_quality_action_plan_rnc_8d": "pac_export_rnc_8d",
 }

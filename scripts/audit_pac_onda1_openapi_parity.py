@@ -15,6 +15,7 @@ ONDA1_PAC_OPERATION_IDS = (
     "pac_create_action_plan",
     "pac_update_action_plan",
     "pac_upsert_rnc_8d",
+    "pac_list_export_templates",
     "pac_export_rnc_8d",
     "pac_list_plan_evidences",
     "pac_attach_plan_evidence",
@@ -31,6 +32,7 @@ ONDA1_PAC_OPERATION_IDS = (
 
 ONDA1_PAC_PATHS = (
     "/quality/action-plans",
+    "/quality/action-plans/export-templates",
     "/quality/action-plans/{plan_id}",
     "/quality/action-plans/{plan_id}/rnc-8d",
     "/quality/action-plans/{plan_id}/export/rnc-8d",

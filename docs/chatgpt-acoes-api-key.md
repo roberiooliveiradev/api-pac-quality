@@ -119,7 +119,8 @@ Atualizado jun/2026 — paridade com api-delpi (escrita + leituras de governanç
 | Submeter eficácia | `pac_submit_effectiveness_review` | POST |
 | Eficácia direta | `pac_record_effectiveness_review` | POST |
 | Relatório 8D | `pac_upsert_rnc_8d` | PUT |
-| Exportar 8D | `pac_export_rnc_8d` | GET |
+| Exportar 8D | `pac_export_rnc_8d` | GET (`template_key` opcional: `weg_wfr20997`, `delpi_8d`) |
+| Catálogo templates 8D | `pac_list_export_templates` | GET |
 | Evidências | `pac_list_plan_evidences` / `pac_attach_plan_evidence` / `pac_delete_plan_evidence` / `pac_download_plan_evidence` | GET / POST multipart / DELETE / GET |
 | Casos similares | `pac_search_similar_cases` | POST |
 | Padrões de solução | `pac_search_solution_patterns` | POST |

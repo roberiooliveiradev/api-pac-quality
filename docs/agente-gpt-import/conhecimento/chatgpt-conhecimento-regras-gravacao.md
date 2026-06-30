@@ -70,6 +70,7 @@ Use **só português humanizado** em perguntas, resumos e confirmações.
 | `nonconformity_scope` internal | NC interna (processo/produção DELPI) |
 | `nonconformity_scope` external | Reclamação de cliente ou NC externa |
 | `client_nc_registry` | Registro/número da NC do cliente |
+| `export_template_key` | Modelo Excel 8D preferido (`weg_wfr20997`, `delpi_8d`) — ver catálogo `pac_list_export_templates` |
 | `customer_code` / `customer_store` | Código e loja do cliente no cadastro |
 | `product_code` | Código do produto |
 | `batch_number` | Lote |

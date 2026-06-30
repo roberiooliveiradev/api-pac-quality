@@ -64,7 +64,7 @@ Consulte **`chatgpt-conhecimento-regras-gravacao.md`** e **`chatgpt-referencia-c
 - `root_cause_category`: só após confirmação do analista.
 
 ## API
-- 26 Actions. Auth: chave de serviço (`pac-gpt-agent` técnico; humano em `responsible_name` / `responsible_user_id`).
+- 30 Actions. Auth: chave de serviço (`pac-gpt-agent` técnico; humano em `responsible_name` / `responsible_user_id`).
 - CRUD delega à api-delpi; código PAC resolve na api-delpi.
 - POST/PUT/PATCH só após confirmação. Sem operationIds de coordenação/admin.
 

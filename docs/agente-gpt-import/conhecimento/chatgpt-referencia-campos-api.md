@@ -118,6 +118,16 @@ Multipart obrigatório — não enviar JSON para arquivo.
 
 Fluxo: `pac_create_plan_actions` → anexar com `action_id` se `evidence_required`. Listar/baixar/remover: `pac_list_plan_evidences`, `pac_download_plan_evidence`, `pac_delete_plan_evidence`. **Editar metadados** (tipo, seção 8D, vínculo à ação, descrição): `pac_update_plan_evidence`. **Ler conteúdo textual** (planilha/PDF quando suportado): `pac_get_plan_evidence_content` — preferir para o GPT analisar `.xlsx` sem depender só do download binário. Tags: `pac_suggest_evidence_tags`, `pac_suggest_evidence_tags_from_image`.
 
+## Exportação Excel 8D (`pac_list_export_templates`, `pac_export_rnc_8d`)
+
+| Campo / parâmetro | Uso |
+|-------------------|-----|
+| `pac_list_export_templates` | Catálogo de modelos: `weg_wfr20997` (WEG WFR-20997) e `delpi_8d` (DELPI). |
+| `export_template_key` | Preferência no plano (`pac_create_action_plan` / `pac_update_action_plan`). Chaves válidas do catálogo. |
+| `template_key` (query) | Em `pac_export_rnc_8d`: escolhe o modelo na exportação. Omitir = usar `export_template_key` do plano, hint do cliente (ex.: WEG) ou padrão WEG. |
+
+Fluxo recomendado: listar catálogo → gravar `export_template_key` no plano quando o analista confirmar o cliente → `pac_export_rnc_8d?template_key=…` se precisar trocar só na exportação.
+
 ## Eficácia
 
 | Papel | Meio |
@@ -138,10 +148,10 @@ Severidade: low, medium, high, critical
 - Glossário completo: **`chatgpt-conhecimento-regras-gravacao.md`** § 4.
 - Nomes técnicos só nas chamadas à API.
 
-## Actions disponíveis (26)
+## Actions disponíveis (30)
 
 Inteligência: pac_search_similar_cases, pac_assess_recurrence_on_opening, pac_search_solution_patterns, pac_suggest_actions, pac_suggest_evidence_tags, pac_suggest_evidence_tags_from_image
 
-Planos: pac_create/list/get/update_action_plan, pac_update_action_plan_status, pac_reopen_action_plan, pac_upsert_ishikawa, pac_upsert_five_whys, pac_create/update_plan_action, pac_upsert/export_rnc_8d, pac_list/attach/update/delete/download_plan_evidence, **pac_get_plan_evidence_content**, pac_submit/record_effectiveness_review, **pac_search_assignable_users**
+Planos: pac_create/list/get/update_action_plan, pac_update_action_plan_status, pac_reopen_action_plan, pac_upsert_ishikawa, pac_upsert_five_whys, pac_create/update_plan_action, pac_upsert_rnc_8d, **pac_list_export_templates**, **pac_export_rnc_8d** (`template_key` opcional), pac_list/attach/update/delete/download_plan_evidence, **pac_get_plan_evidence_content**, pac_submit/record_effectiveness_review, **pac_search_assignable_users**
 
 Coordenação/admin **não** estão na API PAC.
