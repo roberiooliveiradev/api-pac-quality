@@ -11,6 +11,7 @@ from app.domain.services.pac_quality_branch_service import (
 from app.domain.services.pac_quality_nonconformity_scope_service import (
     validate_nonconformity_scope,
 )
+from app.domain.services.quality_action_plan_delete_policy import assert_plan_deletable
 
 
 @dataclass(frozen=True)
@@ -284,3 +285,15 @@ class ReopenQualityActionPlanUseCase:
             reason=normalized_reason,
             updated_by=updated_by,
         )
+
+
+class DeleteQualityActionPlanUseCase:
+    def __init__(self, repository: QualityActionPlanRepositoryPort) -> None:
+        self._repository = repository
+
+    def execute(self, plan_id: str, *, updated_by: str) -> dict[str, Any] | None:
+        current = self._repository.get_plan_by_id(plan_id)
+        if not current:
+            return None
+        assert_plan_deletable(current)
+        return self._repository.delete_plan(plan_id, updated_by=updated_by)

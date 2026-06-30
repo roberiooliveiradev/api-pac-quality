@@ -1046,6 +1046,50 @@ class PostgresQualityActionPlanRepository(PluginBaseRepository, QualityActionPla
         self.commit()
         return self.get_plan_by_id(plan_id)
 
+    def delete_plan(self, plan_id: str, *, updated_by: str) -> dict[str, Any] | None:
+        plan_id = self._coerce_plan_id(plan_id)
+        if not plan_id:
+            return None
+
+        current = self.get_plan_by_id(plan_id)
+        if not current:
+            return None
+
+        code = current.get("code")
+        title = current.get("title")
+
+        self.execute(
+            """
+            UPDATE quality.quality_action_plans
+               SET deleted_at = NOW(),
+                   updated_at = NOW()
+             WHERE id = %s AND deleted_at IS NULL
+            """,
+            (plan_id,),
+            auto_commit=False,
+        )
+        self.append_history(
+            plan_id=plan_id,
+            event_type="plan_deleted",
+            created_by=updated_by,
+            old_value=code,
+            comment=(title or "")[:500] or None,
+            auto_commit=False,
+        )
+        self.append_audit_log(
+            entity_type="quality_action_plan",
+            entity_id=plan_id,
+            event_type="plan_deleted",
+            actor_user_id=updated_by,
+            payload={
+                "code": code,
+                "title": title,
+            },
+            auto_commit=False,
+        )
+        self.commit()
+        return {"id": str(plan_id), "code": code, "deleted": True}
+
     def append_audit_log(
         self,
         *,

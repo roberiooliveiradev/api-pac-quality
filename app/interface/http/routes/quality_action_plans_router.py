@@ -27,6 +27,7 @@ from app.composition.quality_action_plans_composer import (
     build_create_plan_actions_use_case,
     build_create_quality_action_plan_use_case,
     build_delete_plan_action_use_case,
+    build_delete_quality_action_plan_use_case,
     build_get_plan_detail_use_case,
     build_get_quality_action_plan_use_case,
     build_list_quality_action_plans_use_case,
@@ -671,6 +672,30 @@ def update_action_plan(plan_id: str, body: UpdateActionPlanBody = Body(...)):
     except PluginsRepositoryError:
         logger.exception("Erro ao atualizar plano PAC %s.", plan_id)
         return error_response("Erro ao atualizar plano.", status_code=500, code="PAC_REPOSITORY_ERROR")
+
+
+@router.delete("/{plan_id}", operation_id="pac_delete_action_plan")
+def delete_action_plan(plan_id: str):
+    delegated = delegate_json(
+        method="DELETE",
+        path_suffix=f"/{plan_id}",
+        pac_operation_id="pac_delete_action_plan",
+    )
+    if delegated is not None:
+        return delegated
+    try:
+        result = build_delete_quality_action_plan_use_case().execute(
+            plan_id,
+            updated_by=_current_user_id(),
+        )
+        if not result:
+            return not_found_response("Plano de ação não encontrado.")
+        return success_response(result, message="Plano de ação excluído.")
+    except ValueError as exc:
+        return error_response(str(exc), status_code=400)
+    except PluginsRepositoryError:
+        logger.exception("Erro ao excluir plano PAC %s.", plan_id)
+        return error_response("Erro ao excluir plano.", status_code=500, code="PAC_REPOSITORY_ERROR")
 
 
 @router.patch("/{plan_id}/status", operation_id="pac_update_action_plan_status")

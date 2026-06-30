@@ -1,5 +1,6 @@
 from app.application.use_cases.quality_action_plans_use_cases import (
     CreateQualityActionPlanUseCase,
+    DeleteQualityActionPlanUseCase,
     GetQualityActionPlanUseCase,
     ListQualityActionPlansUseCase,
     ReopenQualityActionPlanUseCase,
@@ -111,6 +112,10 @@ def build_reject_effectiveness_review_use_case() -> RejectEffectivenessReviewUse
 
 def build_reopen_quality_action_plan_use_case() -> ReopenQualityActionPlanUseCase:
     return ReopenQualityActionPlanUseCase(build_quality_action_plan_repository())
+
+
+def build_delete_quality_action_plan_use_case() -> DeleteQualityActionPlanUseCase:
+    return DeleteQualityActionPlanUseCase(build_quality_action_plan_repository())
 
 
 def build_dispatch_pac_quality_notifications_use_case() -> DispatchPacQualityNotificationsUseCase:

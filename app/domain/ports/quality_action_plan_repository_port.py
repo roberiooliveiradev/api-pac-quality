@@ -149,6 +149,8 @@ class QualityActionPlanRepositoryPort:
         updated_by: str,
     ) -> dict[str, Any] | None: ...
 
+    def delete_plan(self, plan_id: str, *, updated_by: str) -> dict[str, Any] | None: ...
+
     def append_audit_log(
         self,
         *,

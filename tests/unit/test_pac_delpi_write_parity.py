@@ -28,6 +28,7 @@ WRITE_PARITY: dict[str, str] = {
 }
 
 PLUGIN_ONLY_WRITE_PARITY: dict[str, str] = {
+    "delete_quality_action_plan": "pac_delete_action_plan",
     "approve_quality_action_plan_effectiveness_review": "pac_approve_effectiveness_review",
     "reject_quality_action_plan_effectiveness_review": "pac_reject_effectiveness_review",
     "promote_quality_action_plan_solution_pattern": "pac_promote_solution_pattern",
