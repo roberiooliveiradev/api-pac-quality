@@ -19,6 +19,10 @@ def test_openapi_get_action_plan_documents_detail_envelope():
     components = schema["components"]["schemas"]
     assert "PlanContactRolesView" in components
     assert "Rnc8dTemplatePayloadHeader" in components
+    assert "ActionPlanRow" in components
+    assert components["ActionPlanRow"]["type"] == "object"
+    assert "$defs" not in components["ActionPlanDetailData"]
+    assert "$defs" not in components["PacActionPlanDetailEnvelope"]
     plan_props = components["ActionPlanDetailData"]["properties"]["plan"]
     assert plan_props["$ref"] == "#/components/schemas/ActionPlanRow"
 
