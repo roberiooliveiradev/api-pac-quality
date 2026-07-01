@@ -21,6 +21,7 @@ from app.interface.http.delegation.pac_delpi_route_delegate import (
     delegate_json,
     delegate_multipart,
 )
+from app.interface.http.schemas.quality_action_plan_openapi import Rnc8dTemplatePayloadHeader
 
 logger = logging.getLogger(__name__)
 
@@ -282,7 +283,10 @@ class Rnc8dReportBody(BaseModel):
     product_description: str | None = Field(default=None, max_length=500)
     batch_number: str | None = Field(default=None, max_length=100)
     reported_problem: str | None = None
-    template_payload: dict | None = None
+    template_payload: Rnc8dTemplatePayloadHeader | None = Field(
+        default=None,
+        description="Seções 8D; cabeçalho material/NF — ver Rnc8dTemplatePayloadHeader no OpenAPI.",
+    )
     team_members: list[TeamMemberBody] | None = None
 
 

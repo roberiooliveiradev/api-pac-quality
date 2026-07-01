@@ -127,7 +127,7 @@ Quando o analista citar um plano em andamento ou pedir revisão:
 3. Nas escritas no mesmo plano, reutilize o código ou o `id` retornado.
 4. **404** → confirme o código com o analista; não use mensagem genérica de «falha técnica» sem explicar que o plano não foi encontrado.
 
-Detalhes: [`agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.md`](agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.md) § 8 · [`chatgpt-referencia-campos-api.md`](agente-gpt-import/conhecimento/chatgpt-referencia-campos-api.md) (código do plano).
+Detalhes: [`agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.md`](agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.md) § 8 · [`chatgpt-referencia-campos-api.md`](agente-gpt-import/conhecimento/chatgpt-referencia-campos-api.md) (código do plano, contatos, cabeçalho material/NF).
 
 ## Escopo NC (`nonconformity_scope`)
 - **Obrigatório** ao criar plano: `internal` ou `external`.

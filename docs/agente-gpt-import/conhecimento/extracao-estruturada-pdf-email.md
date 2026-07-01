@@ -19,6 +19,16 @@ Guia para o **Especialista Qualidade** (GPT e Minha DELPI Chat) ao receber relat
 | `delpi_contact_name` | Não | Comercial ou interlocutor DELPI no caso | Planilha WEG J5 «Contato» |
 | `delpi_sales_rep` | Não | Vendedor DELPI citado no relato | Distinto do contato no cliente |
 | `delpi_quality_contact` | Não | Referência qualidade DELPI (ex.: Carla) | |
+| `purchase_order` | Não | NF, planilha 8D, e-mail | → `template_payload` no `pac_upsert_rnc_8d` |
+| `invoice_number` | Não | NF, planilha 8D | → `template_payload` |
+| `invoice_date` | Não | NF, planilha 8D | → `template_payload` |
+| `defective_quantity` | Não | Relato, NF | → `template_payload` |
+| `client_batch` | Não | NF, etiqueta, planilha WEG | → `template_payload`; distinto de `batch_number` do plano |
+| `batch_quantity` | Não | NF, planilha 8D | → `template_payload` |
+| `disposition` | Não | Carta NC | → `template_payload` |
+| `rejected_quantity` | Não | NF, planilha 8D | → `template_payload` |
+| `return_by` | Não | Prazo do cliente no PDF | → `template_payload` |
+| `contact_phone` | Não | Rodapé DELPI na planilha WEG (J6) | Telefone **DELPI** → `template_payload` |
 | `product_code` | Recomendado | NF, etiqueta, desenho | Validar formato com analista |
 | `batch_number` | Recomendado | NF, lote, OP | |
 | `detected_at` | Não | Data do relato | ISO ou confirmar com analista |
@@ -72,7 +82,7 @@ O agente monta um rascunho **antes** de `pac_create_action_plan`:
 
 ### PDF (carta NC, relatório cliente)
 
-1. OCR/texto: problema, produto, lote, data; em planilha 8D WEG: «Atenção para» → `customer_contact`; «Contato» (DELPI) → `delpi_contact_name`.
+1. OCR/texto: problema, produto, lote, data; em planilha 8D WEG: «Atenção para» → `customer_contact`; «Contato» (DELPI) → `delpi_contact_name`; OC/NF/lote/quantidades → chaves de `template_payload` (ver `chatgpt-referencia-campos-api.md` § Cabeçalho material).
 2. Marcar ilegível como `missing` — não preencher com suposição.
 3. `source_type: pdf`; evidência na seção `nc_description` ou `attachments`.
 

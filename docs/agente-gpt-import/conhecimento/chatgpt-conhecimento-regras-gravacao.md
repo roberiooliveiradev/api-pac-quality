@@ -49,7 +49,10 @@ Pasta de importação: `docs/agente-gpt-import/conhecimento/`. Anexe este arquiv
    - **Opcional — Minha fila:** se o responsável for usuário DELPI, chamar `pac_search_assignable_users?q=nome` e gravar `responsible_user_id` (UUID retornado) **além** de `responsible_name`. Só nome livre → não entra na fila pessoal do plugin.
 5. `pac_update_action_plan_status` — avançar status conforme estágio.
 6. `pac_attach_plan_evidence` — **se** o analista enviou PDF, e-mail, foto ou planilha: anexar com `evidence_type` adequado (`pdf`, `email`, `image`, …).
-7. `pac_upsert_rnc_8d` — só se template 8D do cliente for o fluxo acordado. Preencher **contatos separados** (`customer_contact*`, `delpi_contact_*`) conforme `chatgpt-referencia-campos-api.md` § Contatos. Em `team_members[]`, opcional `member_user_id` (UUID via `pac_search_assignable_users`) além de `member_name` — habilita vínculo Delpi na equipe e herança de responsável nas ações.
+7. `pac_upsert_rnc_8d` — só se template 8D do cliente for o fluxo acordado.
+   - **Contatos** no corpo raiz: `customer_contact*`, `delpi_contact_*` (§ Contatos em `chatgpt-referencia-campos-api.md`).
+   - **Material e nota fiscal** em `template_payload`: `purchase_order`, `invoice_number`, `invoice_date`, `defective_quantity`, `client_batch`, `batch_quantity`, `disposition`, `rejected_quantity`, `return_by`, `contact_phone` — extrair do PDF/NF quando disponível.
+   - `team_members[]`: opcional `member_user_id` (UUID via `pac_search_assignable_users`) além de `member_name`.
 
 ---
 
@@ -81,6 +84,10 @@ Use **só português humanizado** em perguntas, resumos e confirmações.
 | `delpi_contact_name` | Interlocutor DELPI (ex.: comercial no caso) |
 | `delpi_sales_rep` | Vendedor DELPI |
 | `delpi_quality_contact` | Qualidade DELPI no caso |
+| `template_payload.purchase_order` | Ordem compra / posição (8D) |
+| `template_payload.invoice_number` | Nota fiscal |
+| `template_payload.client_batch` | Lote do cliente |
+| `template_payload.contact_phone` | Telefone DELPI |
 | `export_template_key` | Modelo Excel 8D preferido (`weg_wfr20997`, `delpi_8d`) — ver catálogo `pac_list_export_templates` |
 | `customer_code` / `customer_store` | Código e loja do cliente no cadastro |
 | `product_code` | Código do produto |
@@ -189,6 +196,7 @@ Cada PAC alimenta futuras análises: casos semelhantes, padrões de solução, a
 | PDF citado sem anexo | Orientar `pac_attach_plan_evidence` ou registro manual no plugin |
 | Expor `branch_code`, enums em inglês no chat | Traduzir sempre (§ 4) |
 | Vendedor DELPI gravado em `customer_contact` | Separar: cliente em `customer_contact` / e-mail; DELPI em `delpi_contact_name` |
+| Material/NF só no texto do relato | Gravar em `pac_upsert_rnc_8d` → `template_payload` (OC, NF, lote, quantidades) |
 | Análise sem causa raiz provável ou sem % de confiança | Incluir bloco obrigatório §5 antes do plano de ação |
 | Confiança alta sem evidência ou confirmação | Reduzir % e listar lacunas em «O que falta levantar» |
 | Porquês de ocorrência e/ou detecção preenchidos sem corretiva na mesma trilha | Incluir ≥1 `corrective` com `cause_track: occurrence` e/ou `detection` conforme §5 — ver tabela «Ações corretivas por trilha» |

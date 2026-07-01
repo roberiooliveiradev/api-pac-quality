@@ -44,6 +44,7 @@ DELPI_CREATE_PLAN_FIELDS = {
     "recurrence_key",
     "customer_template",
     "client_nc_registry",
+    "export_template_key",
 }
 
 DELPI_UPDATE_PLAN_FIELDS = {

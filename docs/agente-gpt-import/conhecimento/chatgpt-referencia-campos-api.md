@@ -53,14 +53,55 @@ Upload em **Conhecimento** (`docs/agente-gpt-import/conhecimento/`), junto com `
 | `delpi_quality_contact` | Referência qualidade DELPI (ex.: Carla) | PDF/UI |
 | `template_payload.contact_phone` | Telefone **DELPI** (comercial) | J6 |
 
-No detalhe do plano, a API expõe também `contact_roles` (visão já resolvida para leitura/export).
+No detalhe do plano (`pac_get_action_plan` → `data.plan`), a API expõe:
+
+- Colunas do plano (`customer_contact*`, `delpi_contact_*`)
+- `template_payload` (JSON com cabeçalho material/NF e demais seções 8D)
+- `contact_roles` — visão **resolvida** (preferir na leitura; inclui `delpi_contact_phone`)
 
 ### Regras para o agente
 
 1. **E-mail/PDF WEG:** remetente ou «Atenção para» / assinatura do cliente → `customer_contact` + `customer_contact_email`; comercial/vendedor DELPI citado no corpo → `delpi_contact_name` (e `delpi_sales_rep` se for só o vendedor).
 2. **Não** gravar o vendedor DELPI em `customer_contact` quando o contato do cliente for outra pessoa.
-3. Em `pac_upsert_rnc_8d`, enviar os campos de contato no corpo do PUT (não só em `template_payload.attention_to` — a API sincroniza legado, mas a fonte canônica são as colunas do plano).
-4. Dados antigos invertidos (vendedor em `customer_contact`, cliente em `template_payload.attention_to`): a API e o export corrigem na leitura; ao regravar, separar nos campos certos.
+3. Em `pac_upsert_rnc_8d`, enviar contatos no **corpo raiz** e material/NF em `template_payload` (ver § Cabeçalho material abaixo).
+4. Dados antigos invertidos (vendedor em `customer_contact`, cliente em `template_payload.attention_to`): a API corrige na leitura via `contact_roles`; ao regravar, separar nos campos certos.
+
+## Cabeçalho material e nota fiscal (`template_payload` em `pac_upsert_rnc_8d`)
+
+Seção **«Material e nota fiscal»** do plugin. **Somente** `pac_upsert_rnc_8d` grava essas chaves (não use `pac_update_action_plan`).
+
+| Chave `template_payload` | Significado | Planilha WEG (ref.) |
+|---------------------------|-------------|---------------------|
+| `contact_phone` | Telefone DELPI | J6 |
+| `purchase_order` | Ordem compra / posição | E8 |
+| `invoice_number` | Nota fiscal | — |
+| `invoice_date` | Data digitação NF | — |
+| `defective_quantity` | Quantidade defeituosa | — |
+| `client_batch` | Lote do cliente | J8 |
+| `batch_quantity` | Quantidade do lote | — |
+| `disposition` | Disposição do material | — |
+| `rejected_quantity` | Quantidade rejeitada | J12 |
+| `return_by` | Devolver relatório até | D21 |
+
+**Leitura:** `pac_get_action_plan` → `data.plan.template_payload.<chave>` (valores vazios = campo não preenchido no plano).
+
+**Gravação (exemplo):**
+
+```json
+{
+  "customer_contact": "Igor Sfalsin Zamperlini",
+  "customer_contact_email": "wmo-rnc@weg.net",
+  "delpi_contact_name": "Laercio Koch",
+  "delpi_sales_rep": "Laercio Koch",
+  "template_payload": {
+    "purchase_order": "5500044658 / 09770",
+    "client_batch": "10019632175",
+    "contact_phone": "47 3370 5502"
+  }
+}
+```
+
+Outras seções 8D (contenção, NC, eficácia, preventiva, documentação) usam chaves adicionais no mesmo `template_payload` — ver plugin / export 8D.
 
 ## Equipe de análise 8D (`team_members` em `pac_upsert_rnc_8d`)
 
@@ -115,7 +156,7 @@ Persistência e resolução na **api-delpi**; a API PAC delega path/query sem al
 
 **Fluxo:** quando o analista citar `PAC-2026-0029`, chame o detalhe com esse código; use o mesmo código ou o `id` retornado nas escritas seguintes. Se 404, confirme o código — não assuma erro técnico opaco.
 
-O detalhe inclui `contact_roles` (nomes/e-mails já resolvidos para cliente vs DELPI) — use para validar antes de export 8D.
+O detalhe inclui `data.plan` com colunas do plano, `template_payload` (cabeçalho material/NF e seções 8D) e `contact_roles` (contatos resolvidos) — use para validar antes de export 8D.
 
 Padrão do código: `^PAC-\d{4}-\d{4}$` (ex.: `PAC-2026-0029`).
 
