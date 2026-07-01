@@ -1,6 +1,6 @@
 # Playbook — API de contexto operacional para o Especialista Qualidade (GPT)
 
-**Status:** P1 implementado (jun/2026) — repo `api-pac-context` com 10 rotas produto `ctx_*`  
+**Status:** P2 implementado (jun/2026) — repo `api-pac-context` com **28 rotas** `ctx_*` (allowlist §8)  
 **Público:** api-pac-quality, api-delpi, produto PAC, arquitetura DELPI  
 **Relacionados:** [playbook_pac_qualidade_delpi.md](../playbook_pac_qualidade_delpi.md) · [openapi-analista-24-operacoes.md](openapi-analista-24-operacoes.md) · [contrato-http-api-pac-api-delpi.md](contrato-http-api-pac-api-delpi.md) · api-delpi `docs/api/11-guia-agente-chat.md` · Playbook 15 (rotas operacionais)
 
@@ -351,7 +351,7 @@ Usar no **Conhecimento** do GPT contexto (espelhar `11-guia-agente-chat.md`).
 |------|---------|-------------------|
 | **P0** | Este playbook aprovado + allowlist §8 congelada | Produto e arquitetura alinhados |
 | **P1** | Repo `api-pac-context`: health, auth, gateway S2S, 10 rotas Tier A produto | Homologação H1: `ctx_get_product_structure` + `ctx_get_product_production_status` |
-| **P2** | +18 rotas produção/qualidade; OpenAPI ≤30; gate CI | Import OpenAPI em GPT de homologação |
+| **P2** | +18 rotas produção/qualidade; OpenAPI ≤30; gate CI | Import OpenAPI em GPT de homologação (**28 ops publicadas**) |
 | **P3** | Composites §8 fase 2; doc Conhecimento GPT | Redução média de tool calls por turno |
 | **P4** | (Opcional) Unificar orquestração PAC + contexto | Só se plataforma permitir multi-schema ou MCP |
 
@@ -359,7 +359,7 @@ Usar no **Conhecimento** do GPT contexto (espelhar `11-guia-agente-chat.md`).
 
 - [x] `contrato-http-api-pac-context-api-delpi.md` (em `api-pac-context/docs/`)
 - [x] `scripts/audit_ctx_openapi_operation_limit.py --check`
-- [x] Testes delegação: path/query repassados; 404/503 mapeados (P1)
+- [x] Testes delegação: path/query repassados; 404/503 mapeados (P1–P2)
 - [ ] Subdomínio Cloudflare (ex.: `pac-context-api.minhadelpi.com.br`)
 - [x] Rotas api-delpi já têm `route_contract_registry` + smoke — **não** criar SQL novo na BFF
 
