@@ -52,6 +52,15 @@ class CreateActionPlanBody(_PlanTimestampValidationMixin):
     customer_code: str | None = Field(default=None, max_length=20)
     customer_store: str | None = Field(default=None, max_length=10)
     customer_contact: str | None = Field(default=None, max_length=300)
+    customer_contact_email: str | None = Field(default=None, max_length=300)
+    customer_contact_phone: str | None = Field(default=None, max_length=100)
+    delpi_contact_name: str | None = Field(default=None, max_length=300)
+    delpi_contact_area: str | None = Field(
+        default=None,
+        pattern="^(comercial|qualidade|pcp|engenharia|outro)$",
+    )
+    delpi_sales_rep: str | None = Field(default=None, max_length=300)
+    delpi_quality_contact: str | None = Field(default=None, max_length=300)
     source_type: str | None = Field(
         default=None,
         pattern="^(email|message|spreadsheet|pdf|image|manual_text|system_reference|other)$",
@@ -93,6 +102,15 @@ class UpdateActionPlanBody(_PlanTimestampValidationMixin):
     customer_code: str | None = Field(default=None, max_length=20)
     customer_store: str | None = Field(default=None, max_length=10)
     customer_contact: str | None = Field(default=None, max_length=300)
+    customer_contact_email: str | None = Field(default=None, max_length=300)
+    customer_contact_phone: str | None = Field(default=None, max_length=100)
+    delpi_contact_name: str | None = Field(default=None, max_length=300)
+    delpi_contact_area: str | None = Field(
+        default=None,
+        pattern="^(comercial|qualidade|pcp|engenharia|outro)$",
+    )
+    delpi_sales_rep: str | None = Field(default=None, max_length=300)
+    delpi_quality_contact: str | None = Field(default=None, max_length=300)
     source_type: str | None = Field(
         default=None,
         pattern="^(email|message|spreadsheet|pdf|image|manual_text|system_reference|other)$",
@@ -251,6 +269,15 @@ class Rnc8dReportBody(BaseModel):
     client_nc_registry: str | None = Field(default=None, max_length=100)
     customer_name: str | None = Field(default=None, max_length=300)
     customer_contact: str | None = Field(default=None, max_length=300)
+    customer_contact_email: str | None = Field(default=None, max_length=300)
+    customer_contact_phone: str | None = Field(default=None, max_length=100)
+    delpi_contact_name: str | None = Field(default=None, max_length=300)
+    delpi_contact_area: str | None = Field(
+        default=None,
+        pattern="^(comercial|qualidade|pcp|engenharia|outro)$",
+    )
+    delpi_sales_rep: str | None = Field(default=None, max_length=300)
+    delpi_quality_contact: str | None = Field(default=None, max_length=300)
     product_code: str | None = Field(default=None, max_length=50)
     product_description: str | None = Field(default=None, max_length=500)
     batch_number: str | None = Field(default=None, max_length=100)
