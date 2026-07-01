@@ -146,7 +146,8 @@ Rotule a origem: «segundo histórico PAC», «segundo roteiro no ERP», «segun
 | 2 — Contexto | `pac-context-api.minhadelpi.com.br` | `PAC_CONTEXT_API_KEY` | `ctx_*` somente leitura |
 
 - **Nunca** `api.transformamaisdelpi.com.br` neste GPT — use Action 2.
-- Erro «comunicação interrompida» em `ctx_*`: **uma** retentativa com menos parâmetros (só `code` + `branch`); se persistir, informe lacuna técnica e siga com PAC — não invente roteiro.
+- Erro «comunicação interrompida» em `ctx_*`: é **transiente de transporte**, não é dado ausente. Faça **uma** retentativa da **mesma chamada**; só se persistir, informe lacuna técnica e siga com PAC — não invente roteiro.
+- **Sequencial, não paralelo**: mesmo "na mesma rodada" da tabela do §2, dispare **uma Action por vez** e aguarde a resposta antes da próxima — chamadas simultâneas aumentam a «comunicação interrompida».
 - Gravação `pac_*` **somente** após «sim» / «pode registrar».
 
 ---
