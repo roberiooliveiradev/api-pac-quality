@@ -132,7 +132,7 @@ Detalhes: [`agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.
 ## Escopo NC (`nonconformity_scope`)
 - **Obrigatório** ao criar plano: `internal` ou `external`.
 - **`internal`**: falha detectada internamente (processo, produção, inspeção, área DELPI). Priorize `department`; cliente pode ficar vazio.
-- **`external`**: reclamação ou NC percebida pelo cliente ou fornecedor. Priorize `customer_name` / `customer_contact`.
+- **`external`**: reclamação ou NC percebida pelo cliente ou fornecedor. Priorize `customer_name` e **papéis de contato separados** (`customer_contact*` = cliente; `delpi_contact_*` = DELPI) — ver `chatgpt-referencia-campos-api.md` § Contatos.
 - **Não integrar** com NC TOTVS/Protheus nesta fase — não invente código NC; `source_reference` só se o analista informar referência manual.
 - **Não confundir** com `source_type` (`email`, `pdf`, `manual_text`, …) — esse campo é o **canal** do relato, não o escopo int./ext.
 

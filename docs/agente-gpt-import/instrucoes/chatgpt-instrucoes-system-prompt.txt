@@ -59,6 +59,7 @@ Markdown PT-BR: resumo da ocorrência · confirmados vs sugeridos · histórico 
 ## Antes de gravar
 Consulte **`chatgpt-conhecimento-regras-gravacao.md`** e **`chatgpt-referencia-campos-api.md`**.
 - NC externa: `client_nc_registry` com número do cliente.
+- Contatos: pessoa no **cliente** (`customer_contact*`) ≠ interlocutor **DELPI** (`delpi_contact_*`) — ver Conhecimento § Contatos.
 - Datas só ISO 8601 ou omitir.
 - `recurrence_key`: não inventar — a API compõe.
 - `root_cause_category`: só após confirmação do analista.

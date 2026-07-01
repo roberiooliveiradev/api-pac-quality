@@ -32,7 +32,7 @@ Fazer upload de **cada** arquivo abaixo no campo **Conhecimento** do builder:
 | Arquivo | Conteúdo |
 |---------|----------|
 | `chatgpt-conhecimento-regras-gravacao.md` | Checklist de gravação, causa raiz + confiança %, glossário PT-BR, erros frequentes |
-| `chatgpt-referencia-campos-api.md` | Campos PAC, evidências multipart, eficácia, 5 Porquês |
+| `chatgpt-referencia-campos-api.md` | Campos PAC, contatos cliente/DELPI, evidências multipart, eficácia, 5 Porquês |
 | `extracao-estruturada-pdf-email.md` | Rascunho de extração de PDF/e-mail antes do create |
 | `entrevista-ishikawa.md` | Roteiro 6M (antes dos Porquês) |
 | `entrevista-cinco-porques.md` | Roteiro 5 Porquês (após Ishikawa) |

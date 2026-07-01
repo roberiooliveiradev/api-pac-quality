@@ -53,8 +53,8 @@ Middleware `pac_service_actor_middleware` na api-delpi substitui o usuário `int
 
 ## Envelope de resposta
 
-- **Entrada:** corpo/query idênticos ao contrato api-delpi (mesmos paths sob `/quality/action-plans`).
-- **Saída:** envelope `{ success, message, data, error, meta? }` inalterado.
+- **Entrada:** corpo/query idênticos ao contrato api-delpi (mesmos paths sob `/quality/action-plans`). Campos de contato V025 (`customer_contact_*`, `delpi_contact_*`) aceitos em create, PATCH e `pac_upsert_rnc_8d`.
+- **Saída:** envelope `{ success, message, data, error, meta? }` inalterado. Detalhe do plano inclui `contact_roles` (papéis resolvidos cliente vs DELPI).
 - **meta.operationId:** reescrito de `create_quality_action_plan` → `pac_create_action_plan` (mapa em `pac_delpi_operation_mapping.py`).
 
 Erros de indisponibilidade da api-delpi: HTTP 503, `error.code = API_DELPI_UNAVAILABLE`.

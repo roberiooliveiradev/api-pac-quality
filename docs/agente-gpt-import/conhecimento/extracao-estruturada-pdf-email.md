@@ -14,7 +14,11 @@ Guia para o **Especialista Qualidade** (GPT e Minha DELPI Chat) ao receber relat
 | `branch_code` | Sim (`01` \| `02`) | Assunto, rodapé, pergunta ao analista | **Nunca** inferir só pelo CEP |
 | `nonconformity_scope` | Sim (`internal` \| `external`) | Contexto do relato | Não confundir com `source_type` |
 | `customer_name` | Externa | Cabeçalho e-mail, carta NC | Anonimizar em evals |
-| `customer_contact` | Não | Assinatura e-mail | |
+| `customer_contact` | Não | «Atenção para», assinatura do **cliente** | **Não** é vendedor DELPI |
+| `customer_contact_email` | Não | Rodapé e-mail / planilha 8D (J21 WEG) | |
+| `delpi_contact_name` | Não | Comercial ou interlocutor DELPI no caso | Planilha WEG J5 «Contato» |
+| `delpi_sales_rep` | Não | Vendedor DELPI citado no relato | Distinto do contato no cliente |
+| `delpi_quality_contact` | Não | Referência qualidade DELPI (ex.: Carla) | |
 | `product_code` | Recomendado | NF, etiqueta, desenho | Validar formato com analista |
 | `batch_number` | Recomendado | NF, lote, OP | |
 | `detected_at` | Não | Data do relato | ISO ou confirmar com analista |
@@ -61,14 +65,14 @@ O agente monta um rascunho **antes** de `pac_create_action_plan`:
 ### E-mail
 
 1. Extrair assunto + corpo (ignorar disclaimers longos).
-2. Identificar remetente → `customer_name` / `customer_contact` (FATO se explícito).
+2. Identificar remetente → `customer_name`; contato **no cliente** → `customer_contact` / `customer_contact_email` (FATO se explícito). Comercial ou vendedor DELPI → `delpi_contact_name` ou `delpi_sales_rep` — **não** misturar papéis.
 3. Buscar produto/lote em tabelas ou anexos referenciados.
 4. Perguntar filial e escopo se ambíguos.
 5. Anexar original: `pac_attach_plan_evidence` com `evidence_type: email` **após** criar plano.
 
 ### PDF (carta NC, relatório cliente)
 
-1. OCR/texto: problema, produto, lote, data.
+1. OCR/texto: problema, produto, lote, data; em planilha 8D WEG: «Atenção para» → `customer_contact`; «Contato» (DELPI) → `delpi_contact_name`.
 2. Marcar ilegível como `missing` — não preencher com suposição.
 3. `source_type: pdf`; evidência na seção `nc_description` ou `attachments`.
 

@@ -421,6 +421,12 @@ code
 title
 customer_name
 customer_contact
+customer_contact_email
+customer_contact_phone
+delpi_contact_name
+delpi_contact_area
+delpi_sales_rep
+delpi_quality_contact
 nonconformity_scope
 source_type
 source_reference

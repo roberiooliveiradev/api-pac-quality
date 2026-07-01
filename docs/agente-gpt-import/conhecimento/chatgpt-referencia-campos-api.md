@@ -18,7 +18,7 @@ Upload em **Conhecimento** (`docs/agente-gpt-import/conhecimento/`), junto com `
 
 - Obrigatório no create: `internal` ou `external`
 - `internal`: falha interna DELPI — priorize `department`
-- `external`: reclamação cliente/fornecedor — priorize `customer_name` / `customer_contact`
+- `external`: reclamação cliente/fornecedor — priorize `customer_name` e **papéis de contato separados** (ver § Contatos cliente vs DELPI abaixo)
 - Não confundir com `source_type` (canal: email, pdf, manual_text, …)
 - Sem integração TOTVS nesta fase; `source_reference` só se o analista informar
 
@@ -37,6 +37,30 @@ Upload em **Conhecimento** (`docs/agente-gpt-import/conhecimento/`), junto com `
 | Nome + UUID | A ação entra na **Minha fila** do usuário vinculado. |
 
 `pac_update_plan_action` também aceita `responsible_user_id` (ou `null` para desvincular).
+
+## Contatos cliente vs interlocutores DELPI (V025 — jun/2026)
+
+**Não misturar papéis.** O campo legado `customer_contact` significa **pessoa de contato no cliente** (destinatário formal do 8D — «Atenção para» na planilha WEG). O vendedor ou comercial DELPI vai em campos próprios.
+
+| Campo API | Papel | Planilha 8D WEG (referência) |
+|-----------|--------|------------------------------|
+| `customer_contact` | Contato **no cliente** (ex.: Igor) | G21 — Atenção para |
+| `customer_contact_email` | E-mail do contato no cliente | J21 |
+| `customer_contact_phone` | Telefone do contato no cliente | — |
+| `delpi_contact_name` | Interlocutor DELPI no caso (ex.: Laercio) | J5 — Contato |
+| `delpi_contact_area` | Área DELPI: `comercial`, `qualidade`, `pcp`, `engenharia`, `outro` | PDF/UI |
+| `delpi_sales_rep` | Vendedor DELPI (se distinto do interlocutor) | PDF/UI |
+| `delpi_quality_contact` | Referência qualidade DELPI (ex.: Carla) | PDF/UI |
+| `template_payload.contact_phone` | Telefone **DELPI** (comercial) | J6 |
+
+No detalhe do plano, a API expõe também `contact_roles` (visão já resolvida para leitura/export).
+
+### Regras para o agente
+
+1. **E-mail/PDF WEG:** remetente ou «Atenção para» / assinatura do cliente → `customer_contact` + `customer_contact_email`; comercial/vendedor DELPI citado no corpo → `delpi_contact_name` (e `delpi_sales_rep` se for só o vendedor).
+2. **Não** gravar o vendedor DELPI em `customer_contact` quando o contato do cliente for outra pessoa.
+3. Em `pac_upsert_rnc_8d`, enviar os campos de contato no corpo do PUT (não só em `template_payload.attention_to` — a API sincroniza legado, mas a fonte canônica são as colunas do plano).
+4. Dados antigos invertidos (vendedor em `customer_contact`, cliente em `template_payload.attention_to`): a API e o export corrigem na leitura; ao regravar, separar nos campos certos.
 
 ## Equipe de análise 8D (`team_members` em `pac_upsert_rnc_8d`)
 
@@ -90,6 +114,8 @@ Persistência e resolução na **api-delpi**; a API PAC delega path/query sem al
 | Demais rotas `{plan_id}` (Ishikawa, ações, evidências, status, 8D, eficácia…) | Mesmo: código PAC ou UUID |
 
 **Fluxo:** quando o analista citar `PAC-2026-0029`, chame o detalhe com esse código; use o mesmo código ou o `id` retornado nas escritas seguintes. Se 404, confirme o código — não assuma erro técnico opaco.
+
+O detalhe inclui `contact_roles` (nomes/e-mails já resolvidos para cliente vs DELPI) — use para validar antes de export 8D.
 
 Padrão do código: `^PAC-\d{4}-\d{4}$` (ex.: `PAC-2026-0029`).
 

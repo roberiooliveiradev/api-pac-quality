@@ -15,7 +15,13 @@ Pasta de importação: `docs/agente-gpt-import/conhecimento/`. Anexe este arquiv
 | `source_reference` | Referência livre do canal (ex.: «NC 217436500 - PDF WEG»). Complementa, não substitui `client_nc_registry`. |
 | `customer_name` | Nome do cliente em NC externa. |
 | `customer_code` / `customer_store` | Código e loja TOTVS/SA1 quando o analista informar ou confirmar. |
-| `customer_contact` | Contato do cliente se disponível no relato. |
+| `customer_contact` | Contato **no cliente** (destinatário do 8D) — **não** o vendedor DELPI. |
+| `customer_contact_email` | E-mail do contato no cliente. |
+| `customer_contact_phone` | Telefone do contato no cliente. |
+| `delpi_contact_name` | Interlocutor DELPI (comercial/qualidade) no atendimento da NC. |
+| `delpi_contact_area` | `comercial` \| `qualidade` \| `pcp` \| `engenharia` \| `outro`. |
+| `delpi_sales_rep` | Vendedor DELPI, quando distinto do interlocutor principal. |
+| `delpi_quality_contact` | Referência de qualidade DELPI no caso. |
 | `product_code` / `product_description` | Código e descrição do item reclamado. |
 | `batch_number` | Lote, se informado. |
 | `detected_at` / `reported_at` | Só **ISO 8601** (ex.: `2026-06-24T10:00:00-03:00`). Se desconhecida, **omitir** — nunca texto livre. |
@@ -43,7 +49,7 @@ Pasta de importação: `docs/agente-gpt-import/conhecimento/`. Anexe este arquiv
    - **Opcional — Minha fila:** se o responsável for usuário DELPI, chamar `pac_search_assignable_users?q=nome` e gravar `responsible_user_id` (UUID retornado) **além** de `responsible_name`. Só nome livre → não entra na fila pessoal do plugin.
 5. `pac_update_action_plan_status` — avançar status conforme estágio.
 6. `pac_attach_plan_evidence` — **se** o analista enviou PDF, e-mail, foto ou planilha: anexar com `evidence_type` adequado (`pdf`, `email`, `image`, …).
-7. `pac_upsert_rnc_8d` — só se template 8D do cliente for o fluxo acordado. Em `team_members[]`, opcional `member_user_id` (UUID via `pac_search_assignable_users`) além de `member_name` — habilita vínculo Delpi na equipe e herança de responsável nas ações.
+7. `pac_upsert_rnc_8d` — só se template 8D do cliente for o fluxo acordado. Preencher **contatos separados** (`customer_contact*`, `delpi_contact_*`) conforme `chatgpt-referencia-campos-api.md` § Contatos. Em `team_members[]`, opcional `member_user_id` (UUID via `pac_search_assignable_users`) além de `member_name` — habilita vínculo Delpi na equipe e herança de responsável nas ações.
 
 ---
 
@@ -70,6 +76,11 @@ Use **só português humanizado** em perguntas, resumos e confirmações.
 | `nonconformity_scope` internal | NC interna (processo/produção DELPI) |
 | `nonconformity_scope` external | Reclamação de cliente ou NC externa |
 | `client_nc_registry` | Registro/número da NC do cliente |
+| `customer_contact` | Contato no cliente (destinatário 8D) |
+| `customer_contact_email` | E-mail do contato no cliente |
+| `delpi_contact_name` | Interlocutor DELPI (ex.: comercial no caso) |
+| `delpi_sales_rep` | Vendedor DELPI |
+| `delpi_quality_contact` | Qualidade DELPI no caso |
 | `export_template_key` | Modelo Excel 8D preferido (`weg_wfr20997`, `delpi_8d`) — ver catálogo `pac_list_export_templates` |
 | `customer_code` / `customer_store` | Código e loja do cliente no cadastro |
 | `product_code` | Código do produto |
@@ -177,7 +188,7 @@ Cada PAC alimenta futuras análises: casos semelhantes, padrões de solução, a
 | Plano gravado sem consultar histórico | Chamar `pac_search_similar_cases` antes de propor causa/ações |
 | PDF citado sem anexo | Orientar `pac_attach_plan_evidence` ou registro manual no plugin |
 | Expor `branch_code`, enums em inglês no chat | Traduzir sempre (§ 4) |
-| Código PAC citado sem chamar a API | Usar `pac_get_action_plan` ou `?code=` — não inventar falha técnica |
+| Vendedor DELPI gravado em `customer_contact` | Separar: cliente em `customer_contact` / e-mail; DELPI em `delpi_contact_name` |
 | Análise sem causa raiz provável ou sem % de confiança | Incluir bloco obrigatório §5 antes do plano de ação |
 | Confiança alta sem evidência ou confirmação | Reduzir % e listar lacunas em «O que falta levantar» |
 | Porquês de ocorrência e/ou detecção preenchidos sem corretiva na mesma trilha | Incluir ≥1 `corrective` com `cause_track: occurrence` e/ou `detection` conforme §5 — ver tabela «Ações corretivas por trilha» |
@@ -190,6 +201,7 @@ Registro via GPT com boa análise (Ishikawa, 5 Porquês, 9 ações), mas lacunas
 
 - `client_nc_registry` vazio — número 217436500 ficou só em `source_reference`.
 - `customer_code` / `customer_store` vazios — só nome WEG.
+- **Contatos invertidos:** vendedor DELPI (Laercio) em `customer_contact` e contato do cliente (Igor) só em `template_payload.attention_to` — usar campos V025 (`delpi_contact_name`, `customer_contact`, `customer_contact_email`).
 - Nenhuma evidência PDF anexada apesar de `source_type: pdf`.
 - `recurrence_key` fora do padrão (`WEG|10156007|…`) — prejudica recorrência automática.
 - `problem_category` = «reclamação de cliente» — confundiu escopo com categoria.
