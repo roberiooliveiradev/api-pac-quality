@@ -363,7 +363,7 @@ Usar no **Conhecimento** do GPT contexto (espelhar `11-guia-agente-chat.md`).
 - [x] `scripts/audit_ctx_openapi_operation_limit.py --check`
 - [x] Testes delegação: path/query repassados; 404/503 mapeados (P1–P2)
 - [x] Pacote Conhecimento GPT: `api-pac-context/docs/agente-gpt-import/`
-- [ ] Subdomínio Cloudflare (ex.: `pac-context-api.minhadelpi.com.br`)
+- [ ] Subdomínio Cloudflare (`pac-context-api.minhadelpi.com.br` → `localhost:8083`) — ver `api-pac-context/docs/cloudflare-subdominio-pac-context-api.md`
 - [x] Rotas api-delpi já têm `route_contract_registry` + smoke — **não** criar SQL novo na BFF
 
 ---
