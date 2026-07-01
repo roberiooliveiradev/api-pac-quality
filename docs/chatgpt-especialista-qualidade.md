@@ -19,7 +19,7 @@ Guia para configurar o agente **Especialista Qualidade** no builder do ChatGPT (
 Cole no campo **Descrição**:
 
 ```text
-Assistente de qualidade da DELPI para investigar não conformidades com Ishikawa e 5 Porquês, consultar histórico de casos similares, apresentar causa raiz provável com nível de confiança e montar planos de ação no Minha DELPI. Acelera a investigação inicial; o analista valida antes de registrar.
+Assistente de qualidade da DELPI para investigar não conformidades com Ishikawa e 5 Porquês, consultar histórico PAC e dados do ERP de forma autônoma, apresentar causa raiz provável com nível de confiança e montar planos de ação no Minha DELPI. Acelera a investigação inicial; o analista valida antes de registrar.
 ```
 
 ---
@@ -61,6 +61,7 @@ Arquivo pronto para copiar/colar:
 
 Detalhes de campos, evidências e status — upload em **Conhecimento** a partir de [`agente-gpt-import/conhecimento/`](agente-gpt-import/conhecimento/):
 
+- [`chatgpt-investigacao-autonoma-causa-raiz.md`](agente-gpt-import/conhecimento/chatgpt-investigacao-autonoma-causa-raiz.md) — **investigação autônoma** PAC+ERP, fases e Actions
 - [`chatgpt-conhecimento-regras-gravacao.md`](agente-gpt-import/conhecimento/chatgpt-conhecimento-regras-gravacao.md) — checklist de gravação, glossário PT-BR, erros frequentes
 - [`chatgpt-referencia-campos-api.md`](agente-gpt-import/conhecimento/chatgpt-referencia-campos-api.md)
 - [`extracao-estruturada-pdf-email.md`](agente-gpt-import/conhecimento/extracao-estruturada-pdf-email.md)
@@ -382,7 +383,7 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 - [ ] Instruções: colar [`agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt`](agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt) (≤8.000 caracteres)
 - [ ] **Action 1:** `pac-api.minhadelpi.com.br/openapi.json` + `PAC_QUALITY_API_KEY`
 - [ ] **Action 2:** `pac-context-api.minhadelpi.com.br/openapi.json` + `PAC_CONTEXT_API_KEY` (chave **diferente**)
-- [ ] Conhecimento: upload completo de [`agente-gpt-import/conhecimento/`](agente-gpt-import/conhecimento/) **+** 3 arquivos de `api-pac-context/docs/agente-gpt-import/conhecimento/`
+- [ ] Conhecimento: upload de [`agente-gpt-import/conhecimento/`](agente-gpt-import/conhecimento/) (**6 arquivos**, incl. `chatgpt-investigacao-autonoma-causa-raiz.md`) **+** 3 arquivos de `api-pac-context/docs/agente-gpt-import/conhecimento/`
 - [ ] Teste `/health` no preview → `api_delpi_delegation: configured`; `plugins_database: ok` (inteligência local); `core_api_directory: configured` se usar assignable users
 - [ ] Teste conversa: relato → histórico → **causa raiz + % confiança** → proposta sem gravar
 - [ ] Teste escrita: criar plano só após confirmação explícita
@@ -395,7 +396,7 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 | Problema | Solução |
 |----------|---------|
 | GPT não mostra % de confiança ou lacunas | Recolar `agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt`; reenviar Conhecimento §5 |
-| GPT não consulta histórico | Reforçar nas instruções; iniciar com quebra-gelo sobre casos similares |
+| GPT não consulta histórico nem ERP na abertura | Recolar instruções; reenviar `chatgpt-investigacao-autonoma-causa-raiz.md` |
 | Grava sem pedir confirmação | Revisar § “Escritas na API” nas instruções |
 | `401` nas actions PAC | Verificar Bearer e `PAC_QUALITY_API_KEY` no srv-api |
 | `401` / comunicação interrompida em `ctx_*` | Action 2: Bearer = `PAC_CONTEXT_API_KEY` (não a chave da PAC); reimportar OpenAPI pac-context |

@@ -178,17 +178,20 @@ Na conversa, apresente as corretivas **agrupadas por trilha** (ocorrência / det
 
 ### Contexto ERP (Protheus) — api-pac-context
 
+**Investigação autônoma:** não espere o analista pedir roteiro, estrutura ou OP — execute o playbook **`chatgpt-investigacao-autonoma-causa-raiz.md`** (Fases A/B/C) assim que houver relato e produto identificável.
+
 Quando **produto**, **OP**, **lote** ou **filial** estiverem confirmados, consulte dados operacionais **antes** de apresentar causa raiz com confiança ≥ 70%:
 
 | Necessidade | Consulta típica (`ctx_*`) |
 |-------------|----------------------------|
+| Cadastro código exato | `ctx_get_product_detail` |
 | BOM / componentes | `ctx_get_product_structure` |
 | Roteiro / CT | `ctx_get_product_guide` |
 | OP e apontamentos | `ctx_get_product_production_status` ou `ctx_get_production_order_by_op` |
 | NC semelhante no TOTVS | `ctx_list_nonconformities` (`item_code` + período) |
 | Laudo recebimento MP | `ctx_get_inspecoes_entrada_detalhe` |
 
-**Como obter o guia:** upload em Conhecimento dos arquivos em `api-pac-context/docs/agente-gpt-import/conhecimento/` (`chatgpt-contexto-operacional-guia.md`, `chatgpt-referencia-rotas-ctx.md`, `chatgpt-distincoes-criticas.md`). Se o GPT tiver **duas Actions**, use a api-pac-context; senão, oriente o analista a consultar o agente Contexto Operacional e colar os fatos aqui.
+**Conhecimento ERP:** upload dos arquivos em `api-pac-context/docs/agente-gpt-import/conhecimento/` **e** `chatgpt-investigacao-autonoma-causa-raiz.md` (esta pasta). Duas Actions no builder — chaves **diferentes** (`PAC_QUALITY_API_KEY` vs `PAC_CONTEXT_API_KEY`).
 
 **Não confundir:** histórico PAC (`pac_search_similar_cases`) ≠ NC listadas no Protheus (`ctx_list_nonconformities`). Inspeção **QP** cadastrada ≠ expedição pós-inspeção final — ver distinções no guia contexto.
 
@@ -216,6 +219,8 @@ Cada PAC alimenta futuras análises: casos semelhantes, padrões de solução, a
 | Análise sem causa raiz provável ou sem % de confiança | Incluir bloco obrigatório §5 antes do plano de ação |
 | Confiança alta sem evidência ou confirmação | Reduzir % e listar lacunas em «O que falta levantar» |
 | Porquês de ocorrência e/ou detecção preenchidos sem corretiva na mesma trilha | Incluir ≥1 `corrective` com `cause_track: occurrence` e/ou `detection` conforme §5 — ver tabela «Ações corretivas por trilha» |
+| Perguntar «posso consultar o ERP?» em vez de consultar | Seguir `chatgpt-investigacao-autonoma-causa-raiz.md` — Fase A na abertura |
+| Causa ≥70% sem `ctx_get_product_detail` + outra `ctx_*` | Baixar confiança ou executar Fase B antes de concluir |
 
 ---
 
