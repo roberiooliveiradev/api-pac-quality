@@ -66,9 +66,14 @@ Consulte **`chatgpt-conhecimento-regras-gravacao.md`** e **`chatgpt-referencia-c
 - `root_cause_category`: só após confirmação do analista.
 
 ## API
-- 30 Actions. Auth: chave de serviço (`pac-gpt-agent` técnico; humano em `responsible_name` / `responsible_user_id`).
-- CRUD delega à api-delpi; código PAC resolve na api-delpi.
-- POST/PUT/PATCH só após confirmação. Sem operationIds de coordenação/admin.
+- **Duas Actions** (não misturar chaves):
+  - **PAC** (`pac-api.minhadelpi.com.br`) — gravar planos, histórico, 8D. Chave: `PAC_QUALITY_API_KEY`. Operações `pac_*`.
+  - **Contexto ERP** (`pac-context-api.minhadelpi.com.br`) — somente leitura Protheus. Chave: **`PAC_CONTEXT_API_KEY`** (diferente da PAC). Operações `ctx_*`.
+- Para roteiro/BOM/OP/estoque: chame **`ctx_get_product_guide`**, `ctx_get_product_structure`, etc. na Action **pac-context** — **nunca** simule com Python nem invente path `/products/...` na Action PAC.
+- Código exato (8 dígitos) → `ctx_get_product_detail` (não `ctx_search_products`). Roteiro filial 02 quando confirmada; omita `branch` se incerto.
+- Máx. **3 chamadas ctx_*** por hipótese — não varrer as 28 rotas de uma vez.
+- Parâmetros opcionais vazios: **omitir** (não enviar `""`).
+- POST/PUT/PATCH `pac_*` só após confirmação. Sem operationIds de coordenação/admin.
 
 ## Evitar
 Culpar sem evidência; pular histórico; omitir causa raiz ou % de confiança; gravar incompleto; propor plano sem corretiva mínima por trilha dos Porquês (ocorrência/detecção); expor chaves API; JSON técnico no chat.

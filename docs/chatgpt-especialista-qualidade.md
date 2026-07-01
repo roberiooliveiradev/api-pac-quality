@@ -305,7 +305,9 @@ Substitua o placeholder do builder por URL real da organização, ou deixe em br
 
 ## 7. Actions (resumo)
 
-Configuração detalhada: [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md) · [autenticacao-api-pac.md](autenticacao-api-pac.md).
+Configuração detalhada: [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md) · [autenticacao-api-pac.md](autenticacao-api-pac.md) · contexto ERP: [api-pac-context/docs/chatgpt-acoes-api-key.md](../../api-pac-context/docs/chatgpt-acoes-api-key.md).
+
+### Action 1 — API PAC (gravar + inteligência)
 
 | Campo | Valor |
 |-------|--------|
@@ -315,7 +317,27 @@ Configuração detalhada: [chatgpt-acoes-api-key.md](chatgpt-acoes-api-key.md) �
 
 > A API PAC expõe **somente** o fluxo do analista (**26 operações**). Coordenação, auditoria, dispatch e grafo de conhecimento ficam no **plugin Minha DELPI** (api-delpi).
 
-| Intenção | operationId |
+### Action 2 — Contexto ERP (leitura Protheus) — **obrigatória para roteiro/BOM/OP**
+
+| Campo | Valor |
+|-------|--------|
+| Schema URL | `https://pac-context-api.minhadelpi.com.br/openapi.json` |
+| Autenticação | Chave API → **Bearer** (`PAC_CONTEXT_API_KEY`) — **outra chave**, não reutilize a da PAC |
+| Servidor | `https://pac-context-api.minhadelpi.com.br` |
+
+> **28 operações** `ctx_*`. Não use `api.transformamaisdelpi.com.br` nem api-delpi direto neste GPT — use só esta Action. Após deploy da api-pac-context, **reimporte** o schema.
+
+| Intenção ERP | operationId (`ctx_*`) |
+|--------------|------------------------|
+| Cadastro código exato | `ctx_get_product_detail` |
+| Roteiro / CT | `ctx_get_product_guide` |
+| BOM | `ctx_get_product_structure` |
+| OP / apontamentos | `ctx_get_product_production_status` |
+| NC TOTVS | `ctx_list_nonconformities` |
+
+**Não** habilitar Code Interpreter para substituir chamadas `ctx_*`. **Não** disparar todas as rotas de produto em sequência — máx. 3 `ctx_*` por hipótese (ver Conhecimento §5).
+
+### Action 1 — operações `pac_*`
 |----------|-------------|
 | **Inteligência** | |
 | Casos similares | `pac_search_similar_cases` |
@@ -358,9 +380,9 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 - [ ] Nome: **Especialista Qualidade**
 - [ ] Descrição colada (§ 1)
 - [ ] Instruções: colar [`agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt`](agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt) (≤8.000 caracteres)
-- [ ] Conhecimento: upload completo de [`agente-gpt-import/conhecimento/`](agente-gpt-import/conhecimento/) (5 arquivos)
-- [ ] Quebra-gelos (§ 3)
-- [ ] Actions: schema de `/openapi.json` + Bearer — **reimportar após deploy**
+- [ ] **Action 1:** `pac-api.minhadelpi.com.br/openapi.json` + `PAC_QUALITY_API_KEY`
+- [ ] **Action 2:** `pac-context-api.minhadelpi.com.br/openapi.json` + `PAC_CONTEXT_API_KEY` (chave **diferente**)
+- [ ] Conhecimento: upload completo de [`agente-gpt-import/conhecimento/`](agente-gpt-import/conhecimento/) **+** 3 arquivos de `api-pac-context/docs/agente-gpt-import/conhecimento/`
 - [ ] Teste `/health` no preview → `api_delpi_delegation: configured`; `plugins_database: ok` (inteligência local); `core_api_directory: configured` se usar assignable users
 - [ ] Teste conversa: relato → histórico → **causa raiz + % confiança** → proposta sem gravar
 - [ ] Teste escrita: criar plano só após confirmação explícita
@@ -375,7 +397,10 @@ Os nomes exatos seguem o OpenAPI em `/openapi.json` — reimporte o schema após
 | GPT não mostra % de confiança ou lacunas | Recolar `agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt`; reenviar Conhecimento §5 |
 | GPT não consulta histórico | Reforçar nas instruções; iniciar com quebra-gelo sobre casos similares |
 | Grava sem pedir confirmação | Revisar § “Escritas na API” nas instruções |
-| `401` nas actions | Verificar Bearer e `PAC_QUALITY_API_KEY` no srv-api |
+| `401` nas actions PAC | Verificar Bearer e `PAC_QUALITY_API_KEY` no srv-api |
+| `401` / comunicação interrompida em `ctx_*` | Action 2: Bearer = `PAC_CONTEXT_API_KEY` (não a chave da PAC); reimportar OpenAPI pac-context |
+| GPT usa Python em vez de `ctx_*` | Desabilitar Code Interpreter; recolar instruções § API (duas Actions) |
+| Roteiro falha mas cadastro `ctx_*` OK | Deploy api-pac-context recente; testar `curl` em `/products/{code}/guide?branch=02` |
 | Erro «máximo 30 operações» | Deploy recente da api-pac-quality; `/openapi.json` deve ter **26 operações** |
 | Aviso «Instruções não podem exceder 8000 caracteres» | Usar `agente-gpt-import/instrucoes/chatgpt-instrucoes-system-prompt.txt`; detalhes em Conhecimento §5 |
 | Campos rejeitados (`422`) | Usar snake_case (`branch_code`, `problem_description`, `customer_name`, etc.); `branch_code` obrigatório no create (`01` ou `02`) |
