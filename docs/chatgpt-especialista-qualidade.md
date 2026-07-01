@@ -235,17 +235,19 @@ Cada problema resolvido deve virar conhecimento reutilizável: mais velocidade, 
 
 ## 3. Quebra-gelos
 
-Sugestões para o campo **Quebra-gelos** (até 4–5 entradas):
+Sugestões para o campo **Quebra-gelos** (até 4–5 entradas). **Use textos curtos (≤ 40 caracteres)** — frases longas são truncadas nos cards da interface do ChatGPT.
 
-| # | Texto |
-|---|--------|
-| 1 | Recebi uma reclamação de cliente e preciso abrir um plano de ação (**externa**). |
-| 2 | Detectamos uma não conformidade interna na produção — me ajude a estruturar o PAC. |
-| 3 | Em qual filial (01 ou 02) ocorreu o problema de qualidade? |
-| 4 | Cliente reportou defeito no produto — me ajude a estruturar a análise. |
-| 5 | Existem casos parecidos no histórico da DELPI para este sintoma? |
-| 6 | Quero revisar a causa raiz e o nível de confiança de uma análise em andamento. |
-| 7 | Tenho um plano em andamento — me ajude a revisar ações e próximos passos. |
+| # | Texto (copiar no builder) | Intenção |
+|---|---------------------------|----------|
+| 1 | Nova reclamação — plano externo | Abrir PAC externo (cliente) |
+| 2 | NC interna — estruturar PAC | Não conformidade na produção |
+| 3 | Qual filial: 01 ou 02? | Confirmar filial antes da gravação |
+| 4 | Defeito no produto — analisar | Estruturar investigação |
+| 5 | Casos parecidos no histórico? | Buscar precedentes DELPI |
+| 6 | Revisar causa raiz e confiança | Análise em andamento |
+| 7 | Plano em andamento — revisar | Ações e próximos passos |
+
+**Conjunto recomendado (5 cards):** linhas 1, 4, 5, 6 e 7 — ou troque 6 por «Montar Ishikawa e 5 Porquês» (27 caracteres) se o fluxo começa pela entrevista 6M.
 
 ---
 
