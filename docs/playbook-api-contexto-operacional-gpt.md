@@ -338,10 +338,12 @@ Usar no **Conhecimento** do GPT contexto (espelhar `11-guia-agente-chat.md`).
 
 **Instruções GPT PAC** (sem alterar limite 26): orientar o analista a consultar dados operacionais **antes** de fechar causa — via segundo agente, colagem de resultado, ou (futuro) MCP/action unificada.
 
-**Conhecimento a adicionar** em `agente-gpt-import/` quando a API existir:
+**Conhecimento a adicionar** — publicado em `api-pac-context/docs/agente-gpt-import/conhecimento/`:
 
 - `chatgpt-contexto-operacional-guia.md` — mapa §9 + exemplos de perguntas
-- Atualizar `chatgpt-conhecimento-regras-gravacao.md` — «consultar contexto ERP quando produto/OP/lote conhecidos»
+- `chatgpt-referencia-rotas-ctx.md` — catálogo 28 `ctx_*`
+- `chatgpt-distincoes-criticas.md` — inspeção QP vs expedição, roteiro vs PCP, NC PAC vs TOTVS
+- Atualizar `chatgpt-conhecimento-regras-gravacao.md` (api-pac-quality) — «consultar contexto ERP quando produto/OP/lote conhecidos»
 
 ---
 
@@ -360,6 +362,7 @@ Usar no **Conhecimento** do GPT contexto (espelhar `11-guia-agente-chat.md`).
 - [x] `contrato-http-api-pac-context-api-delpi.md` (em `api-pac-context/docs/`)
 - [x] `scripts/audit_ctx_openapi_operation_limit.py --check`
 - [x] Testes delegação: path/query repassados; 404/503 mapeados (P1–P2)
+- [x] Pacote Conhecimento GPT: `api-pac-context/docs/agente-gpt-import/`
 - [ ] Subdomínio Cloudflare (ex.: `pac-context-api.minhadelpi.com.br`)
 - [x] Rotas api-delpi já têm `route_contract_registry` + smoke — **não** criar SQL novo na BFF
 

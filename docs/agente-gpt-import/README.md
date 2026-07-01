@@ -37,6 +37,8 @@ Fazer upload de **cada** arquivo abaixo no campo **Conhecimento** do builder:
 | `entrevista-ishikawa.md` | Roteiro 6M (antes dos Porquês) |
 | `entrevista-cinco-porques.md` | Roteiro 5 Porquês (após Ishikawa) |
 
+**Opcional — contexto ERP (Protheus):** se o GPT tiver Action da **api-pac-context**, faça upload também dos 3 arquivos em `api-pac-context/docs/agente-gpt-import/conhecimento/` (`chatgpt-contexto-operacional-guia.md`, `chatgpt-referencia-rotas-ctx.md`, `chatgpt-distincoes-criticas.md`). Ver `chatgpt-conhecimento-regras-gravacao.md` §5 (contexto ERP).
+
 ---
 
 ## O que **não** importar no agente

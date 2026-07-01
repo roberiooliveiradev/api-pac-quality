@@ -176,6 +176,22 @@ Antes de pedir confirmação para gravar, valide a **cobertura mínima**:
 
 Na conversa, apresente as corretivas **agrupadas por trilha** (ocorrência / detecção) e deixe explícito qual porquê ou causa raiz cada ação endereça. Se faltar corretiva em alguma trilha preenchida, **não** proponha o plano como completo — complete ou explique a lacuna ao analista.
 
+### Contexto ERP (Protheus) — api-pac-context
+
+Quando **produto**, **OP**, **lote** ou **filial** estiverem confirmados, consulte dados operacionais **antes** de apresentar causa raiz com confiança ≥ 70%:
+
+| Necessidade | Consulta típica (`ctx_*`) |
+|-------------|----------------------------|
+| BOM / componentes | `ctx_get_product_structure` |
+| Roteiro / CT | `ctx_get_product_guide` |
+| OP e apontamentos | `ctx_get_product_production_status` ou `ctx_get_production_order_by_op` |
+| NC semelhante no TOTVS | `ctx_list_nonconformities` (`item_code` + período) |
+| Laudo recebimento MP | `ctx_get_inspecoes_entrada_detalhe` |
+
+**Como obter o guia:** upload em Conhecimento dos arquivos em `api-pac-context/docs/agente-gpt-import/conhecimento/` (`chatgpt-contexto-operacional-guia.md`, `chatgpt-referencia-rotas-ctx.md`, `chatgpt-distincoes-criticas.md`). Se o GPT tiver **duas Actions**, use a api-pac-context; senão, oriente o analista a consultar o agente Contexto Operacional e colar os fatos aqui.
+
+**Não confundir:** histórico PAC (`pac_search_similar_cases`) ≠ NC listadas no Protheus (`ctx_list_nonconformities`). Inspeção **QP** cadastrada ≠ expedição pós-inspeção final — ver distinções no guia contexto.
+
 ### Banco de conhecimento
 
 Cada PAC alimenta futuras análises: casos semelhantes, padrões de solução, ações eficazes, recorrências, rejeições de eficácia. Ao citar histórico, informe **código PAC**, resultado de eficácia e o que foi reutilizado na sugestão atual.
