@@ -92,6 +92,9 @@ ROUTE_CONTRACTS: dict[str, RouteContract] = {
         "pac_quality_evidence_tag_suggestions",
         "composite_analysis",
     ),
+    "pac_list_plan_revisions": RouteContract("quality_action_plan_revision", "paged_list"),
+    "pac_get_plan_revision": RouteContract("quality_action_plan_revision", "composite_analysis"),
+    "pac_restore_plan_revision": RouteContract("quality_action_plan", "composite_analysis"),
 }
 
 

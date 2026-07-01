@@ -20,6 +20,8 @@ PLUGIN_ONLY_READ_PARITY: dict[str, str] = {
         "pac_list_pending_effectiveness_reviews"
     ),
     "list_quality_action_plan_audit_log": "pac_list_plan_audit_log",
+    "list_quality_action_plan_revisions": "pac_list_plan_revisions",
+    "get_quality_action_plan_revision": "pac_get_plan_revision",
 }
 
 

@@ -34,6 +34,7 @@ PLUGIN_ONLY_WRITE_PARITY: dict[str, str] = {
     "reject_quality_action_plan_effectiveness_review": "pac_reject_effectiveness_review",
     "promote_quality_action_plan_solution_pattern": "pac_promote_solution_pattern",
     "dispatch_quality_action_plan_notifications": "pac_dispatch_notifications",
+    "restore_quality_action_plan_revision": "pac_restore_plan_revision",
 }
 
 

@@ -504,6 +504,44 @@ def reopen_action_plan(plan_id: str, body: ReopenActionPlanBody = Body(...)):
     )
 
 
+@router.get("/{plan_id}/revisions", operation_id="pac_list_plan_revisions")
+def list_plan_revisions(
+    plan_id: str,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+):
+    return delegate_json(
+        method="GET",
+        path_suffix=f"/{plan_id}/revisions",
+        pac_operation_id="pac_list_plan_revisions",
+        query=_query_params(page=page, page_size=page_size),
+    )
+
+
+@router.get(
+    "/{plan_id}/revisions/{revision_number}",
+    operation_id="pac_get_plan_revision",
+)
+def get_plan_revision(plan_id: str, revision_number: int):
+    return delegate_json(
+        method="GET",
+        path_suffix=f"/{plan_id}/revisions/{revision_number}",
+        pac_operation_id="pac_get_plan_revision",
+    )
+
+
+@router.post(
+    "/{plan_id}/revisions/{revision_number}/restore",
+    operation_id="pac_restore_plan_revision",
+)
+def restore_plan_revision(plan_id: str, revision_number: int):
+    return delegate_json(
+        method="POST",
+        path_suffix=f"/{plan_id}/revisions/{revision_number}/restore",
+        pac_operation_id="pac_restore_plan_revision",
+    )
+
+
 @router.put("/{plan_id}/rnc-8d", operation_id="pac_upsert_rnc_8d")
 def upsert_rnc_8d_report(plan_id: str, body: Rnc8dReportBody = Body(...)):
     return delegate_json(
