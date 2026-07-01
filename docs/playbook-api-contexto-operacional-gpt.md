@@ -1,6 +1,6 @@
 # Playbook — API de contexto operacional para o Especialista Qualidade (GPT)
 
-**Status:** proposta (jun/2026) — inventário e curadoria de rotas; **sem implementação**  
+**Status:** P1 implementado (jun/2026) — repo `api-pac-context` com 10 rotas produto `ctx_*`  
 **Público:** api-pac-quality, api-delpi, produto PAC, arquitetura DELPI  
 **Relacionados:** [playbook_pac_qualidade_delpi.md](../playbook_pac_qualidade_delpi.md) · [openapi-analista-24-operacoes.md](openapi-analista-24-operacoes.md) · [contrato-http-api-pac-api-delpi.md](contrato-http-api-pac-api-delpi.md) · api-delpi `docs/api/11-guia-agente-chat.md` · Playbook 15 (rotas operacionais)
 
@@ -357,11 +357,11 @@ Usar no **Conhecimento** do GPT contexto (espelhar `11-guia-agente-chat.md`).
 
 **Checklist técnico (espelhar api-pac-quality):**
 
-- [ ] `contrato-http-api-pac-context-api-delpi.md`
-- [ ] `scripts/audit_pac_context_openapi_operation_limit.py --check`
-- [ ] Testes delegação: path/query repassados; 404/503 mapeados
+- [x] `contrato-http-api-pac-context-api-delpi.md` (em `api-pac-context/docs/`)
+- [x] `scripts/audit_ctx_openapi_operation_limit.py --check`
+- [x] Testes delegação: path/query repassados; 404/503 mapeados (P1)
 - [ ] Subdomínio Cloudflare (ex.: `pac-context-api.minhadelpi.com.br`)
-- [ ] Rotas api-delpi já têm `route_contract_registry` + smoke — **não** criar SQL novo na BFF
+- [x] Rotas api-delpi já têm `route_contract_registry` + smoke — **não** criar SQL novo na BFF
 
 ---
 
