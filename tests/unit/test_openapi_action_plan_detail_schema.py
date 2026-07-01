@@ -34,10 +34,13 @@ def test_rnc8d_template_payload_header_keys_match_plugin_material_section():
         "invoice_number",
         "invoice_date",
         "defective_quantity",
+        "defective_quantity_unit",
         "client_batch",
         "batch_quantity",
+        "batch_quantity_unit",
         "disposition",
         "rejected_quantity",
+        "rejected_quantity_unit",
         "return_by",
     }
     documented = {key for key in RNC8D_TEMPLATE_PAYLOAD_HEADER_KEYS if key not in {"attention_to", "attention_email"}}

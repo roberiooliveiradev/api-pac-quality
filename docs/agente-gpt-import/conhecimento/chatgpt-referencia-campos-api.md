@@ -76,11 +76,14 @@ Seção **«Material e nota fiscal»** do plugin. **Somente** `pac_upsert_rnc_8d
 | `purchase_order` | Ordem compra / posição | E8 |
 | `invoice_number` | Nota fiscal | — |
 | `invoice_date` | Data digitação NF | — |
-| `defective_quantity` | Quantidade defeituosa | — |
+| `defective_quantity` | Quantidade defeituosa (**numérica**) | E11 (export combina com unidade) |
+| `defective_quantity_unit` | Unidade (ex.: UNIDADES, PC) | E11 |
 | `client_batch` | Lote do cliente | J8 |
-| `batch_quantity` | Quantidade do lote | — |
+| `batch_quantity` | Quantidade do lote (**numérica**) | J10 |
+| `batch_quantity_unit` | Unidade do lote | J10 |
 | `disposition` | Disposição do material | — |
-| `rejected_quantity` | Quantidade rejeitada | J12 |
+| `rejected_quantity` | Quantidade rejeitada (**numérica**) | J12 |
+| `rejected_quantity_unit` | Unidade rejeitada | J12 |
 | `return_by` | Devolver relatório até | D21 |
 
 **Leitura:** `pac_get_action_plan` → `data.plan.template_payload.<chave>` (valores vazios = campo não preenchido no plano).
@@ -96,6 +99,12 @@ Seção **«Material e nota fiscal»** do plugin. **Somente** `pac_upsert_rnc_8d
   "template_payload": {
     "purchase_order": "5500044658 / 09770",
     "client_batch": "10019632175",
+    "defective_quantity": 5,
+    "defective_quantity_unit": "UNIDADES",
+    "batch_quantity": 5,
+    "batch_quantity_unit": "UNIDADES",
+    "rejected_quantity": 5,
+    "rejected_quantity_unit": "UNIDADES",
     "contact_phone": "47 3370 5502"
   }
 }

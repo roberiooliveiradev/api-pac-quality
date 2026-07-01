@@ -33,11 +33,14 @@ class Rnc8dTemplatePayloadHeader(BaseModel):
     purchase_order: str | None = Field(default=None, description="Ordem de compra / posição.")
     invoice_number: str | None = Field(default=None, description="Número da nota fiscal.")
     invoice_date: str | None = Field(default=None, description="Data digitação NF (ISO ou texto).")
-    defective_quantity: str | None = Field(default=None, description="Quantidade defeituosa.")
+    defective_quantity: float | int | None = Field(default=None, description="Quantidade defeituosa (numérica).")
+    defective_quantity_unit: str | None = Field(default=None, description="Unidade da quantidade defeituosa.")
     client_batch: str | None = Field(default=None, description="Lote do cliente.")
-    batch_quantity: str | None = Field(default=None, description="Quantidade do lote.")
+    batch_quantity: float | int | None = Field(default=None, description="Quantidade do lote (numérica).")
+    batch_quantity_unit: str | None = Field(default=None, description="Unidade da quantidade do lote.")
     disposition: str | None = Field(default=None, description="Disposição do material.")
-    rejected_quantity: str | None = Field(default=None, description="Quantidade rejeitada.")
+    rejected_quantity: float | int | None = Field(default=None, description="Quantidade rejeitada (numérica).")
+    rejected_quantity_unit: str | None = Field(default=None, description="Unidade da quantidade rejeitada.")
     return_by: str | None = Field(default=None, description="Devolver relatório até.")
     attention_to: str | None = Field(
         default=None,
